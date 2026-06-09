@@ -1,0 +1,127 @@
+<%- include('../partials/navbar') %>
+
+<section class="relative w-full h-[65vh] sm:h-[80vh] bg-brand-gray-50 overflow-hidden flex items-center">
+  <div class="absolute inset-0 z-0">
+    <img 
+      src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2070" 
+      alt="New Season Minimalist Wardrobe" 
+      class="w-full h-full object-cover object-center brightness-[0.93]"
+    />
+  </div>
+  
+  <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+    <div class="max-w-xl md:max-w-2xl">
+      <span class="text-[10px] font-semibold uppercase tracking-widest2 text-brand-gray-600 block mb-2 sm:mb-4">
+        New Season Collection
+      </span>
+      <h1 class="font-serif text-4xl sm:text-6xl lg:text-7xl font-bold text-brand-black leading-[1.1] mb-4 sm:mb-6">
+        Timeless Fashion<br />For Modern Women
+      </h1>
+      <p class="font-sans text-xs sm:text-sm text-brand-gray-600 leading-relaxed mb-6 sm:mb-8 max-w-md">
+        Discover elevated essentials, curated luxury, and effortless elegance designed for the contemporary wardrobe.
+      </p>
+      <div class="flex flex-wrap gap-4">
+        <a href="/shop" class="bg-brand-black text-white text-[10px] font-bold uppercase tracking-widest2 px-6 py-3.5 hover:bg-brand-gray-600 transition-colors">
+          Shop Collection
+        </a>
+        <a href="/lookbook" class="bg-white border border-brand-gray-200 text-brand-black text-[10px] font-bold uppercase tracking-widest2 px-6 py-3.5 hover:bg-brand-gray-50 transition-colors">
+          Explore Lookbook
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
+  <h2 class="font-serif text-2xl sm:text-3xl font-bold text-center text-brand-black mb-10 sm:mb-14">
+    Shop By Category
+  </h2>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <a href="/shop?category=casual" class="group relative h-[450px] overflow-hidden bg-brand-gray-50">
+      <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1020" alt="Casual Wear" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+      <div class="absolute inset-0 bg-black/10 flex items-center justify-center">
+        <span class="font-serif text-white text-lg font-bold uppercase tracking-widest px-4 py-2 border-b-2 border-transparent group-hover:border-white transition-all">Casual</span>
+      </div>
+    </a>
+
+    <a href="/shop?category=formal" class="group relative h-[450px] overflow-hidden bg-brand-gray-50">
+      <img src="https://images.unsplash.com/photo-1485968579580-b6d095142e6e?q=80&w=986" alt="Formals Wear" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+      <div class="absolute inset-0 bg-black/10 flex items-center justify-center">
+        <span class="font-serif text-white text-lg font-bold uppercase tracking-widest px-4 py-2 border-b-2 border-transparent group-hover:border-white transition-all">Formals</span>
+      </div>
+    </a>
+
+    <a href="/shop?category=ethnic" class="group relative h-[450px] overflow-hidden bg-brand-gray-50">
+      <img src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=987" alt="Ethnic Wear" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+      <div class="absolute inset-0 bg-black/10 flex items-center justify-center">
+        <span class="font-serif text-white text-lg font-bold uppercase tracking-widest px-4 py-2 border-b-2 border-transparent group-hover:border-white transition-all">Ethnic</span>
+      </div>
+    </a>
+  </div>
+</section>
+
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 sm:pb-28">
+  <div class="flex justify-between items-end mb-8 border-b border-brand-gray-100 pb-4">
+    <div>
+      <h2 class="font-serif text-2xl sm:text-3xl font-bold text-brand-black mb-1">Latest Collection</h2>
+      <p class="font-sans text-xs text-brand-gray-400">Curated pieces designed for elegance and modern luxury.</p>
+    </div>
+    <a href="/shop" class="font-sans text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-brand-black border-b border-brand-black hover:text-brand-gray-600 hover:border-brand-gray-600 transition-all pb-0.5">
+      View All Products
+    </a>
+  </div>
+
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-10 sm:gap-x-6 sm:gap-y-12">
+    <div class="group flex flex-col relative">
+      <div class="relative bg-brand-gray-50 h-[280px] sm:h-[380px] overflow-hidden mb-3">
+        <img src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?q=80&w=1020" alt="Floral Maroon dress" class="w-full h-full object-cover object-top group-hover:scale-102 transition-transform duration-300" />
+        <button class="absolute top-3 right-3 bg-white p-2 rounded-full shadow-sm text-brand-gray-400 hover:text-red-500 transition-colors" aria-label="Add to Wishlist">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
+        </button>
+      </div>
+      <span class="text-[9px] uppercase tracking-widest text-brand-gray-400 font-semibold mb-1">Ethnic</span>
+      <h3 class="font-sans text-xs sm:text-sm text-brand-black font-medium mb-1 truncate">Floral Maroon dress</h3>
+      <p class="font-sans text-xs font-semibold text-brand-gray-600">₹4,499.00</p>
+    </div>
+
+    <div class="group flex flex-col relative">
+      <div class="relative bg-brand-gray-50 h-[280px] sm:h-[380px] overflow-hidden mb-3">
+        <span class="absolute top-3 left-3 bg-brand-black text-white font-sans font-bold text-[9px] uppercase px-2 py-0.5 tracking-wider z-10">New</span>
+        <img src="https://images.unsplash.com/photo-1566174053879-31528523f8ae?q=80&w=982" alt="Goldie Set" class="w-full h-full object-cover object-top group-hover:scale-102 transition-transform duration-300" />
+        <button class="absolute top-3 right-3 bg-white p-2 rounded-full shadow-sm text-brand-gray-400 hover:text-red-500 transition-colors" aria-label="Add to Wishlist">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
+        </button>
+      </div>
+      <span class="text-[9px] uppercase tracking-widest text-brand-gray-400 font-semibold mb-1">Party Wear</span>
+      <h3 class="font-sans text-xs sm:text-sm text-brand-black font-medium mb-1 truncate">Goldie Set</h3>
+      <p class="font-sans text-xs font-semibold text-brand-gray-600">₹4,200.00</p>
+    </div>
+
+    <div class="group flex flex-col relative">
+      <div class="relative bg-brand-gray-50 h-[280px] sm:h-[380px] overflow-hidden mb-3">
+        <img src="https://images.unsplash.com/photo-1541099649105-f69ad21f3246?q=80&w=987" alt="White Shirt" class="w-full h-full object-cover object-top group-hover:scale-102 transition-transform duration-300" />
+        <button class="absolute top-3 right-3 bg-white p-2 rounded-full shadow-sm text-brand-gray-400 hover:text-red-500 transition-colors" aria-label="Add to Wishlist">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
+        </button>
+      </div>
+      <span class="text-[9px] uppercase tracking-widest text-brand-gray-400 font-semibold mb-1">Casual</span>
+      <h3 class="font-sans text-xs sm:text-sm text-brand-black font-medium mb-1 truncate">White shirt</h3>
+      <p class="font-sans text-xs font-semibold text-brand-gray-600">₹699.00</p>
+    </div>
+
+    <div class="group flex flex-col relative">
+      <div class="relative bg-brand-gray-50 h-[280px] sm:h-[380px] overflow-hidden mb-3">
+        <img src="https://images.unsplash.com/photo-1548624149-f1bc346fe851?q=80&w=987" alt="Cozyset" class="w-full h-full object-cover object-top group-hover:scale-102 transition-transform duration-300" />
+        <button class="absolute top-3 right-3 bg-white p-2 rounded-full shadow-sm text-brand-gray-400 hover:text-red-500 transition-colors" aria-label="Add to Wishlist">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
+        </button>
+      </div>
+      <span class="text-[9px] uppercase tracking-widest text-brand-gray-400 font-semibold mb-1">Casual</span>
+      <h3 class="font-sans text-xs sm:text-sm text-brand-black font-medium mb-1 truncate">Cozyset</h3>
+      <p class="font-sans text-xs font-semibold text-brand-gray-600">₹900.00</p>
+    </div>
+  </div>
+</section>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,56 @@
+<footer class="bg-black text-white pt-12 pb-8 sm:pt-16 sm:pb-12 font-sans">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12 pb-12 border-b border-zinc-800">
+      
+      <div class="space-y-4">
+        <h2 class="font-serif text-3xl font-bold tracking-wide">EVERLOOM</h2>
+        <p class="text-xs text-zinc-400 font-sans max-w-xs leading-relaxed">
+          Timeless Fashion<br />For Modern Women
+        </p>
+      </div>
+
+      <div>
+        <h3 class="text-xs font-bold uppercase tracking-widest mb-4 text-zinc-300">Shop</h3>
+        <ul class="space-y-2.5 text-xs text-zinc-400">
+          <li><a href="/shop?category=all" class="hover:text-white transition-colors">All products</a></li>
+          <li><a href="/shop?category=casual" class="hover:text-white transition-colors">Casual Wear</a></li>
+          <li><a href="/shop?category=formal" class="hover:text-white transition-colors">Formal Wear</a></li>
+          <li><a href="/shop?category=party" class="hover:text-white transition-colors">Party Wear</a></li>
+          <li><a href="/shop?category=ethnic" class="hover:text-white transition-colors">Ethnic Wear</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h3 class="text-xs font-bold uppercase tracking-widest mb-4 text-zinc-300">Help</h3>
+        <ul class="space-y-2.5 text-xs text-zinc-400">
+          <li><a href="/support" class="hover:text-white transition-colors">Customer Service</a></li>
+          <li><a href="/account" class="hover:text-white transition-colors">My Account</a></li>
+          <li><a href="/stores" class="hover:text-white transition-colors">Find a Store</a></li>
+          <li><a href="/privacy" class="hover:text-white transition-colors">Legal & Privacy</a></li>
+        </ul>
+      </div>
+
+      <div class="space-y-4">
+        <h3 class="text-xs font-bold uppercase tracking-widest text-zinc-300">Subscribe</h3>
+        <p class="text-xs text-zinc-400 leading-relaxed">Get the latest updates and offers.</p>
+        <form action="/subscribe" method="POST" class="flex max-w-sm">
+          <input 
+            type="email" 
+            name="email" 
+            placeholder="Email address" 
+            required
+            class="w-full bg-zinc-900 text-white text-xs px-4 py-3 border border-zinc-800 focus:outline-none focus:border-zinc-500 font-sans"
+          />
+          <button type="submit" class="bg-white text-black px-4 py-3 text-xs font-bold uppercase tracking-wider hover:bg-zinc-200 transition-colors">
+            Join
+          </button>
+        </form>
+      </div>
+
+    </div>
+
+    <div class="pt-6 text-center text-[10px] text-zinc-500 uppercase tracking-widest">
+      &copy; <%= new Date().getFullYear() %> Everloom. All rights reserved.
+    </div>
+  </div>
+</footer>

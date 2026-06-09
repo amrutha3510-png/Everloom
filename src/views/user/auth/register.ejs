@@ -1,0 +1,308 @@
+<main class="min-h-screen bg-brand-gray-50 flex items-center justify-center px-4 py-12 sm:py-16">
+
+  <div class="w-full max-w-lg bg-white px-8 py-12 sm:px-12 sm:py-14 shadow-sm border border-brand-gray-50">
+
+    <h1 class="font-serif text-4xl sm:text-5xl font-bold text-brand-black text-center leading-tight mb-3">
+      Create Your Account
+    </h1>
+
+    <p class="font-sans text-sm text-brand-gray-600 text-center leading-relaxed mb-10">
+      Join our fashion community and explore timeless styles<br class="hidden sm:block" />
+      curated for modern women.
+    </p>
+
+    <form
+      action="/register"
+      method="POST"
+      id="registerForm"
+      novalidate
+      class="space-y-4"
+    >
+
+      <div>
+        <input
+          type="text"
+          name="fullName"
+          id="fullName"
+          placeholder="Full Name *"
+          autocomplete="name"
+          value="<%= typeof oldData !== 'undefined' && oldData ? oldData.fullName : '' %>"
+          required
+          class="
+            w-full bg-brand-gray-50 border border-brand-gray-100
+            text-brand-black placeholder-brand-gray-400
+            font-sans text-sm px-4 py-3.5
+            focus:outline-none focus:border-brand-gray-600 focus:bg-white
+            transition-all duration-150
+          "
+        />
+        <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="fullNameError"></p>
+      </div>
+
+      <div>
+        <input
+          type="email"
+          name="email"
+          id="email"
+          placeholder="Email Address *"
+          autocomplete="email"
+          value="<%= typeof oldData !== 'undefined' && oldData ? oldData.email : '' %>"
+          required
+          class="
+            w-full bg-brand-gray-50 border border-brand-gray-100
+            text-brand-black placeholder-brand-gray-400
+            font-sans text-sm px-4 py-3.5
+            focus:outline-none focus:border-brand-gray-600 focus:bg-white
+            transition-all duration-150
+          "
+        />
+        <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="emailError"></p>
+      </div>
+
+      <div class="relative">
+        <input
+          type="password"
+          name="password"
+          id="password"
+          placeholder="Password *"
+          autocomplete="new-password"
+          required
+          class="
+            w-full bg-brand-gray-50 border border-brand-gray-100
+            text-brand-black placeholder-brand-gray-400
+            font-sans text-sm px-4 py-3.5 pr-12
+            focus:outline-none focus:border-brand-gray-600 focus:bg-white
+            transition-all duration-150
+          "
+        />
+        <button
+          type="button"
+          onclick="togglePassword('password', 'eyeIcon1')"
+          class="absolute right-4 top-[22px] -translate-y-1/2 text-brand-gray-400 hover:text-brand-gray-600 transition-colors"
+          aria-label="Toggle password visibility"
+        >
+          <svg id="eyeIcon1" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </button>
+        <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="passwordError"></p>
+      </div>
+
+      <div class="relative">
+        <input
+          type="password"
+          name="confirmPassword"
+          id="confirmPassword"
+          placeholder="Confirm Password *"
+          autocomplete="new-password"
+          required
+          class="
+            w-full bg-brand-gray-50 border border-brand-gray-100
+            text-brand-black placeholder-brand-gray-400
+            font-sans text-sm px-4 py-3.5 pr-12
+            focus:outline-none focus:border-brand-gray-600 focus:bg-white
+            transition-all duration-150
+          "
+        />
+        <button
+          type="button"
+          onclick="togglePassword('confirmPassword', 'eyeIcon2')"
+          class="absolute right-4 top-[22px] -translate-y-1/2 text-brand-gray-400 hover:text-brand-gray-600 transition-colors"
+          aria-label="Toggle confirm password visibility"
+        >
+          <svg id="eyeIcon2" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </button>
+        <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="confirmPasswordError"></p>
+      </div>
+
+      <div>
+        <input
+          type="text"
+          name="referralCode"
+          id="referralCode"
+          placeholder="Referral Code (Optional)"
+          autocomplete="off"
+          value="<%= typeof oldData !== 'undefined' && oldData ? oldData.referralCode : '' %>"
+          class="
+            w-full bg-brand-gray-50 border border-brand-gray-100
+            text-brand-black placeholder-brand-gray-400
+            font-sans text-sm px-4 py-3.5
+            focus:outline-none focus:border-brand-gray-600 focus:bg-white
+            transition-colors duration-150
+          "
+        />
+      </div>
+
+      <div class="pt-4">
+        <button
+          type="submit"
+          class="
+            w-full bg-brand-black text-white
+            font-sans text-xs font-semibold tracking-widest2 uppercase
+            px-6 py-4
+            hover:bg-brand-gray-600
+            active:scale-[0.99]
+            transition-all duration-150
+            flex items-center justify-center gap-2
+          "
+        >
+          Create Account
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          </svg>
+        </button>
+      </div>
+
+    </form>
+
+    <p class="text-center font-sans text-sm text-brand-gray-600 mt-6">
+      Already have an account?
+      <a href="/login" class="text-brand-black font-semibold hover:underline underline-offset-2 transition-all">
+        Login
+      </a>
+    </p>
+
+    <div class="flex items-center gap-3 my-6">
+      <div class="flex-1 h-px bg-brand-gray-200"></div>
+      <span class="font-sans text-xs text-brand-gray-400 whitespace-nowrap">Or continue with</span>
+      <div class="flex-1 h-px bg-brand-gray-200"></div>
+    </div>
+
+    <a
+      href="/auth/google"
+      class="
+        w-full flex items-center justify-center gap-3
+        border border-brand-gray-200 bg-brand-gray-50
+        font-sans text-sm text-brand-black font-medium
+        px-6 py-3.5
+        hover:bg-brand-gray-100
+        transition-colors duration-150
+      "
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" class="w-5 h-5" aria-hidden="true">
+        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+      </svg>
+      Sign in with Google
+    </a>
+
+    <p class="text-center font-sans text-xs text-brand-gray-400 mt-6 leading-relaxed">
+      By creating an account, you agree to our
+      <a href="/terms" class="text-brand-black underline underline-offset-2 hover:text-brand-gray-600 transition-colors">Terms</a>
+      &amp;
+      <a href="/privacy" class="text-brand-black underline underline-offset-2 hover:text-brand-gray-600 transition-colors">Privacy Policy</a>.
+    </p>
+
+  </div>
+
+</main>
+
+<script>
+  // Toggle Password Function (Perfectly Reusable)
+  function togglePassword(inputId, iconId) {
+    const input = document.getElementById(inputId);
+    const icon  = document.getElementById(iconId);
+    if (!input || !icon) return;
+
+    const isPassword = input.type === 'password';
+    input.type = isPassword ? 'text' : 'password';
+
+    if (isPassword) {
+      icon.innerHTML = `
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
+      `;
+    } else {
+      icon.innerHTML = `
+        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      `;
+    }
+  }
+
+  // Premium Inline Validation Logic
+  document.getElementById('registerForm').addEventListener('submit', function (e) {
+    let isValid = true;
+
+    const fullName        = document.getElementById('fullName');
+    const email           = document.getElementById('email');
+    const password        = document.getElementById('password');
+    const confirmPassword = document.getElementById('confirmPassword');
+
+    // Utility function to trigger Red State and Message
+    const setInvalid = (inputEl, errorElId, msg) => {
+      const errorEl = document.getElementById(errorElId);
+      errorEl.textContent = msg;
+      errorEl.classList.remove('hidden');
+      
+      // Gray border മാറ്റി Red ആക്കുന്നു
+      inputEl.classList.remove('border-brand-gray-100', 'focus:border-brand-gray-600');
+      inputEl.classList.add('border-red-500', 'focus:border-red-500');
+      isValid = false;
+    };
+
+    // Utility function to clear Red State
+    const setValid = (inputEl, errorElId) => {
+      const errorEl = document.getElementById(errorElId);
+      errorEl.textContent = '';
+      errorEl.classList.add('hidden');
+      
+      // Red border മാറ്റി ഒറിജിനൽ സ്റ്റൈൽ ആക്കുന്നു
+      inputEl.classList.remove('border-red-500', 'focus:border-red-500');
+      inputEl.classList.add('border-brand-gray-100', 'focus:border-brand-gray-600');
+    };
+
+    // 1. Full Name Validation
+    if (!fullName.value.trim()) {
+      setInvalid(fullName, 'fullNameError', 'Full name is required.');
+    } else {
+      setValid(fullName, 'fullNameError');
+    }
+
+    // 2. Email Validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.value.trim())) {
+      setInvalid(email, 'emailError', 'Please enter a valid email address.');
+    } else {
+      setValid(email, 'emailError');
+    }
+
+    // 3. Password Validation (Min 8 Characters, 1 uppercase, 1 lowercase, 1 number, 1 special char)
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+    if (!passwordRegex.test(password.value)) {
+      setInvalid(password, 'passwordError', 'Password must be at least 8 characters with 1 uppercase, 1 lowercase, 1 number, and 1 special character.');
+    } else {
+      setValid(password, 'passwordError');
+    }
+
+    // 4. Confirm Password Validation
+    if (!confirmPassword.value) {
+      setInvalid(confirmPassword, 'confirmPasswordError', 'Please confirm your password.');
+    } else if (password.value !== confirmPassword.value) {
+      setInvalid(confirmPassword, 'confirmPasswordError', 'Passwords do not match.');
+    } else {
+      setValid(confirmPassword, 'confirmPasswordError');
+    }
+
+    // Stop form submission if invalid
+    if (!isValid) {
+      e.preventDefault();
+    }
+  });
+
+  // Real-time error removal when user starts typing
+  const inputs = ['fullName', 'email', 'password', 'confirmPassword'];
+  inputs.forEach(id => {
+    document.getElementById(id).addEventListener('input', function() {
+      this.classList.remove('border-red-500', 'focus:border-red-500');
+      this.classList.add('border-brand-gray-100', 'focus:border-brand-gray-600');
+      const errorEl = document.getElementById(id + 'Error');
+      if (errorEl) errorEl.classList.add('hidden');
+    });
+  });
+</script>

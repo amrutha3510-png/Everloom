@@ -1,0 +1,173 @@
+<main class="min-h-screen bg-brand-gray-50 flex items-center justify-center px-4 py-12 sm:py-16">
+
+  <div class="w-full max-w-lg bg-white px-8 py-14 sm:px-16 sm:py-16 shadow-sm border border-brand-gray-50">
+    
+    <h1 class="font-serif text-4xl sm:text-5xl font-bold text-brand-black text-center leading-tight mb-4">
+      Verify Identity
+    </h1>
+
+    <p class="font-sans text-sm text-brand-gray-600 text-center leading-relaxed mb-10">
+      Enter the 6-digit code sent to your email<br>
+      <span class="text-brand-black font-semibold mt-1 block select-all"><%= email %></span>
+    </p>
+
+    <form action="/verify-reset-otp" method="POST" id="otpForm" class="space-y-6" novalidate>
+      
+      <input type="hidden" name="email" value="<%= email %>">
+
+      <div>
+        <input
+          type="text"
+          name="otp"
+          id="otp"
+          maxlength="6"
+          placeholder="••••••"
+          autocomplete="one-time-code"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          required
+          class="
+            w-full bg-brand-gray-50 border border-brand-gray-100
+            text-brand-black placeholder-brand-gray-400
+            font-sans text-2xl tracking-[0.5em] text-center px-4 py-4
+            focus:outline-none focus:border-brand-gray-600 focus:bg-white
+            transition-all duration-150
+            disabled:opacity-40 disabled:cursor-not-allowed
+          "
+        />
+        <p class="hidden text-red-500 text-xs mt-2 font-sans text-center" id="otpError"></p>
+      </div>
+
+      <div class="pt-2">
+        <button
+          type="submit"
+          id="verifyBtn"
+          class="
+            w-full bg-brand-black text-white
+            font-sans text-sm font-semibold tracking-widest2 uppercase
+            px-8 py-5
+            hover:bg-brand-gray-600
+            active:scale-[0.99]
+            transition-all duration-150
+            flex items-center justify-center gap-2
+            disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-brand-black disabled:active:scale-100
+          "
+        >
+          Verify
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          </svg>
+        </button>
+      </div>
+
+    </form>
+
+    <div class="mt-8 flex flex-col items-center space-y-4 font-sans text-sm">
+      
+      <p class="text-brand-gray-600 text-center">
+        Didn't receive the code? 
+        <form action="/resend-reset-otp" method="POST" class="inline" id="resendForm">
+          <button
+            type="submit"
+            id="resendBtn"
+            disabled
+            class="text-blue-600 font-medium hover:underline disabled:pointer-events-none disabled:opacity-40 transition-all duration-200 bg-transparent border-none cursor-pointer p-0"
+          >
+            Resend Code
+          </button>
+        </form>
+      </p>
+
+      <%# Timer badge — hidden when OTP is already expired on load %>
+      <div id="timerBadge" class="inline-flex items-center gap-1.5 bg-brand-gray-50 border border-brand-gray-100 text-brand-gray-600 rounded-full px-4 py-1.5 text-xs font-medium tracking-wide">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-brand-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        EXPIRES IN <span id="countdown" class="text-brand-black font-semibold">00:00</span>
+      </div>
+
+      <%# Expired badge — hidden while timer is running %>
+      <div id="expiredBadge" class="hidden inline-flex items-center gap-1.5 bg-red-50 border border-red-200 text-red-600 rounded-full px-4 py-1.5 text-xs font-semibold tracking-wide">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        OTP EXPIRED
+      </div>
+
+    </div>
+
+  </div>
+
+</main>
+
+<script>
+  // Server-seeded remaining seconds
+  let timeLeft = parseInt('<%= remainingSeconds %>') || 0;
+
+  const countdownEl  = document.getElementById('countdown');
+  const timerBadge   = document.getElementById('timerBadge');
+  const expiredBadge = document.getElementById('expiredBadge');
+  const resendBtn    = document.getElementById('resendBtn');
+  const otpInput     = document.getElementById('otp');
+  const verifyBtn    = document.getElementById('verifyBtn');
+
+  function pad(n) { return n < 10 ? '0' + n : n; }
+
+  function formatTime(s) {
+    return `0${Math.floor(s / 60)}:${pad(s % 60)}`;
+  }
+
+  function setExpiredState() {
+    timerBadge.classList.add('hidden');
+    expiredBadge.classList.remove('hidden');
+    otpInput.disabled = true;
+    verifyBtn.disabled = true;
+    resendBtn.disabled = false;
+  }
+
+  function setActiveState() {
+    timerBadge.classList.remove('hidden');
+    expiredBadge.classList.add('hidden');
+    otpInput.disabled = false;
+    verifyBtn.disabled = false;
+    resendBtn.disabled = true;
+  }
+
+  if (timeLeft <= 0) {
+    setExpiredState();
+  } else {
+    setActiveState();
+    countdownEl.textContent = formatTime(timeLeft);
+
+    const timerInterval = setInterval(() => {
+      timeLeft--;
+      countdownEl.textContent = formatTime(timeLeft);
+
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        setExpiredState();
+      }
+    }, 1000);
+  }
+
+  // Client-side validation for OTP input
+  document.getElementById('otpForm').addEventListener('submit', function(e) {
+    const otpError = document.getElementById('otpError');
+    const otpValue = otpInput.value.trim();
+
+    if (!/^\d{6}$/.test(otpValue)) {
+      e.preventDefault();
+      otpError.textContent = "Please enter a valid 6-digit verification code.";
+      otpError.classList.remove('hidden');
+      otpInput.classList.add('border-red-500');
+    } else {
+      otpError.classList.add('hidden');
+      otpInput.classList.remove('border-red-500');
+    }
+  });
+
+  // Numbers only input
+  otpInput.addEventListener('input', function() {
+    this.value = this.value.replace(/[^0-9]/g, '');
+  });
+</script>
