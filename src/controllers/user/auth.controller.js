@@ -13,6 +13,15 @@ export const getHomePage = (req, res) => {
     });
 };
 
+export const logoutUser = (req, res) => {
+    // Only clear the user namespace — admin session (req.session.admin) is preserved
+    if (req.session) {
+        delete req.session.user;
+    }
+    req.session.toast = { type: 'success', message: 'You have been logged out successfully.' };
+    return res.redirect('/login');
+};
+
 export const getRegisterPage = (req, res) => {
     res.render("user/auth/register", {
         title: "Register"
@@ -65,7 +74,11 @@ export const loginUser = async (req, res) => {
             }
             req.session.user = { id: result.user._id, email: result.user.email };
             req.session.toast = { type: 'success', message: 'Login successful! Welcome back.' };
-            return res.redirect("/");
+            // Explicitly save session before redirect to prevent race condition
+            return req.session.save((err) => {
+                if (err) console.error('Session save error:', err);
+                return res.redirect("/");
+            });
         } else {
             req.session.toast = { type: 'error', message: result.message };
             req.session.oldData = { email };
@@ -166,7 +179,11 @@ export const verifyOtpUser = async (req, res) => {
                 req.session.user = { id: result.user._id, email: result.user.email };
                 req.session.toast = { type: 'success', message: 'Registration verified successfully! Welcome to Everloom.' };
             }
-            return res.redirect("/");
+            // Explicitly save session before redirect to prevent race condition
+            return req.session.save((err) => {
+                if (err) console.error('Session save error:', err);
+                return res.redirect("/");
+            });
         } else {
             req.session.toast = { type: 'error', message: result.message };
             req.session.tempEmail = email;
@@ -339,15 +356,32 @@ export const setNewPassword = async (req, res) => {
             return res.redirect('/set-new-password');
         }
 
-        // Clear session flags
         req.session.resetEmail = null;
         req.session.isOtpVerified = null;
 
-        req.session.toast = { type: 'success', message: 'Password reset successfully! Please log in.' };
-        return res.redirect('/login');
+        req.session.toast = { type: 'success', message: 'Password reset successfully. You can now login.' };
+        return req.session.save((err) => {
+            if (err) console.error('Session save error:', err);
+            return res.redirect('/login');
+        });
     } catch (error) {
         console.error("Set New Password Error:", error);
-        req.session.toast = { type: 'error', message: 'An error occurred. Please try again.' };
+        req.session.toast = { type: 'error', message: 'An error occurred while resetting password.' };
         return res.redirect('/set-new-password');
     }
+};
+
+export const googleAuthCallback = (req, res) => {
+    if (!req.user) {
+        req.session.toast = { type: 'error', message: 'Google Authentication failed.' };
+        return res.redirect('/login');
+    }
+
+    req.session.user = { id: req.user._id, email: req.user.email };
+    req.session.toast = { type: 'success', message: 'Logged in with Google successfully!' };
+    
+    return req.session.save((err) => {
+        if (err) console.error('Session save error:', err);
+        return res.redirect("/");
+    });
 };

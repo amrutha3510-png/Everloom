@@ -13,9 +13,13 @@ const userSchema = new mongoose.Schema({
     lowercase: true,
     trim: true,
   },
+  googleId: {
+    type: String,
+    unique: true,
+    sparse: true,
+  },
   password: {
     type: String,
-    required: true,
   },
   referralCode: {
     type: String,

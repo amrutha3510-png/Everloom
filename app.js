@@ -4,6 +4,8 @@ import expressLayouts from "express-ejs-layouts";
 import session from "express-session";
 
 import connectDB from "./src/configs/db.config.js";
+import passport from "./src/configs/passport.config.js";
+import nocache from "nocache";
 
 import userRoutes from "./src/routes/user/index.js";
 import adminRoutes from "./src/routes/admin/index.js";
@@ -15,6 +17,12 @@ connectDB();
 
 const app = express();
 
+// 1. Serve static files first (browser is allowed to cache these)
+app.use(express.static("public"));
+
+// 2. Disable caching for all subsequent dynamic routes (EJS HTML views)
+app.use(nocache());
+
 // Session
 app.use(session({
     secret: process.env.SESSION_SECRET || "everloom_secret_key",
@@ -22,6 +30,10 @@ app.use(session({
     saveUninitialized: false,
     cookie: { secure: false } // Set to true if using HTTPS in production
 }));
+
+// Passport initialization
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Body Parser
 app.use(express.urlencoded({ extended: true }));

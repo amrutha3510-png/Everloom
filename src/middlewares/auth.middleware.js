@@ -11,3 +11,10 @@ export const isAdmin = (req, res, next) => {
   }
   return res.status(403).json({ success: false, message: 'Forbidden. Admin session required.' });
 };
+
+export const isGuest = (req, res, next) => {
+  if (req.session && req.session.user) {
+    return res.redirect('/');
+  }
+  next();
+};

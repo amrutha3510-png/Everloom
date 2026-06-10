@@ -48,7 +48,7 @@ export const verifyRegistration = async (email, otp) => {
   const user = await User.findOneAndUpdate(
     { email },
     { isVerified: true },
-    { new: true }
+    { returnDocument: 'after' }
   );
 
   if (!user) {
@@ -127,7 +127,7 @@ export const resetPassword = async (email, newPassword) => {
   const user = await User.findOneAndUpdate(
     { email },
     { password: hashedPassword },
-    { new: true }
+    { returnDocument: 'after' }
   );
 
   if (!user) {
