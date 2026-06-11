@@ -9,7 +9,15 @@ export const isAdmin = (req, res, next) => {
   if (req.session && req.session.admin) {
     return next();
   }
-  return res.status(403).json({ success: false, message: 'Forbidden. Admin session required.' });
+  req.session.toast = { type: 'error', message: 'Unauthorized. Admin session required.' };
+  return res.redirect('/admin/login');
+};
+
+export const isAdminGuest = (req, res, next) => {
+  if (req.session && req.session.admin) {
+    return res.redirect('/admin/dashboard');
+  }
+  next();
 };
 
 export const isGuest = (req, res, next) => {

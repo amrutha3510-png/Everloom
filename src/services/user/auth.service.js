@@ -67,6 +67,11 @@ export const validateUserLogin = async (email, password) => {
     return { success: false, message: 'Invalid credentials' };
   }
 
+  // Prevent admins from logging in as regular users
+  if (user.role === 'admin') {
+    return { success: false, message: 'Admin accounts cannot login via this portal. Please use the admin login.' };
+  }
+
   if (!user.isVerified) {
     return { success: false, message: 'User is not verified. Please complete registration.' };
   }

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="theme-color" content="#ffffff" />
+
+  <title><%= typeof title !== 'undefined' ? title + ' | Everloom Admin' : 'Everloom Admin' %></title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['"Playfair Display"', 'Georgia', 'serif'],
+            sans: ['"DM Sans"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              black: '#111111',
+              white: '#ffffff',
+              gray: {
+                50:  '#f7f7f5',
+                100: '#eeeeeb',
+                200: '#d9d9d5',
+                400: '#9a9a94',
+                600: '#636360',
+              }
+            }
+          },
+          letterSpacing: {
+            widest2: '0.2em',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    const Toast = typeof Swal !== 'undefined' ? Swal.mixin({
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false,
+      timer: 3000,
+      timerProgressBar: true,
+      customClass: {
+        popup: 'font-sans text-sm',
+      }
+    }) : null;
+
+    function showFlash(type, message) {
+      if (!message) return;
+      Swal.fire({
+        icon: type,
+        text: message,
+        confirmButtonColor: '#111111',
+        customClass: {
+          popup: 'rounded-none font-sans',
+          confirmButton: 'font-sans text-xs tracking-widest2 uppercase px-6 py-2',
+        }
+      });
+    }
+  </script>
+
+  <%- typeof extraHead !== 'undefined' ? extraHead : '' %>
+</head>
+
+<body class="bg-brand-gray-50 font-sans text-brand-black antialiased min-h-screen">
+
+  <% if (typeof hideNavigation === 'undefined' || !hideNavigation) { %>
+    <div class="flex h-screen overflow-hidden">
+      <%- include('../partials/admin/sidebar') %>
+      
+      <div class="flex-1 flex flex-col ml-0 lg:ml-64 transition-all duration-300">
+        <%- include('../partials/admin/navbar') %>
+        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-brand-gray-50 p-4 sm:p-8 mt-20">
+          <%- body %>
+        </main>
+      </div>
+    </div>
+  <% } else { %>
+    <%- body %>
+  <% } %>
+
+  <!-- Custom Beautiful Toast Component -->
+  <% if (typeof toastMessage !== 'undefined' && toastMessage) { %>
+    <div id="custom-toast" class="fixed top-6 right-6 z-50 flex items-center justify-between w-full max-w-xs sm:max-w-sm p-4 bg-brand-black text-white shadow-xl border border-brand-gray-600 font-sans transition-all duration-300 transform translate-y-0 opacity-100">
+      <div class="flex items-center gap-3">
+        <% if (typeof toastType !== 'undefined' && toastType === 'success') { %>
+          <svg class="w-5 h-5 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+        <% } else { %>
+          <svg class="w-5 h-5 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+        <% } %>
+        <span class="text-xs font-semibold tracking-wide uppercase"><%= toastMessage %></span>
+      </div>
+      <button onclick="closeToast()" class="text-brand-gray-400 hover:text-white transition-colors duration-150 p-1 ml-4" aria-label="Close toast">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+    </div>
+    <script>
+      function closeToast() {
+        const toast = document.getElementById('custom-toast');
+        if (toast) {
+          toast.style.opacity = '0';
+          toast.style.transform = 'translateY(-20px)';
+          setTimeout(() => toast.remove(), 300);
+        }
+      }
+      setTimeout(closeToast, 4000);
+    </script>
+  <% } %>
+
+  <%- typeof extraScripts !== 'undefined' ? extraScripts : '' %>
+
+  <script>
+    function toggleSidebar() {
+      const sidebar = document.getElementById('admin-sidebar');
+      const backdrop = document.getElementById('sidebar-backdrop');
+      
+      if (!sidebar) return;
+
+      if (sidebar.classList.contains('-translate-x-full')) {
+        // Open sidebar
+        sidebar.classList.remove('-translate-x-full');
+        sidebar.classList.add('translate-x-0');
+        if (backdrop) {
+          backdrop.classList.remove('hidden');
+          setTimeout(() => backdrop.classList.remove('opacity-0'), 10);
+        }
+      } else {
+        // Close sidebar
+        sidebar.classList.remove('translate-x-0');
+        sidebar.classList.add('-translate-x-full');
+        if (backdrop) {
+          backdrop.classList.add('opacity-0');
+          setTimeout(() => backdrop.classList.add('hidden'), 300);
+        }
+      }
+    }
+  </script>
+</body>
+</html>
