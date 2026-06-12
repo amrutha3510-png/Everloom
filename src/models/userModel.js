@@ -33,7 +33,32 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ['user', 'admin'],
     default: 'user'
-  }
+  },
+  phone: {
+    type: String,
+    trim: true,
+  },
+  profileImage: {
+    type: String, // Cloudinary secure URL
+  },
+  profileImageId: {
+    type: String, // Cloudinary public_id (used for deletion)
+  },
+  dob: {
+    type: String, // stored as YYYY-MM-DD to match HTML date input
+    trim: true,
+  },
+  status: {
+    type: String,
+    enum: ['active', 'blocked'],
+    default: 'active',
+    index: true,
+  },
+  pendingEmail: {
+    type: String, // temporary field during email-change OTP flow
+    trim: true,
+    lowercase: true,
+  },
 }, { timestamps: true });
 
 const User = mongoose.model('User', userSchema);

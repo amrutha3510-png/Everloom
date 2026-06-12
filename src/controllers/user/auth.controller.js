@@ -14,12 +14,21 @@ export const getHomePage = (req, res) => {
 };
 
 export const logoutUser = (req, res) => {
-    // Only clear the user namespace — admin session (req.session.admin) is preserved
+    // 1. Remove ONLY the user data and passport data
     if (req.session) {
-        delete req.session.user;
+        req.session.user = null;
+        if (req.session.passport) {
+            req.session.passport = null;
+        }
     }
+    
     req.session.toast = { type: 'success', message: 'You have been logged out successfully.' };
-    return res.redirect('/login');
+
+    // 2. Save the session (retains req.session.admin if admin is logged in)
+    return req.session.save((saveErr) => {
+        if (saveErr) console.error("Session save error during user logout redirect:", saveErr);
+        return res.redirect('/login');
+    });
 };
 
 export const getRegisterPage = (req, res) => {
@@ -375,6 +384,23 @@ export const googleAuthCallback = (req, res) => {
     if (!req.user) {
         req.session.toast = { type: 'error', message: 'Google Authentication failed.' };
         return res.redirect('/login');
+    }
+
+    if (req.user.status === 'blocked') {
+        req.session.toast = { type: 'error', message: 'Your account has been blocked. Please contact support.' };
+        
+        // Clear ONLY the user/passport keys so the admin session survives
+        if (req.session) {
+            req.session.user = null;
+            if (req.session.passport) {
+                req.session.passport = null;
+            }
+        }
+
+        return req.session.save((saveErr) => {
+            if (saveErr) console.error("Session save error during Google block redirect:", saveErr);
+            return res.redirect('/login');
+        });
     }
 
     req.session.user = { id: req.user._id, email: req.user.email };

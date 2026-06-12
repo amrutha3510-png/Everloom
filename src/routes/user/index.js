@@ -1,9 +1,15 @@
 import express from "express";
 
 import authRoutes from "./auth.routes.js";
+import accountRoutes from "./account.routes.js";
+import { checkBlocked } from "../../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
-router.use("/", authRoutes);
+// Intercept blocked users for all user routes
+router.use(checkBlocked);
 
-export default router;
+router.use("/", authRoutes);
+router.use("/account", accountRoutes);
+
+export default router;

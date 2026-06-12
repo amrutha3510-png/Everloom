@@ -1,0 +1,721 @@
+<%- include('../partials/navbar') %>
+
+<%
+  // Format DOB from YYYY-MM-DD → DD/MM/YYYY for display
+  function formatDob(raw) {
+    if (!raw) return '—';
+    const parts = raw.split('-');
+    if (parts.length === 3) return parts[2] + '/' + parts[1] + '/' + parts[0];
+    return raw;
+  }
+  const isGoogle = !!user.googleId;
+%>
+
+<main class="min-h-screen bg-brand-gray-50">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-xs font-sans text-brand-gray-400 mb-6">
+      <a href="/" class="hover:text-brand-black transition-colors">Home</a>
+      <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
+      <a href="/account/profile" class="hover:text-brand-black transition-colors">My Account</a>
+      <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
+      <span class="text-brand-black font-medium">Profile Information</span>
+    </nav>
+
+    <!-- Page header -->
+    <p class="font-sans text-xs uppercase tracking-widest text-brand-gray-400 mb-1">Account Dashboard</p>
+    <h1 class="font-serif text-3xl sm:text-4xl font-bold text-brand-black mb-1">My Account</h1>
+    <p class="font-sans text-sm text-brand-gray-400 mb-8">Manage your profile, addresses, orders, wallet, and security settings in one elegant space.</p>
+
+    <!-- Two-column layout -->
+    <div class="flex flex-col lg:flex-row gap-8">
+
+      <!-- Sidebar -->
+      <%- include('../partials/account-sidebar') %>
+
+      <!-- Main content -->
+      <div class="flex-1">
+        <div class="bg-white border border-brand-gray-100 p-6 sm:p-8">
+
+          <!-- Section header -->
+          <div class="flex items-start justify-between mb-6 pb-6 border-b border-brand-gray-100">
+            <div>
+              <h2 class="font-serif text-xl font-bold text-brand-black">Profile Information</h2>
+              <p class="font-sans text-xs text-brand-gray-400 mt-1">Manage your personal details and account preferences.</p>
+            </div>
+            <button id="open-edit-modal"
+                    class="inline-flex items-center gap-2 bg-brand-black text-white text-[10px] font-semibold uppercase tracking-widest px-4 py-2.5 hover:bg-brand-gray-600 transition-colors flex-shrink-0 ml-4">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zM16.862 4.487L19.5 7.125"/>
+              </svg>
+              Edit Profile
+            </button>
+          </div>
+
+          <!-- Profile display -->
+          <div class="flex flex-col sm:flex-row items-start gap-8">
+
+            <!-- Avatar -->
+            <div class="relative flex-shrink-0">
+              <div class="w-28 h-28 rounded-full overflow-hidden border-2 border-brand-gray-200 bg-brand-gray-100 flex items-center justify-center">
+                <% if (user.profileImage) { %>
+                  <img id="display-avatar" src="<%= user.profileImage %>" alt="<%= user.fullName %>" referrerpolicy="no-referrer" class="w-full h-full object-cover">
+                <% } else { %>
+                  <span id="display-initials" class="font-serif text-4xl text-brand-gray-400 select-none">
+                    <%= user.fullName ? user.fullName.charAt(0).toUpperCase() : 'U' %>
+                  </span>
+                <% } %>
+              </div>
+              <!-- Camera badge -->
+              <button id="avatar-camera-btn"
+                      class="absolute bottom-1 right-1 w-8 h-8 bg-brand-black rounded-full flex items-center justify-center hover:bg-brand-gray-600 transition-colors shadow-md"
+                      title="Change photo">
+                <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z"/>
+                </svg>
+              </button>
+              <input type="file" id="avatar-file-input" accept="image/jpeg,image/png,image/webp" class="hidden">
+            </div>
+
+            <!-- Info grid -->
+            <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div>
+                <p class="font-sans text-[10px] uppercase tracking-widest text-brand-gray-400 mb-1">Full Name</p>
+                <p id="display-fullName" class="font-sans text-sm font-semibold text-brand-black"><%= user.fullName || '—' %></p>
+              </div>
+              <div>
+                <p class="font-sans text-[10px] uppercase tracking-widest text-brand-gray-400 mb-1">Email Address</p>
+                <p id="display-email" class="font-sans text-sm font-semibold text-brand-black"><%= user.email || '—' %></p>
+                <% if (isGoogle) { %>
+                  <span class="inline-flex items-center gap-1 mt-1 text-[10px] font-sans text-brand-gray-400 bg-brand-gray-100 px-2 py-0.5">
+                    <svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                    </svg>
+                    Google Account
+                  </span>
+                <% } %>
+              </div>
+              <div>
+                <p class="font-sans text-[10px] uppercase tracking-widest text-brand-gray-400 mb-1">Phone Number</p>
+                <p id="display-phone" class="font-sans text-sm font-semibold text-brand-black">
+                  <%= user.phone ? '+91 ' + user.phone : '—' %>
+                </p>
+              </div>
+              <div>
+                <p class="font-sans text-[10px] uppercase tracking-widest text-brand-gray-400 mb-1">DOB</p>
+                <p id="display-dob" class="font-sans text-sm font-semibold text-brand-black"><%= formatDob(user.dob) %></p>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /card -->
+      </div><!-- /main content -->
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>
+
+<!-- ═══════════════════════════════════════════
+     EDIT PROFILE MODAL
+═══════════════════════════════════════════ -->
+<div id="edit-modal-backdrop"
+     class="fixed inset-0 bg-black bg-opacity-40 z-50 hidden opacity-0 transition-opacity duration-200">
+</div>
+
+<div id="edit-modal-container" class="fixed inset-0 z-50 flex items-center justify-center pointer-events-none px-4 hidden">
+  <div id="edit-modal"
+       class="pointer-events-auto bg-white w-full max-w-2xl translate-y-4 opacity-0 transition-all duration-200 overflow-y-auto max-h-[95vh]">
+
+    <!-- Modal header -->
+    <div class="flex items-center justify-between px-8 py-5 border-b border-brand-gray-100">
+      <h2 class="font-serif text-xl font-bold text-brand-black">Edit Profile</h2>
+      <button id="close-edit-modal" class="text-brand-gray-400 hover:text-brand-black transition-colors" aria-label="Close">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- ── STEP 1: Edit form ── -->
+    <div id="step-edit" class="px-8 py-6">
+
+      <!-- Avatar section -->
+      <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-7">
+        <div class="relative flex-shrink-0">
+          <div class="w-24 h-24 rounded-full overflow-hidden border-2 border-brand-gray-200 bg-brand-gray-100 flex items-center justify-center">
+            <% if (user.profileImage) { %>
+              <img id="modal-avatar-preview" src="<%= user.profileImage %>" alt="Avatar" referrerpolicy="no-referrer" class="w-full h-full object-cover">
+            <% } else { %>
+              <span id="modal-avatar-initials" class="font-serif text-3xl text-brand-gray-400 select-none">
+                <%= user.fullName ? user.fullName.charAt(0).toUpperCase() : 'U' %>
+              </span>
+            <% } %>
+          </div>
+          <!-- Camera overlay -->
+          <div class="absolute bottom-0.5 right-0.5 w-7 h-7 bg-brand-black rounded-full flex items-center justify-center">
+            <svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z"/>
+            </svg>
+          </div>
+        </div>
+        <div class="flex flex-col gap-2">
+          <button id="modal-remove-photo"
+                  class="<%= user.profileImage ? '' : 'opacity-40 cursor-not-allowed' %> px-5 py-2 bg-red-600 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-red-700 transition-colors">
+            Remove Current Photo
+          </button>
+          <label for="modal-avatar-input"
+                 class="cursor-pointer px-5 py-2 bg-brand-black text-white text-[10px] font-bold uppercase tracking-widest hover:bg-brand-gray-600 transition-colors text-center">
+            Choose Image
+          </label>
+          <input type="file" id="modal-avatar-input" accept="image/jpeg,image/png,image/webp" class="hidden">
+        </div>
+      </div>
+
+      <!-- General error -->
+      <div id="modal-general-error" class="hidden mb-4 px-4 py-3 border border-red-200 bg-red-50 text-red-700 text-xs font-sans font-medium"></div>
+
+      <!-- Form grid -->
+      <form id="edit-profile-form" novalidate>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
+
+          <!-- Full Name -->
+          <div>
+            <label class="block font-sans text-xs font-semibold text-brand-gray-600 mb-1.5">Full Name <span class="text-red-500">*</span></label>
+            <input type="text" id="ep-fullName" name="fullName" value="<%= user.fullName || '' %>" autocomplete="name"
+                   placeholder="Your full name"
+                   class="w-full bg-brand-gray-50 border border-brand-gray-100 text-brand-black placeholder-brand-gray-400 font-sans text-sm px-4 py-3 focus:outline-none focus:border-brand-gray-600 focus:bg-white transition-all">
+            <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="ep-fullName-err"></p>
+          </div>
+
+          <!-- Phone -->
+          <div>
+            <label class="block font-sans text-xs font-semibold text-brand-gray-600 mb-1.5">Phone Number <% if (!isGoogle) { %><span class="text-red-500">*</span><% } %></label>
+            <div class="flex">
+              <span class="inline-flex items-center px-3 border border-r-0 border-brand-gray-100 bg-brand-gray-100 text-brand-gray-600 text-sm font-sans select-none">+91</span>
+              <input type="tel" id="ep-phone" name="phone" value="<%= user.phone || '' %>" autocomplete="tel"
+                     placeholder="10-digit number"
+                     class="flex-1 bg-brand-gray-50 border border-brand-gray-100 text-brand-black placeholder-brand-gray-400 font-sans text-sm px-4 py-3 focus:outline-none focus:border-brand-gray-600 focus:bg-white transition-all">
+            </div>
+            <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="ep-phone-err"></p>
+          </div>
+
+          <!-- Email -->
+          <div>
+            <label class="block font-sans text-xs font-semibold text-brand-gray-600 mb-1.5">
+              Email <span class="text-red-500">*</span>
+              <% if (isGoogle) { %>
+                <span class="ml-1 text-[9px] text-brand-gray-400 normal-case tracking-normal">(Google – cannot change)</span>
+              <% } %>
+            </label>
+            <input type="email" id="ep-email" name="email" value="<%= user.email || '' %>" autocomplete="email"
+                   placeholder="you@example.com"
+                   <%= isGoogle ? 'disabled' : '' %>
+                   class="w-full font-sans text-sm px-4 py-3 focus:outline-none focus:border-brand-gray-600 focus:bg-white transition-all
+                          <%= isGoogle ? 'bg-brand-gray-100 border border-brand-gray-100 text-brand-gray-400 cursor-not-allowed' : 'bg-brand-gray-50 border border-brand-gray-100 text-brand-black placeholder-brand-gray-400' %>">
+            <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="ep-email-err"></p>
+          </div>
+
+          <!-- DOB -->
+          <div>
+            <label class="block font-sans text-xs font-semibold text-brand-gray-600 mb-1.5">Date of Birth</label>
+            <input type="date" id="ep-dob" name="dob" value="<%= user.dob || '' %>"
+                   class="w-full bg-brand-gray-50 border border-brand-gray-100 text-brand-black font-sans text-sm px-4 py-3 focus:outline-none focus:border-brand-gray-600 focus:bg-white transition-all">
+            <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="ep-dob-err"></p>
+          </div>
+        </div>
+
+        <!-- Modal footer -->
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-brand-gray-100">
+          <button type="button" id="cancel-edit-modal"
+                  class="px-6 py-3 border border-brand-gray-200 text-brand-gray-600 text-[10px] font-semibold uppercase tracking-widest hover:border-brand-black hover:text-brand-black transition-colors">
+            Cancel
+          </button>
+          <button type="submit" id="ep-save-btn"
+                  class="inline-flex items-center gap-2 bg-brand-black text-white text-[10px] font-semibold uppercase tracking-widest px-8 py-3 hover:bg-brand-gray-600 transition-colors disabled:opacity-60">
+            <span id="ep-save-text">Save</span>
+            <svg id="ep-save-spin" class="hidden w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+            </svg>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- ── STEP 2: OTP verification (email change) ── -->
+    <div id="step-otp" class="hidden px-8 py-6">
+      <div class="mb-6">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 bg-brand-black rounded-full flex items-center justify-center flex-shrink-0">
+            <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/>
+            </svg>
+          </div>
+          <div>
+            <p class="font-sans text-sm font-semibold text-brand-black">Verify your new email</p>
+            <p class="font-sans text-xs text-brand-gray-400">We sent a 6-digit code to <strong id="otp-target-email" class="text-brand-black"></strong></p>
+          </div>
+        </div>
+      </div>
+
+      <div id="otp-error" class="hidden mb-4 px-4 py-3 border border-red-200 bg-red-50 text-red-700 text-xs font-sans font-medium"></div>
+
+      <div class="mb-4">
+        <label class="block font-sans text-xs font-semibold text-brand-gray-600 mb-1.5">Verification Code <span class="text-red-500">*</span></label>
+        <input type="text" id="otp-input" inputmode="numeric" maxlength="6"
+               placeholder="000000"
+               class="w-full bg-brand-gray-50 border border-brand-gray-100 text-brand-black placeholder-brand-gray-400 font-sans text-lg tracking-[0.3em] text-center px-4 py-3 focus:outline-none focus:border-brand-gray-600 focus:bg-white transition-all">
+        <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="otp-input-err"></p>
+      </div>
+
+      <!-- Timer & Resend Controls -->
+      <div class="mb-5 flex flex-col items-center gap-3 font-sans text-xs">
+        <div class="flex items-center gap-1.5">
+          <span class="text-brand-gray-400">Didn't receive the code?</span>
+          <button type="button" id="resend-otp-btn" disabled
+                  class="text-blue-600 font-semibold hover:underline disabled:opacity-40 disabled:pointer-events-none transition-all duration-200">
+            Resend Code
+          </button>
+        </div>
+
+        <!-- Timer badge -->
+        <div id="otp-timer-badge" class="inline-flex items-center gap-1.5 bg-brand-gray-50 border border-brand-gray-100 text-brand-gray-600 rounded-full px-3.5 py-1.5 text-[11px] font-medium tracking-wide">
+          <svg class="w-3.5 h-3.5 text-brand-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          EXPIRES IN <span id="otp-countdown" class="text-brand-black font-semibold">02:00</span>
+        </div>
+
+        <!-- Expired badge -->
+        <div id="otp-expired-badge" class="hidden inline-flex items-center gap-1.5 bg-red-50 border border-red-200 text-red-600 rounded-full px-3.5 py-1.5 text-[11px] font-semibold tracking-wide">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          OTP EXPIRED
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between pt-4 border-t border-brand-gray-100">
+        <button type="button" id="back-to-edit"
+                class="text-xs font-semibold text-brand-gray-400 hover:text-brand-black transition-colors underline underline-offset-2">
+          ← Back to edit
+        </button>
+        <button type="button" id="verify-otp-btn"
+                class="inline-flex items-center gap-2 bg-brand-black text-white text-[10px] font-semibold uppercase tracking-widest px-8 py-3 hover:bg-brand-gray-600 transition-colors disabled:opacity-60">
+          <span id="verify-text">Verify & Save</span>
+          <svg id="verify-spin" class="hidden w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+  </div><!-- /modal box -->
+</div>
+
+<% extraScripts = `
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+  const isGoogle = ${isGoogle ? 'true' : 'false'};
+  let originalEmail = '${user.email || ''}';
+  let originalFullName = '${user.fullName || ''}';
+  let originalPhone = '${user.phone || ''}';
+  let originalDob = '${user.dob || ''}';
+
+  // Pending email change timers
+  let pendingEmail = '${user.pendingEmail || ''}';
+  let timeLeft = parseInt('${typeof remainingSeconds !== "undefined" ? remainingSeconds : 0}') || 0;
+  let countdownInterval = null;
+
+  // ── Modal open/close ──
+  const backdrop  = document.getElementById('edit-modal-backdrop');
+  const container = document.getElementById('edit-modal-container');
+  const modal     = document.getElementById('edit-modal');
+
+  function openEditModal() {
+    // Reset inputs to original saved values
+    document.getElementById('ep-fullName').value = originalFullName;
+    document.getElementById('ep-phone').value = originalPhone;
+    if (!isGoogle) {
+      document.getElementById('ep-email').value = originalEmail;
+    }
+    document.getElementById('ep-dob').value = originalDob;
+
+    container.classList.remove('hidden');
+    backdrop.classList.remove('hidden');
+    setTimeout(() => {
+      backdrop.classList.add('opacity-100');
+      backdrop.classList.remove('opacity-0');
+      modal.classList.replace('opacity-0','opacity-100');
+      modal.classList.replace('translate-y-4','translate-y-0');
+    }, 10);
+
+    if (pendingEmail && timeLeft > 0) {
+      document.getElementById('otp-target-email').textContent = pendingEmail;
+      showStep('otp');
+      startOtpCountdown(timeLeft);
+    } else {
+      showStep('edit');
+    }
+  }
+
+  function closeEditModal() {
+    backdrop.classList.remove('opacity-100');
+    backdrop.classList.add('opacity-0');
+    modal.classList.replace('opacity-100','opacity-0');
+    modal.classList.replace('translate-y-0','translate-y-4');
+    setTimeout(() => {
+      backdrop.classList.add('hidden');
+      container.classList.add('hidden');
+    }, 200);
+    clearAllErrors();
+    document.getElementById('modal-general-error').classList.add('hidden');
+    // Clear countdown interval on close, but do not clear original timeLeft
+    if (countdownInterval) {
+      clearInterval(countdownInterval);
+      countdownInterval = null;
+    }
+  }
+
+  function showStep(step) {
+    document.getElementById('step-edit').classList.toggle('hidden', step !== 'edit');
+    document.getElementById('step-otp').classList.toggle('hidden', step !== 'otp');
+  }
+
+  document.getElementById('open-edit-modal').addEventListener('click', openEditModal);
+  document.getElementById('avatar-camera-btn').addEventListener('click', openEditModal);
+  document.getElementById('close-edit-modal').addEventListener('click', closeEditModal);
+  document.getElementById('cancel-edit-modal').addEventListener('click', closeEditModal);
+  document.getElementById('back-to-edit').addEventListener('click', () => {
+    if (countdownInterval) {
+      clearInterval(countdownInterval);
+      countdownInterval = null;
+    }
+    showStep('edit');
+  });
+  backdrop.addEventListener('click', closeEditModal);
+
+  // ── OTP countdown logic ──
+  function pad(n) { return n < 10 ? '0' + n : n; }
+  function formatTime(s) {
+    return "0" + Math.floor(s / 60) + ":" + pad(s % 60);
+  }
+
+  function setOtpExpiredState() {
+    document.getElementById('otp-timer-badge').classList.add('hidden');
+    document.getElementById('otp-expired-badge').classList.remove('hidden');
+    document.getElementById('otp-input').disabled = true;
+    document.getElementById('verify-otp-btn').disabled = true;
+    document.getElementById('resend-otp-btn').disabled = false;
+  }
+
+  function setOtpActiveState() {
+    document.getElementById('otp-timer-badge').classList.remove('hidden');
+    document.getElementById('otp-expired-badge').classList.add('hidden');
+    document.getElementById('otp-input').disabled = false;
+    document.getElementById('verify-otp-btn').disabled = false;
+    document.getElementById('resend-otp-btn').disabled = true;
+  }
+
+  function startOtpCountdown(seconds) {
+    if (countdownInterval) clearInterval(countdownInterval);
+    timeLeft = seconds;
+
+    if (timeLeft <= 0) {
+      setOtpExpiredState();
+      return;
+    }
+
+    setOtpActiveState();
+    document.getElementById('otp-countdown').textContent = formatTime(timeLeft);
+
+    countdownInterval = setInterval(() => {
+      timeLeft--;
+      document.getElementById('otp-countdown').textContent = formatTime(timeLeft);
+
+      if (timeLeft <= 0) {
+        clearInterval(countdownInterval);
+        setOtpExpiredState();
+      }
+    }, 1000);
+  }
+
+  // Numbers-only check for OTP
+  document.getElementById('otp-input').addEventListener('input', function() {
+    this.value = this.value.replace(/[^0-9]/g, '');
+  });
+
+  // ── Validation helpers (matching register page style) ──
+  function setInvalid(inputId, errId, msg) {
+    const input = document.getElementById(inputId);
+    const err   = document.getElementById(errId);
+    if (input) {
+      input.classList.remove('border-brand-gray-100','focus:border-brand-gray-600');
+      input.classList.add('border-red-500','focus:border-red-500');
+    }
+    if (err) { err.textContent = msg; err.classList.remove('hidden'); }
+  }
+  function setValid(inputId, errId) {
+    const input = document.getElementById(inputId);
+    const err   = document.getElementById(errId);
+    if (input) {
+      input.classList.remove('border-red-500','focus:border-red-500');
+      input.classList.add('border-brand-gray-100','focus:border-brand-gray-600');
+    }
+    if (err) { err.textContent = ''; err.classList.add('hidden'); }
+  }
+  function clearAllErrors() {
+    ['fullName','phone','email','dob'].forEach(f => setValid('ep-'+f, 'ep-'+f+'-err'));
+    const oE = document.getElementById('otp-input-err');
+    if (oE) { oE.textContent = ''; oE.classList.add('hidden'); }
+  }
+
+  // Clear error on input
+  ['ep-fullName','ep-phone','ep-email','ep-dob','otp-input'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('input', () => {
+      el.classList.remove('border-red-500','focus:border-red-500');
+      el.classList.add('border-brand-gray-100','focus:border-brand-gray-600');
+      const errEl = document.getElementById(id + '-err') || document.getElementById(id.replace('ep-','ep-') + '-err');
+      if (errEl) errEl.classList.add('hidden');
+    });
+  });
+
+  // ── Profile form submit ──
+  document.getElementById('edit-profile-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clearAllErrors();
+
+    const fullName = document.getElementById('ep-fullName').value.trim();
+    const phone    = document.getElementById('ep-phone').value.trim();
+    const email    = isGoogle ? originalEmail : document.getElementById('ep-email').value.trim();
+    const dob      = document.getElementById('ep-dob').value;
+
+    let valid = true;
+    const phoneRegex = /^[6-9]\\d{9}$/;
+    const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
+
+    if (!fullName) { setInvalid('ep-fullName','ep-fullName-err','Full name is required.'); valid=false; }
+    else if (fullName.length < 2) { setInvalid('ep-fullName','ep-fullName-err','Must be at least 2 characters.'); valid=false; }
+    if (phone && !phoneRegex.test(phone)) { setInvalid('ep-phone','ep-phone-err','Enter a valid 10-digit number.'); valid=false; }
+    if (!isGoogle && email && !emailRegex.test(email)) { setInvalid('ep-email','ep-email-err','Enter a valid email address.'); valid=false; }
+    if (!valid) return;
+
+    const emailChanged = !isGoogle && email && email.toLowerCase() !== originalEmail.toLowerCase();
+    setSaveLoading(true);
+
+    try {
+      // 1. Save name / phone / dob first
+      await axios.post('/account/profile/update', { fullName, phone, dob });
+
+      // Update original stored values
+      originalFullName = fullName;
+      originalPhone = phone;
+      originalDob = dob;
+
+      // Update display
+      document.getElementById('display-fullName').textContent = fullName;
+      document.getElementById('display-phone').textContent    = phone ? '+91 ' + phone : '—';
+      if (dob) {
+        const parts = dob.split('-');
+        document.getElementById('display-dob').textContent = parts.length === 3
+          ? parts[2] + '/' + parts[1] + '/' + parts[0] : dob;
+      }
+
+      // 2. If email changed, trigger OTP flow
+      if (emailChanged) {
+        await axios.post('/account/profile/request-email-change', { newEmail: email });
+        pendingEmail = email;
+        document.getElementById('otp-target-email').textContent = email;
+        document.getElementById('otp-input').value = '';
+        showStep('otp');
+        startOtpCountdown(120);
+      } else {
+        closeEditModal();
+        showToast('Profile updated successfully.');
+      }
+    } catch (err) {
+      const data = err.response?.data || {};
+      if (data.field) {
+        setInvalid('ep-'+data.field, 'ep-'+data.field+'-err', data.message);
+      } else {
+        const genErr = document.getElementById('modal-general-error');
+        genErr.textContent = data.message || 'Something went wrong.';
+        genErr.classList.remove('hidden');
+      }
+    } finally {
+      setSaveLoading(false);
+    }
+  });
+
+  // ── OTP verify ──
+  document.getElementById('verify-otp-btn').addEventListener('click', async () => {
+    const otp = document.getElementById('otp-input').value.trim();
+    const errEl = document.getElementById('otp-input-err');
+    if (!otp || otp.length !== 6) {
+      errEl.textContent = 'Please enter the 6-digit code.';
+      errEl.classList.remove('hidden');
+      return;
+    }
+    errEl.classList.add('hidden');
+    setVerifyLoading(true);
+    try {
+      const res = await axios.post('/account/profile/verify-email-change', { otp });
+      document.getElementById('display-email').textContent = res.data.newEmail;
+      originalEmail = res.data.newEmail; // Update original saved email
+      pendingEmail = '';
+      timeLeft = 0;
+      closeEditModal();
+      showToast('Email updated successfully.');
+    } catch (err) {
+      const data = err.response?.data || {};
+      const oE = document.getElementById('otp-error');
+      oE.textContent = data.message || 'OTP verification failed.';
+      oE.classList.remove('hidden');
+    } finally {
+      setVerifyLoading(false);
+    }
+  });
+
+  // ── OTP resend ──
+  document.getElementById('resend-otp-btn').addEventListener('click', async () => {
+    const errEl = document.getElementById('otp-error');
+    if (errEl) errEl.classList.add('hidden');
+    try {
+      const res = await axios.post('/account/profile/resend-email-change-otp');
+      if (res.data.success) {
+        showToast('Verification code resent.');
+        document.getElementById('otp-input').value = '';
+        startOtpCountdown(res.data.remainingSeconds);
+      }
+    } catch (err) {
+      const data = err.response?.data || {};
+      showToast(data.message || 'Failed to resend OTP.', 'error');
+    }
+  });
+
+  // ── Avatar upload (modal) ──
+  const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+  document.getElementById('modal-avatar-input').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Strict client-side MIME type check
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      e.target.value = '';
+      showToast('Only JPG, PNG and WEBP images are allowed.', 'error');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const wrapper = document.querySelector('#edit-modal .rounded-full.overflow-hidden');
+      wrapper.innerHTML = '<img id="modal-avatar-preview" src="' + ev.target.result + '" class="w-full h-full object-cover">';
+    };
+    reader.readAsDataURL(file);
+
+    const fd = new FormData();
+    fd.append('profileImage', file);
+    try {
+      const res = await axios.post('/account/profile/update-image', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      if (res.data.success) {
+        // Update main page avatar too
+        const displayWrap = document.querySelector('.w-28.h-28.rounded-full.overflow-hidden');
+        displayWrap.innerHTML = '<img src="' + res.data.imageUrl + '" class="w-full h-full object-cover">';
+        document.getElementById('modal-remove-photo').classList.remove('opacity-40','cursor-not-allowed');
+        showToast('Profile photo updated.');
+      }
+    } catch(err) { showToast(err.response?.data?.message || 'Upload failed.', 'error'); }
+  });
+
+  // Quick-upload from camera badge on main page
+  document.getElementById('avatar-file-input').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file && !ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      e.target.value = '';
+      showToast('Only JPG, PNG and WEBP images are allowed.', 'error');
+      return;
+    }
+    document.getElementById('modal-avatar-input').files = e.target.files;
+    document.getElementById('modal-avatar-input').dispatchEvent(new Event('change'));
+  });
+  document.getElementById('avatar-camera-btn').addEventListener('click', (ev) => {
+    ev.stopPropagation();
+    // Open modal so user sees the choose/remove UI
+    openEditModal();
+  });
+
+  // ── Remove avatar ──
+  document.getElementById('modal-remove-photo').addEventListener('click', async () => {
+    Swal.fire({
+      title: 'Remove Photo?',
+      text: 'Are you sure you want to remove your profile photo?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, remove it',
+      cancelButtonText: 'Cancel',
+      buttonsStyling: false,
+      customClass: {
+        popup: 'bg-white border border-brand-gray-100 font-sans rounded-none',
+        title: 'font-serif text-lg font-bold text-brand-black',
+        htmlContainer: 'font-sans text-xs text-brand-gray-400',
+        confirmButton: 'bg-red-600 text-white text-[10px] font-bold uppercase tracking-widest px-5 py-2.5 mx-2 hover:bg-red-700 transition-colors cursor-pointer',
+        cancelButton: 'border border-brand-gray-200 text-brand-gray-600 text-[10px] font-bold uppercase tracking-widest px-5 py-2.5 mx-2 hover:border-brand-black hover:text-brand-black transition-colors cursor-pointer'
+      }
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await axios.post('/account/profile/remove-image');
+          const initial = document.getElementById('ep-fullName').value.trim().charAt(0).toUpperCase() || 'U';
+          const fallback = '<span class="font-serif text-3xl text-brand-gray-400 select-none">' + initial + '</span>';
+          document.querySelector('#edit-modal .rounded-full.overflow-hidden').innerHTML = fallback;
+          document.querySelector('.w-28.h-28.rounded-full.overflow-hidden').innerHTML = fallback;
+          document.getElementById('modal-remove-photo').classList.add('opacity-40','cursor-not-allowed');
+          showToast('Profile photo removed.');
+        } catch(err) { showToast(err.response?.data?.message || 'Failed to remove photo.', 'error'); }
+      }
+    });
+  });
+
+  // ── Loading states ──
+  function setSaveLoading(on) {
+    const btn  = document.getElementById('ep-save-btn');
+    const text = document.getElementById('ep-save-text');
+    const spin = document.getElementById('ep-save-spin');
+    btn.disabled = on; text.textContent = on ? 'Saving…' : 'Save'; spin.classList.toggle('hidden',!on);
+  }
+  function setVerifyLoading(on) {
+    const btn  = document.getElementById('verify-otp-btn');
+    const text = document.getElementById('verify-text');
+    const spin = document.getElementById('verify-spin');
+    btn.disabled = on; text.textContent = on ? 'Verifying…' : 'Verify & Save'; spin.classList.toggle('hidden',!on);
+  }
+
+  // ── Mini toast (since this page uses inline modal feedback) ──
+  function showToast(msg, type = 'success') {
+    const t = document.createElement('div');
+    t.className = 'fixed bottom-6 right-6 z-[999] px-5 py-3 text-white text-xs font-sans font-semibold shadow-xl transition-all duration-300 '
+      + (type === 'success' ? 'bg-brand-black' : 'bg-red-600');
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => { t.style.opacity='0'; setTimeout(()=>t.remove(),300); }, 3500);
+  }
+
+  // ── Reload consistency trigger ──
+  window.addEventListener('DOMContentLoaded', () => {
+    if (pendingEmail && timeLeft > 0) {
+      openEditModal();
+    }
+  });
+</script>
+`; %>

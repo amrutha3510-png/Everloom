@@ -6,8 +6,12 @@
   <!-- Logo & Close Button -->
   <div class="p-6 pb-2 flex items-center justify-between gap-2">
     <div class="flex items-center gap-2">
-      <svg class="w-6 h-6 text-brand-black" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
+      <svg class="w-6 h-6 text-brand-black" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M11.25 2.08299C11.0043 2.13811 10.7652 2.21958 10.537 2.32599C6.553 4.18799 4 9.39499 4 13.856C4 18.096 7.183 21.58 11.25 21.965V2.08299Z" fill="currentColor"/>
+        <path d="M12.75 21.965C16.817 21.58 20 18.097 20 13.857C20 13.4503 19.979 13.039 19.937 12.623L12.75 19.811V21.965Z" fill="currentColor"/>
+        <path d="M18.26 7.17999C17.8763 6.46064 17.4278 5.77781 16.92 5.13999L12.75 9.30999V12.69L18.26 7.17999Z" fill="currentColor"/>
+        <path d="M15.908 4.02999C15.191 3.33289 14.3652 2.75734 13.463 2.32599C13.2348 2.21958 12.9957 2.13811 12.75 2.08299V7.18899L15.908 4.02999Z" fill="currentColor"/>
+        <path d="M18.936 8.62399L12.75 14.811V17.689L19.5 10.939L19.632 10.807C19.456 10.0626 19.2233 9.33285 18.936 8.62399Z" fill="currentColor"/>
       </svg>
       <span class="font-serif text-xl font-bold tracking-wide">Everloom</span>
     </div>
@@ -23,7 +27,7 @@
       <h4 class="text-[10px] font-sans font-bold text-brand-gray-400 uppercase tracking-widest2 mb-3 px-3">Overview</h4>
       <ul class="space-y-1">
         <li>
-          <a href="/admin/dashboard" class="flex items-center gap-3 px-3 py-2.5 bg-brand-gray-50 text-brand-black font-medium rounded-sm text-sm">
+          <a href="/admin/dashboard" class="flex items-center gap-3 px-3 py-2.5 font-medium rounded-sm text-sm transition-colors <%= (typeof path !== 'undefined' && path === '/admin/dashboard') ? 'bg-brand-gray-50 text-brand-black' : 'text-brand-gray-600 hover:text-brand-black hover:bg-brand-gray-50' %>">
             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
             Dashboard
           </a>
@@ -60,7 +64,7 @@
           </a>
         </li>
         <li>
-          <a href="#" class="flex items-center gap-3 px-3 py-2.5 text-brand-gray-600 hover:text-brand-black hover:bg-brand-gray-50 font-medium rounded-sm text-sm transition-colors">
+          <a href="/admin/customers" class="flex items-center gap-3 px-3 py-2.5 font-medium rounded-sm text-sm transition-colors <%= (typeof path !== 'undefined' && path === '/admin/customers') ? 'bg-brand-gray-50 text-brand-black' : 'text-brand-gray-600 hover:text-brand-black hover:bg-brand-gray-50' %>">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
             Customers
           </a>

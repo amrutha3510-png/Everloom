@@ -53,8 +53,8 @@ app.use(expressLayouts);
 app.set("layout", "layouts/user-layout");
 
 // Routes
-app.use("/", userRoutes);
 app.use("/admin", adminRoutes);
+app.use("/", userRoutes);
 
 const PORT = process.env.PORT || 3000;
 

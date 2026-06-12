@@ -31,6 +31,15 @@ passport.use(
                 let user = await User.findOne({ googleId: profile.id });
 
                 if (user) {
+                    // Refresh Google profile photo if user doesn't have a custom upload
+                    const googlePhoto = profile.photos && profile.photos[0] ? profile.photos[0].value : null;
+                    if (googlePhoto && !user.profileImageId) {
+                        // No custom Cloudinary upload — keep Google photo in sync
+                        if (user.profileImage !== googlePhoto) {
+                            user.profileImage = googlePhoto;
+                            await user.save();
+                        }
+                    }
                     return done(null, user);
                 }
 
@@ -45,6 +54,10 @@ passport.use(
                     if (!user.isVerified) {
                         user.isVerified = true;
                     }
+                    // Save Google profile photo if user doesn't have one
+                    if (!user.profileImage && profile.photos && profile.photos[0]) {
+                        user.profileImage = profile.photos[0].value;
+                    }
                     await user.save();
                     return done(null, user);
                 }
@@ -54,7 +67,8 @@ passport.use(
                     googleId: profile.id,
                     fullName: profile.displayName,
                     email: email,
-                    isVerified: true // Email is verified by Google
+                    isVerified: true, // Email is verified by Google
+                    profileImage: profile.photos && profile.photos[0] ? profile.photos[0].value : undefined,
                 });
 
                 await newUser.save();

@@ -1,309 +1,38 @@
 <!-- Dashboard Header -->
 <div class="mb-10">
-  <span class="inline-block bg-white border border-brand-gray-200 text-brand-gray-600 text-[10px] font-sans font-bold tracking-widest2 uppercase px-4 py-1.5 rounded-full mb-6 shadow-sm">
+  <span class="inline-flex items-center gap-1.5 bg-white border border-brand-gray-200 text-brand-gray-600 text-[10px] font-sans font-bold tracking-widest2 uppercase px-4 py-1.5 rounded-full mb-6 shadow-sm">
+    <svg class="w-3.5 h-3.5 text-brand-black" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M11.25 2.08299C11.0043 2.13811 10.7652 2.21958 10.537 2.32599C6.553 4.18799 4 9.39499 4 13.856C4 18.096 7.183 21.58 11.25 21.965V2.08299Z" fill="currentColor"/>
+      <path d="M12.75 21.965C16.817 21.58 20 18.097 20 13.857C20 13.4503 19.979 13.039 19.937 12.623L12.75 19.811V21.965Z" fill="currentColor"/>
+      <path d="M18.26 7.17999C17.8763 6.46064 17.4278 5.77781 16.92 5.13999L12.75 9.30999V12.69L18.26 7.17999Z" fill="currentColor"/>
+      <path d="M15.908 4.02999C15.191 3.33289 14.3652 2.75734 13.463 2.32599C13.2348 2.21958 12.9957 2.13811 12.75 2.08299V7.18899L15.908 4.02999Z" fill="currentColor"/>
+      <path d="M18.936 8.62399L12.75 14.811V17.689L19.5 10.939L19.632 10.807C19.456 10.0626 19.2233 9.33285 18.936 8.62399Z" fill="currentColor"/>
+    </svg>
     Everloom Admin
   </span>
   <div class="flex flex-col md:flex-row items-start md:justify-between gap-6">
     <div>
-      <h1 class="font-serif text-4xl md:text-5xl font-bold text-brand-black mb-4 max-w-xl leading-tight">
-        Luxury Fashion<br>Store Insights
+      <h1 class="font-serif text-4xl md:text-5xl font-bold text-brand-black mb-4 leading-tight">
+        Admin Dashboard
       </h1>
       <p class="font-sans text-brand-gray-600 text-sm max-w-lg leading-relaxed">
-        Monitor your ecommerce performance, orders, customers, and revenue from one elegant, centralized dashboard.
+        Welcome to the Everloom Admin Panel. Use the sidebar menu to navigate through administration areas.
       </p>
     </div>
-    <button class="bg-brand-black text-white font-sans text-xs font-semibold tracking-widest2 uppercase px-6 py-3 rounded-sm hover:bg-brand-gray-600 transition-colors shadow-lg flex items-center gap-2">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-      Export Report
-    </button>
   </div>
 </div>
 
-<!-- Stats Grid Top -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-  <!-- Total Revenue -->
-  <div class="bg-white p-6 rounded-xl border border-brand-gray-100 shadow-sm relative">
-    <div class="w-8 h-8 rounded-full bg-brand-gray-50 flex items-center justify-center absolute top-6 right-6">
-      <svg class="w-4 h-4 text-brand-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-    </div>
-    <p class="font-sans text-xs font-semibold text-brand-gray-400 mb-4">Total<br>Revenue</p>
-    <p class="font-serif text-3xl font-bold text-brand-black mb-4">12,48,500</p>
-    <div class="flex items-center gap-2">
-      <span class="inline-flex items-center gap-1 px-2 py-1 rounded-sm bg-green-50 text-green-600 text-[10px] font-bold">
-        <span class="w-1.5 h-1.5 rounded-full bg-green-600"></span> +14.5%
-      </span>
-      <span class="text-[10px] text-brand-gray-400 font-medium">vs last month</span>
-    </div>
-  </div>
-
-  <!-- Total Orders -->
-  <div class="bg-white p-6 rounded-xl border border-brand-gray-100 shadow-sm relative">
-    <div class="w-8 h-8 rounded-full bg-brand-gray-50 flex items-center justify-center absolute top-6 right-6">
-      <svg class="w-4 h-4 text-brand-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-    </div>
-    <p class="font-sans text-xs font-semibold text-brand-gray-400 mb-4">Total<br>Orders</p>
-    <p class="font-serif text-3xl font-bold text-brand-black mb-4">1,248</p>
-    <div class="flex items-center gap-2">
-      <span class="inline-flex items-center gap-1 px-2 py-1 rounded-sm bg-red-50 text-red-600 text-[10px] font-bold">
-        <span class="w-1.5 h-1.5 rounded-full bg-red-600"></span> -8.2%
-      </span>
-      <span class="text-[10px] text-brand-gray-400 font-medium">vs last month</span>
-    </div>
-  </div>
-
-  <!-- Total Customers -->
-  <div class="bg-white p-6 rounded-xl border border-brand-gray-100 shadow-sm relative">
-    <div class="w-8 h-8 rounded-full bg-brand-gray-50 flex items-center justify-center absolute top-6 right-6">
-      <svg class="w-4 h-4 text-brand-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-    </div>
-    <p class="font-sans text-xs font-semibold text-brand-gray-400 mb-4">Total<br>Customers</p>
-    <p class="font-serif text-3xl font-bold text-brand-black mb-4">2,480</p>
-    <div class="flex items-center gap-2">
-      <span class="inline-flex items-center gap-1 px-2 py-1 rounded-sm bg-green-50 text-green-600 text-[10px] font-bold">
-        <span class="w-1.5 h-1.5 rounded-full bg-green-600"></span> +12.1%
-      </span>
-      <span class="text-[10px] text-brand-gray-400 font-medium">vs last month</span>
-    </div>
-  </div>
-
-  <!-- Total Products -->
-  <div class="bg-white p-6 rounded-xl border border-brand-gray-100 shadow-sm relative">
-    <div class="w-8 h-8 rounded-full bg-brand-gray-50 flex items-center justify-center absolute top-6 right-6">
-      <svg class="w-4 h-4 text-brand-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
-    </div>
-    <p class="font-sans text-xs font-semibold text-brand-gray-400 mb-4">Total<br>Products</p>
-    <p class="font-serif text-3xl font-bold text-brand-black mb-4">248</p>
-    <div class="flex items-center gap-2">
-      <span class="inline-flex items-center gap-1 px-2 py-1 rounded-sm bg-brand-gray-100 text-brand-gray-600 text-[10px] font-bold">
-        <span class="w-1.5 h-1.5 rounded-full bg-brand-gray-600"></span> +0.0%
-      </span>
-      <span class="text-[10px] text-brand-gray-400 font-medium">vs last month</span>
-    </div>
-  </div>
-</div>
-
-<!-- Mini Stats Row -->
+<!-- Skeleton Grid -->
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-  <!-- Pending Orders -->
-  <div class="bg-white p-4 rounded-xl border border-brand-gray-100 shadow-sm flex items-center gap-4">
-    <div class="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center flex-shrink-0">
-      <div class="w-4 h-4 bg-orange-500 rounded-sm"></div>
-    </div>
-    <div>
-      <p class="font-sans text-[10px] text-brand-gray-400 font-semibold mb-1">Pending Orders</p>
-      <p class="font-serif text-xl font-bold">48</p>
-    </div>
-  </div>
-  <!-- Active Offers -->
-  <div class="bg-white p-4 rounded-xl border border-brand-gray-100 shadow-sm flex items-center gap-4">
-    <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
-      <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"></path></svg>
-    </div>
-    <div>
-      <p class="font-sans text-[10px] text-brand-gray-400 font-semibold mb-1">Active Offers</p>
-      <p class="font-serif text-xl font-bold">12</p>
-    </div>
-  </div>
-  <!-- Active Coupons -->
-  <div class="bg-white p-4 rounded-xl border border-brand-gray-100 shadow-sm flex items-center gap-4">
-    <div class="w-10 h-10 rounded-lg bg-pink-50 flex items-center justify-center flex-shrink-0">
-      <svg class="w-5 h-5 text-pink-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"></path></svg>
-    </div>
-    <div>
-      <p class="font-sans text-[10px] text-brand-gray-400 font-semibold mb-1">Active Coupons</p>
-      <p class="font-serif text-xl font-bold">3</p>
-    </div>
-  </div>
-</div>
-
-<!-- Middle Row: Chart and Order Status -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-  
-  <!-- Chart Area -->
-  <div class="lg:col-span-2 bg-white p-8 rounded-xl border border-brand-gray-100 shadow-sm flex flex-col">
-    <div class="flex justify-between items-start mb-8">
-      <div>
-        <h2 class="font-sans font-bold text-brand-black text-lg">Sales Overview</h2>
-        <p class="font-sans text-xs text-brand-gray-400 mt-1">Monthly sales performance</p>
-      </div>
-      <button class="flex items-center gap-2 border border-brand-gray-200 px-3 py-1.5 rounded-sm text-xs font-sans font-medium hover:bg-brand-gray-50">
-        Last 3 months
-        <svg class="w-3 h-3 text-brand-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-      </button>
-    </div>
-    <!-- Simple placeholder for the chart. (In a real app, use Chart.js or similar) -->
-    <div class="flex-1 w-full h-64 border-b border-l border-brand-gray-100 relative">
-      <!-- Grid lines -->
-      <div class="absolute inset-0 flex flex-col justify-between pointer-events-none">
-        <div class="w-full border-t border-brand-gray-100 border-dashed"></div>
-        <div class="w-full border-t border-brand-gray-100 border-dashed"></div>
-        <div class="w-full border-t border-brand-gray-100 border-dashed"></div>
-        <div class="w-full border-t border-brand-gray-100 border-dashed"></div>
-      </div>
-      <!-- SVG line curve mimicking image -->
-      <svg class="absolute inset-0 w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
-        <path d="M0 60 C 20 65, 30 30, 50 40 C 70 50, 80 20, 100 10" fill="none" stroke="#111111" stroke-width="1.5" />
+  <div class="bg-white p-8 rounded-xl border border-brand-gray-100 shadow-sm col-span-3 min-h-[300px] flex flex-col items-center justify-center text-center">
+    <div class="p-4 bg-brand-gray-50 rounded-full mb-4">
+      <svg class="w-8 h-8 text-brand-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-3.75-2.25v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
       </svg>
-      <!-- X-axis labels -->
-      <div class="absolute -bottom-6 left-0 right-0 flex justify-between text-[10px] text-brand-gray-400">
-        <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span><span>Jul</span>
-      </div>
     </div>
-  </div>
-
-  <!-- Order Status -->
-  <div class="bg-white p-8 rounded-xl border border-brand-gray-100 shadow-sm">
-    <h2 class="font-sans font-bold text-brand-black text-lg mb-1">Order Status</h2>
-    <p class="font-sans text-xs text-brand-gray-400 mb-8">Current order fulfillment progress</p>
-    
-    <div class="space-y-6">
-      <!-- Delivered -->
-      <div>
-        <div class="flex justify-between text-xs font-semibold mb-2">
-          <div class="flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full bg-green-500"></div> Delivered</div>
-          <span>85%</span>
-        </div>
-        <div class="w-full bg-brand-gray-100 h-1.5 rounded-full overflow-hidden">
-          <div class="bg-green-400 h-full rounded-full" style="width: 85%"></div>
-        </div>
-        <p class="text-[9px] text-brand-gray-400 text-right mt-1.5">342 Orders</p>
-      </div>
-      <!-- Pending -->
-      <div>
-        <div class="flex justify-between text-xs font-semibold mb-2">
-          <div class="flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full bg-yellow-500"></div> Pending</div>
-          <span>12%</span>
-        </div>
-        <div class="w-full bg-brand-gray-100 h-1.5 rounded-full overflow-hidden">
-          <div class="bg-yellow-200 h-full rounded-full" style="width: 12%"></div>
-        </div>
-        <p class="text-[9px] text-brand-gray-400 text-right mt-1.5">48 Orders</p>
-      </div>
-      <!-- Cancelled -->
-      <div>
-        <div class="flex justify-between text-xs font-semibold mb-2">
-          <div class="flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full bg-red-500"></div> Cancelled</div>
-          <span>3%</span>
-        </div>
-        <div class="w-full bg-brand-gray-100 h-1.5 rounded-full overflow-hidden">
-          <div class="bg-red-100 h-full rounded-full" style="width: 3%"></div>
-        </div>
-        <p class="text-[9px] text-brand-gray-400 text-right mt-1.5">12 Orders</p>
-      </div>
-    </div>
-
-    <!-- Insight Box -->
-    <div class="mt-8 bg-brand-gray-50 p-4 rounded-lg flex items-start gap-3">
-      <div class="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-        <span class="text-[10px] font-bold font-serif">i</span>
-      </div>
-      <div>
-        <h4 class="text-[11px] font-bold text-brand-black mb-1">Insight</h4>
-        <p class="text-[10px] text-brand-gray-600 leading-relaxed">
-          Pending orders have decreased by 5% compared to last week due to faster processing.
-        </p>
-      </div>
-    </div>
-  </div>
-
-</div>
-
-<!-- Recent Orders -->
-<div class="bg-white p-8 rounded-xl border border-brand-gray-100 shadow-sm">
-  <div class="flex justify-between items-center mb-6">
-    <div>
-      <h2 class="font-sans font-bold text-brand-black text-lg">Recent Orders</h2>
-      <p class="font-sans text-xs text-brand-gray-400 mt-1">Latest transactions from your store</p>
-    </div>
-    <a href="#" class="flex items-center gap-2 border border-brand-gray-200 px-4 py-2 rounded-sm text-xs font-sans font-medium hover:bg-brand-gray-50 transition-colors">
-      View All
-      <svg class="w-3 h-3 text-brand-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-    </a>
-  </div>
-
-  <div class="overflow-x-auto">
-    <table class="w-full text-left border-collapse">
-      <thead>
-        <tr class="border-b border-brand-gray-100">
-          <th class="py-3 px-2 text-[11px] font-bold text-brand-black font-sans">Order ID</th>
-          <th class="py-3 px-2 text-[11px] font-bold text-brand-black font-sans">Customer</th>
-          <th class="py-3 px-2 text-[11px] font-bold text-brand-black font-sans">Product</th>
-          <th class="py-3 px-2 text-[11px] font-bold text-brand-black font-sans">Amount</th>
-          <th class="py-3 px-2 text-[11px] font-bold text-brand-black font-sans text-right">Status</th>
-        </tr>
-      </thead>
-      <tbody class="text-sm font-sans divide-y divide-brand-gray-50">
-        <tr class="hover:bg-brand-gray-50 transition-colors">
-          <td class="py-4 px-2 font-medium text-brand-black text-xs">#ORD-3291</td>
-          <td class="py-4 px-2">
-            <div class="flex items-center gap-3">
-              <img src="https://ui-avatars.com/api/?name=Jane+Doe&background=eeeeeb&color=111111" alt="Jane Doe" class="w-6 h-6 rounded-full object-cover">
-              <span class="text-xs text-brand-gray-600">Jane Doe</span>
-            </div>
-          </td>
-          <td class="py-4 px-2 text-xs text-brand-gray-400">Classic Cotton Tee</td>
-          <td class="py-4 px-2 font-medium text-brand-black text-xs">$29.00</td>
-          <td class="py-4 px-2 text-right">
-            <span class="inline-flex px-2 py-1 bg-green-100 text-green-700 rounded-sm text-[10px] font-bold">Delivered</span>
-          </td>
-        </tr>
-        <tr class="hover:bg-brand-gray-50 transition-colors">
-          <td class="py-4 px-2 font-medium text-brand-black text-xs">#ORD-3290</td>
-          <td class="py-4 px-2">
-            <div class="flex items-center gap-3">
-              <img src="https://ui-avatars.com/api/?name=Michael+Smith&background=eeeeeb&color=111111" alt="Michael Smith" class="w-6 h-6 rounded-full object-cover">
-              <span class="text-xs text-brand-gray-600">Michael Smith</span>
-            </div>
-          </td>
-          <td class="py-4 px-2 text-xs text-brand-gray-400">Urban Runners</td>
-          <td class="py-4 px-2 font-medium text-brand-black text-xs">$95.00</td>
-          <td class="py-4 px-2 text-right">
-            <span class="inline-flex px-2 py-1 bg-yellow-100 text-yellow-700 rounded-sm text-[10px] font-bold">Pending</span>
-          </td>
-        </tr>
-        <tr class="hover:bg-brand-gray-50 transition-colors">
-          <td class="py-4 px-2 font-medium text-brand-black text-xs">#ORD-3289</td>
-          <td class="py-4 px-2">
-            <div class="flex items-center gap-3">
-              <img src="https://ui-avatars.com/api/?name=Sarah+Johnson&background=eeeeeb&color=111111" alt="Sarah Johnson" class="w-6 h-6 rounded-full object-cover">
-              <span class="text-xs text-brand-gray-600">Sarah Johnson</span>
-            </div>
-          </td>
-          <td class="py-4 px-2 text-xs text-brand-gray-400">Floral Summer Dress</td>
-          <td class="py-4 px-2 font-medium text-brand-black text-xs">$79.50</td>
-          <td class="py-4 px-2 text-right">
-            <span class="inline-flex px-2 py-1 bg-green-100 text-green-700 rounded-sm text-[10px] font-bold">Delivered</span>
-          </td>
-        </tr>
-        <tr class="hover:bg-brand-gray-50 transition-colors">
-          <td class="py-4 px-2 font-medium text-brand-black text-xs">#ORD-3288</td>
-          <td class="py-4 px-2">
-            <div class="flex items-center gap-3">
-              <img src="https://ui-avatars.com/api/?name=Robert+Brown&background=eeeeeb&color=111111" alt="Robert Brown" class="w-6 h-6 rounded-full object-cover">
-              <span class="text-xs text-brand-gray-600">Robert Brown</span>
-            </div>
-          </td>
-          <td class="py-4 px-2 text-xs text-brand-gray-400">Classic Cotton Tee</td>
-          <td class="py-4 px-2 font-medium text-brand-black text-xs">$58.00</td>
-          <td class="py-4 px-2 text-right">
-            <span class="inline-flex px-2 py-1 bg-red-100 text-red-700 rounded-sm text-[10px] font-bold">Cancelled</span>
-          </td>
-        </tr>
-        <tr class="hover:bg-brand-gray-50 transition-colors">
-          <td class="py-4 px-2 font-medium text-brand-black text-xs">#ORD-3287</td>
-          <td class="py-4 px-2">
-            <div class="flex items-center gap-3">
-              <img src="https://ui-avatars.com/api/?name=Emily+Lewis&background=eeeeeb&color=111111" alt="Emily Lewis" class="w-6 h-6 rounded-full object-cover">
-              <span class="text-xs text-brand-gray-600">Emily Lewis</span>
-            </div>
-          </td>
-          <td class="py-4 px-2 text-xs text-brand-gray-400">Urban Runners</td>
-          <td class="py-4 px-2 font-medium text-brand-black text-xs">$95.00</td>
-          <td class="py-4 px-2 text-right">
-            <span class="inline-flex px-2 py-1 bg-green-100 text-green-700 rounded-sm text-[10px] font-bold">Delivered</span>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <h3 class="font-serif text-lg font-bold text-brand-black mb-2">Welcome to the Administration Panel</h3>
+    <p class="font-sans text-sm text-brand-gray-400 max-w-sm">
+      This is a skeleton placeholder for store insights and analytics modules. Access customer lists and other controls from the sidebar.
+    </p>
   </div>
 </div>

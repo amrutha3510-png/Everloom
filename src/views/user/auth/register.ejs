@@ -89,6 +89,29 @@
         <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="passwordError"></p>
       </div>
 
+      <!-- Password Requirements Checklist -->
+      <div class="p-3.5 bg-brand-gray-50 border border-brand-gray-100 space-y-2">
+        <p class="font-sans text-[10px] font-bold text-brand-black uppercase tracking-wider">Password Requirements</p>
+        <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-[11px] text-brand-gray-400 font-sans">
+          <div id="req-len" class="flex items-center gap-2">
+            <div class="w-1.5 h-1.5 rounded-full bg-brand-gray-300 transition-colors flex-shrink-0"></div>
+            <span>Min 8 characters</span>
+          </div>
+          <div id="req-up" class="flex items-center gap-2">
+            <div class="w-1.5 h-1.5 rounded-full bg-brand-gray-300 transition-colors flex-shrink-0"></div>
+            <span>1 uppercase letter</span>
+          </div>
+          <div id="req-num" class="flex items-center gap-2">
+            <div class="w-1.5 h-1.5 rounded-full bg-brand-gray-300 transition-colors flex-shrink-0"></div>
+            <span>1 number</span>
+          </div>
+          <div id="req-sp" class="flex items-center gap-2">
+            <div class="w-1.5 h-1.5 rounded-full bg-brand-gray-300 transition-colors flex-shrink-0"></div>
+            <span>1 special character</span>
+          </div>
+        </div>
+      </div>
+
       <div class="relative">
         <input
           type="password"
@@ -305,4 +328,35 @@
       if (errorEl) errorEl.classList.add('hidden');
     });
   });
+
+  // Password Requirements Live Tracking
+  const pwdInput = document.getElementById('password');
+  if (pwdInput) {
+    pwdInput.addEventListener('input', function(e) {
+      const val = e.target.value;
+      
+      const reqLen = val.length >= 8;
+      const reqUp  = /[A-Z]/.test(val);
+      const reqNum = /\d/.test(val);
+      const reqSp  = /[^A-Za-z\d]/.test(val);
+
+      const updateDot = (id, valid) => {
+        const dot = document.querySelector(`#${id} div`);
+        if (dot) {
+          if (valid) {
+            dot.classList.remove('bg-brand-gray-300');
+            dot.classList.add('bg-green-500');
+          } else {
+            dot.classList.remove('bg-green-500');
+            dot.classList.add('bg-brand-gray-300');
+          }
+        }
+      };
+
+      updateDot('req-len', reqLen);
+      updateDot('req-up',  reqUp);
+      updateDot('req-num', reqNum);
+      updateDot('req-sp',  reqSp);
+    });
+  }
 </script>

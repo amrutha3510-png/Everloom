@@ -32,6 +32,8 @@ export const sendOtp = async ({ email, purpose }) => {
 
   const otpCode = generateOtp();
 
+  console.log(`\n========================================\n[OTP] Generated OTP: ${otpCode} for ${email} (Purpose: ${purpose})\n========================================\n`);
+
   // Save to the Otp collection
   await Otp.create({
     email,

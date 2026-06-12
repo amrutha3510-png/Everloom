@@ -1,0 +1,323 @@
+<%- include('../partials/navbar') %>
+
+<main class="min-h-screen bg-brand-gray-50">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-xs font-sans text-brand-gray-400 mb-6">
+      <a href="/" class="hover:text-brand-black transition-colors">Home</a>
+      <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
+      <a href="/account/profile" class="hover:text-brand-black transition-colors">My Account</a>
+      <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
+      <span class="text-brand-black font-medium">Security Settings</span>
+    </nav>
+
+    <!-- Page header -->
+    <p class="font-sans text-xs uppercase tracking-widest text-brand-gray-400 mb-1">Account Dashboard</p>
+    <h1 class="font-serif text-3xl sm:text-4xl font-bold text-brand-black mb-1">My Account</h1>
+    <p class="font-sans text-sm text-brand-gray-400 mb-8 max-w-2xl">Manage your profile, addresses, orders, wallet, and security settings in one elegant space.</p>
+
+    <!-- Two-column layout -->
+    <div class="flex flex-col lg:flex-row gap-8">
+
+      <!-- Sidebar -->
+      <%- include('../partials/account-sidebar') %>
+
+      <!-- Main content -->
+      <div class="flex-1">
+        
+        <div class="mb-6">
+          <h2 class="font-serif text-xl font-bold text-brand-black">Security Settings</h2>
+          <p class="font-sans text-xs text-brand-gray-400 mt-1">Manage your password and secure your account.</p>
+        </div>
+
+        <!-- Success Banner -->
+        <div id="sec-message" class="hidden mb-6 px-4 py-3 border border-green-200 bg-green-50 text-green-700 text-xs font-medium font-sans flex items-center gap-2">
+          <div class="w-2 h-2 rounded-full bg-green-500"></div>
+          <span id="sec-message-text">Your password has been updated successfully.</span>
+        </div>
+
+        <!-- Error Banner -->
+        <div id="sec-error-message" class="hidden mb-6 px-4 py-3 border border-red-200 bg-red-50 text-red-700 text-xs font-medium font-sans">
+        </div>
+
+
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          
+          <% if (user.googleId) { %>
+            <!-- Left Column: Google Link Banner -->
+            <div class="bg-white border border-brand-gray-100 p-8 py-12 h-fit text-center flex flex-col items-center justify-center">
+              <div class="w-16 h-16 rounded-full bg-brand-gray-50 flex items-center justify-center mb-6">
+                <svg class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                </svg>
+              </div>
+              <h3 class="font-serif text-lg font-bold text-brand-black mb-2">Google Authenticated</h3>
+              <p class="font-sans text-xs text-brand-gray-400 max-w-sm leading-relaxed mb-6 font-normal">
+                Your account is managed securely using Google Sign-In. Password setup and modification options are disabled.
+              </p>
+              <div class="px-5 py-2 bg-brand-gray-50 border border-brand-gray-100 text-[9px] uppercase font-bold tracking-widest text-brand-gray-500">
+                Managed via Google
+              </div>
+            </div>
+          <% } else { %>
+            <!-- Left Column: Form -->
+            <div class="bg-white border border-brand-gray-100 p-6 sm:p-8 sm:pb-12 h-fit">
+              <h3 class="font-serif text-lg font-bold text-brand-black mb-1">Change Password</h3>
+              <p class="font-sans text-xs text-brand-gray-400 mb-6">Choose a strong password to protect your account.</p>
+
+              <form id="security-form" novalidate class="space-y-5">
+                
+                <% if (!isGoogleOnly) { %>
+                  <div>
+                    <label class="block font-sans text-xs font-semibold text-brand-gray-600 mb-2">Current Password</label>
+                    <div class="relative">
+                      <input type="password" id="currentPassword" name="currentPassword" placeholder="Enter current password"
+                             class="w-full bg-brand-gray-50 border border-brand-gray-100 text-brand-black placeholder-brand-gray-400 font-sans text-sm px-4 py-3 pr-11 focus:outline-none focus:border-brand-gray-600 focus:bg-white transition-all">
+                      <button type="button" onclick="togglePwd('currentPassword', 'eye-curr')" class="absolute right-4 top-[22px] -translate-y-1/2 text-brand-gray-400 hover:text-brand-gray-600">
+                        <svg id="eye-curr" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.964-7.178z"/>
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                      </button>
+                    </div>
+                    <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="currentPassword-err"></p>
+                  </div>
+                <% } %>
+
+                <div>
+                  <label class="block font-sans text-xs font-semibold text-brand-gray-600 mb-2">New Password</label>
+                  <div class="relative">
+                    <input type="password" id="newPassword" name="newPassword" placeholder="Create new password"
+                           class="w-full bg-brand-gray-50 border border-brand-gray-100 text-brand-black placeholder-brand-gray-400 font-sans text-sm px-4 py-3 pr-11 focus:outline-none focus:border-brand-gray-600 focus:bg-white transition-all">
+                    <button type="button" onclick="togglePwd('newPassword', 'eye-new')" class="absolute right-4 top-[22px] -translate-y-1/2 text-brand-gray-400 hover:text-brand-gray-600">
+                      <svg id="eye-new" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.964-7.178z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                      </svg>
+                    </button>
+                  </div>
+                  <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="newPassword-err"></p>
+                </div>
+
+                <div>
+                  <label class="block font-sans text-xs font-semibold text-brand-gray-600 mb-2">Confirm New Password</label>
+                  <div class="relative">
+                    <input type="password" id="confirmNewPassword" name="confirmNewPassword" placeholder="Confirm new password"
+                           class="w-full bg-brand-gray-50 border border-brand-gray-100 text-brand-black placeholder-brand-gray-400 font-sans text-sm px-4 py-3 pr-11 focus:outline-none focus:border-brand-gray-600 focus:bg-white transition-all">
+                    <button type="button" onclick="togglePwd('confirmNewPassword', 'eye-conf')" class="absolute right-4 top-[22px] -translate-y-1/2 text-brand-gray-400 hover:text-brand-gray-600">
+                      <svg id="eye-conf" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.964-7.178z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                      </svg>
+                    </button>
+                  </div>
+                  <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="confirmNewPassword-err"></p>
+                </div>
+
+                <div class="pt-2">
+                  <button type="submit" id="sec-btn"
+                          class="inline-flex items-center gap-2 bg-brand-black text-white text-[10px] font-semibold uppercase tracking-widest px-8 py-3.5 hover:bg-brand-gray-600 transition-colors disabled:opacity-60">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>
+                    </svg>
+                    <span id="sec-btn-text"><%= isGoogleOnly ? 'Set Password' : 'Update Password' %></span>
+                    <svg id="sec-spinner" class="hidden w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                    </svg>
+                  </button>
+                </div>
+
+              </form>
+            </div>
+          <% } %>
+
+          <!-- Right Column: Info Cards -->
+          <div class="space-y-6">
+            
+            <% if (!user.googleId) { %>
+              <!-- Requirements -->
+              <div class="bg-white border border-brand-gray-100 p-6 sm:p-8">
+                <h3 class="font-sans text-xs font-bold text-brand-black mb-4 flex items-center gap-2">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd"/></svg>
+                  Password Requirements
+                </h3>
+                <ul class="space-y-3 font-sans text-xs text-brand-gray-400">
+                  <li id="req-len" class="flex items-center gap-3"><div class="w-2.5 h-2.5 rounded-full bg-brand-gray-200 transition-colors"></div> Minimum 8 characters long</li>
+                  <li id="req-up"  class="flex items-center gap-3"><div class="w-2.5 h-2.5 rounded-full bg-brand-gray-200 transition-colors"></div> At least one uppercase letter</li>
+                  <li id="req-num" class="flex items-center gap-3"><div class="w-2.5 h-2.5 rounded-full bg-brand-gray-200 transition-colors"></div> At least one number (0-9)</li>
+                  <li id="req-sp"  class="flex items-center gap-3"><div class="w-2.5 h-2.5 rounded-full bg-brand-gray-200 transition-colors"></div> One special character (!@#$%)</li>
+                </ul>
+              </div>
+            <% } %>
+
+            <!-- Tips -->
+            <div class="bg-white border border-brand-gray-100 p-6 sm:p-8">
+              <h3 class="font-sans text-xs font-bold text-brand-black mb-4 flex items-center gap-2">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm8.706-1.442c1.146-.573 2.437.463 2.126 1.706l-.709 2.836.042-.02a.75.75 0 01.67 1.34l-.04.022c-1.147.573-2.438-.463-2.127-1.706l.71-2.836-.042.02a.75.75 0 11-.671-1.34l.041-.022zM12 9a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd"/></svg>
+                Security Tips
+              </h3>
+              <p class="font-sans text-xs text-brand-gray-400 leading-relaxed mb-4 font-normal">
+                <%= user.googleId ? 'Your authentication is handled externally by Google. To keep your account secure, review your Google Account security settings periodically and enable 2-Step Verification.' : 'Never share your password with anyone, not even EVERLOOM support staff. Avoid using common words or easily guessable phrases.' %>
+              </p>
+              <p class="font-sans text-xs text-brand-gray-400 leading-relaxed font-normal">
+                <%= user.googleId ? 'If you sign out of Google or lose access, follow Google\'s recovery flow to restore access.' : 'Update your password regularly to maintain optimal account security.' %>
+              </p>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div><!-- /main content -->
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>
+
+<% extraScripts = `
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+  // ── Password visibility toggle ──
+  function togglePwd(inputId, eyeId) {
+    const input = document.getElementById(inputId);
+    const eye   = document.getElementById(eyeId);
+    if (!input || !eye) return;
+    
+    if (input.type === 'password') {
+      input.type = 'text';
+      eye.innerHTML = '<path stroke-linecap=\\"round\\" stroke-linejoin=\\"round\\" d=\\"M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88\\"/>';
+    } else {
+      input.type = 'password';
+      eye.innerHTML = '<path stroke-linecap=\\"round\\" stroke-linejoin=\\"round\\" d=\\"M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.964-7.178z\\"/><path stroke-linecap=\\"round\\" stroke-linejoin=\\"round\\" d=\\"M15 12a3 3 0 11-6 0 3 3 0 016 0z\\"/>';
+    }
+  }
+
+  // ── Validation UI ──
+  function setInvalid(id, msg) {
+    const el = document.getElementById(id);
+    const err = document.getElementById(id + '-err');
+    if (el) {
+      el.classList.remove('border-brand-gray-100','focus:border-brand-gray-600');
+      el.classList.add('border-red-500','focus:border-red-500');
+    }
+    if (err) { err.textContent = msg; err.classList.remove('hidden'); }
+  }
+  function setValid(id) {
+    const el = document.getElementById(id);
+    const err = document.getElementById(id + '-err');
+    if (el) {
+      el.classList.remove('border-red-500','focus:border-red-500');
+      el.classList.add('border-brand-gray-100','focus:border-brand-gray-600');
+    }
+    if (err) { err.textContent = ''; err.classList.add('hidden'); }
+  }
+
+  ['currentPassword','newPassword','confirmNewPassword'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.addEventListener('input', () => setValid(id));
+  });
+
+  // ── Password Requirements Tracking ──
+  const newPwdInput = document.getElementById('newPassword');
+  if (newPwdInput) {
+    newPwdInput.addEventListener('input', (e) => {
+      const val = e.target.value;
+      
+      const reqLen = val.length >= 8;
+      const reqUp  = /[A-Z]/.test(val);
+      const reqNum = /\\d/.test(val);
+      const reqSp  = /[^A-Za-z\\d]/.test(val);
+
+      const updateDot = (id, valid) => {
+        const dot = document.querySelector(\`#\${id} div\`);
+        if (dot) {
+          if (valid) {
+            dot.classList.remove('bg-brand-gray-200');
+            dot.classList.add('bg-green-500');
+          } else {
+            dot.classList.remove('bg-green-500');
+            dot.classList.add('bg-brand-gray-200');
+          }
+        }
+      };
+
+      updateDot('req-len', reqLen);
+      updateDot('req-up',  reqUp);
+      updateDot('req-num', reqNum);
+      updateDot('req-sp',  reqSp);
+    });
+  }
+
+  // ── Form Submit ──
+  const secForm = document.getElementById('security-form');
+  if (secForm) {
+    secForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      // Clear banners
+      document.getElementById('sec-message').classList.add('hidden');
+      document.getElementById('sec-error-message').classList.add('hidden');
+      
+      const currEl = document.getElementById('currentPassword');
+      const currentPassword = currEl ? currEl.value : '';
+      const newPassword = document.getElementById('newPassword').value;
+      const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+
+      let valid = true;
+      const pwdRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z\\d]).{8,}$/;
+
+      if (!newPassword) { setInvalid('newPassword', 'New password is required.'); valid=false; }
+      else if (!pwdRegex.test(newPassword)) { setInvalid('newPassword', 'Password does not meet requirements.'); valid=false; }
+      else if (currentPassword && newPassword === currentPassword) { setInvalid('newPassword', 'New password cannot be the same as the current password.'); valid=false; }
+      
+      if (newPassword !== confirmNewPassword) { setInvalid('confirmNewPassword', 'Passwords do not match.'); valid=false; }
+
+      if (!valid) return;
+
+      const btn = document.getElementById('sec-btn');
+      const text = document.getElementById('sec-btn-text');
+      const spin = document.getElementById('sec-spinner');
+      
+      btn.disabled = true;
+      text.textContent = 'Saving...';
+      spin.classList.remove('hidden');
+
+      try {
+        await axios.post('/account/security/change-password', {
+          currentPassword, newPassword, confirmNewPassword
+        });
+        
+        secForm.reset();
+        
+        // Reset dots
+        document.querySelectorAll('#req-len div, #req-up div, #req-num div, #req-sp div').forEach(dot => {
+          dot.classList.remove('bg-green-500');
+          dot.classList.add('bg-brand-gray-200');
+        });
+
+        document.getElementById('sec-message').classList.remove('hidden');
+      } catch (err) {
+        const data = err.response?.data || {};
+        if (data.field) {
+          setInvalid(data.field, data.message);
+        } else {
+          const errBanner = document.getElementById('sec-error-message');
+          errBanner.textContent = data.message || 'An error occurred.';
+          errBanner.classList.remove('hidden');
+        }
+      } finally {
+        btn.disabled = false;
+        text.textContent = currEl ? 'Update Password' : 'Set Password';
+        spin.classList.add('hidden');
+      }
+    });
+  }
+</script>
+`; %>

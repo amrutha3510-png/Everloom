@@ -76,6 +76,10 @@ export const validateUserLogin = async (email, password) => {
     return { success: false, message: 'User is not verified. Please complete registration.' };
   }
 
+  if (user.status === 'blocked') {
+    return { success: false, message: 'Your account has been blocked. Please contact support.' };
+  }
+
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) {
     return { success: false, message: 'Invalid credentials' };
