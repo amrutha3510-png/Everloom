@@ -82,10 +82,10 @@
 
   <% if (typeof hideNavigation === 'undefined' || !hideNavigation) { %>
     <div class="flex h-screen overflow-hidden">
-      <%- include('../partials/admin/sidebar') %>
+      <%- include('../admin/partials/sidebar') %>
       
       <div class="flex-1 flex flex-col ml-0 lg:ml-64 transition-all duration-300">
-        <%- include('../partials/admin/navbar') %>
+        <%- include('../admin/partials/navbar') %>
         <main class="flex-1 overflow-x-hidden overflow-y-auto bg-brand-gray-50 p-4 sm:p-8 mt-20">
           <%- body %>
         </main>
