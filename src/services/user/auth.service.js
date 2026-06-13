@@ -88,27 +88,7 @@ export const validateUserLogin = async (email, password) => {
   return { success: true, user };
 };
 
-/**
- * Validates admin credentials.
- */
-export const validateAdminLogin = async (email, password) => {
-  const admin = await User.findOne({ email, role: 'admin' });
-  
-  if (!admin) {
-      return { success: false, message: 'Invalid admin credentials' };
-  }
 
-  if (!admin.isVerified) {
-    return { success: false, message: 'Admin account is not verified.' };
-  }
-
-  const isMatch = await bcrypt.compare(password, admin.password);
-  if (!isMatch) {
-    return { success: false, message: 'Invalid admin credentials' };
-  }
-
-  return { success: true, admin };
-};
 
 /**
  * Checks if the email exists & is verified, then sends an OTP for password reset.
