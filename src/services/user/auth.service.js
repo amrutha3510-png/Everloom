@@ -80,6 +80,10 @@ export const validateUserLogin = async (email, password) => {
     return { success: false, message: 'Your account has been blocked. Please contact support.' };
   }
 
+  if (!user.password) {
+    return { success: false, message: 'Invalid credentials' };
+  }
+
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) {
     return { success: false, message: 'Invalid credentials' };

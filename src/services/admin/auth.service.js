@@ -20,6 +20,10 @@ export const validateAdminLogin = async (email, password) => {
   }
 
   // Compare passwords
+  if (!adminUser.password) {
+    return { success: false, message: 'Invalid credentials or unauthorized access.' };
+  }
+
   const isMatch = await bcrypt.compare(password, adminUser.password);
   if (!isMatch) {
     return { success: false, message: 'Invalid credentials or unauthorized access.' };

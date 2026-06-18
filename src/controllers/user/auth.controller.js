@@ -72,7 +72,6 @@ export const loginUser = async (req, res) => {
             req.session.oldData = { email };
             return res.redirect('/login');
         }
-
         // Use AuthService to validate
         const result = await validateUserLogin(email, password);
         
@@ -246,8 +245,8 @@ export const forgotPassword = async (req, res) => {
             req.session.toast = { type: 'error', message: 'Please enter a valid email address.' };
             return res.redirect('/forgot-password');
         }
-
         const result = await requestPasswordReset(email.trim());
+        
         if (!result.success) {
             req.session.toast = { type: 'error', message: result.message };
             return res.redirect('/forgot-password');
@@ -285,8 +284,8 @@ export const verifyResetOtp = async (req, res) => {
             req.session.toast = { type: 'error', message: 'Email and OTP are required.' };
             return res.redirect('/verify-reset-otp');
         }
-
         const result = await verifyOtp({ email, otp, purpose: 'reset-password' });
+       
         if (!result.ok) {
             req.session.toast = { type: 'error', message: 'Invalid or expired OTP.' };
             req.session.resetEmail = email;

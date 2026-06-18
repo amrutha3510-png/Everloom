@@ -234,6 +234,10 @@ export const changePassword = async (userId, currentPassword, newPassword) => {
     throw new Error('Password management is disabled for Google accounts.');
   }
 
+  if (!user.password) {
+    throw new Error('No password is set on this account. Please set a password first.');
+  }
+
   if (!currentPassword) throw new Error('Current password is required.');
   const isMatch = await bcrypt.compare(currentPassword, user.password);
   if (!isMatch) throw new Error('Current password is incorrect.');
