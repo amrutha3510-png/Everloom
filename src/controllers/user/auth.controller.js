@@ -112,6 +112,19 @@ export const registerUser = async (req, res) => {
             return res.redirect('/register');
         }
 
+        // 1b. Check full name length and characters
+        const nameRegex = /^[a-zA-Z\s]+$/;
+        if (fullName.trim().length < 3) {
+            req.session.toast = { type: 'error', message: 'Full name must be at least 3 characters.' };
+            req.session.oldData = { fullName, email, referralCode };
+            return res.redirect('/register');
+        }
+        if (!nameRegex.test(fullName.trim())) {
+            req.session.toast = { type: 'error', message: 'Full name can only contain alphabets and spaces.' };
+            req.session.oldData = { fullName, email, referralCode };
+            return res.redirect('/register');
+        }
+
         // 2. Validate email format using regex
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email.trim())) {

@@ -59,5 +59,5 @@ app.use("/", userRoutes);
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-    console.log(`Server Running On Port ${PORT}`);
+    console.log(`Server Running On Port ${PORT}`); // nodemon restart trigger.
 });

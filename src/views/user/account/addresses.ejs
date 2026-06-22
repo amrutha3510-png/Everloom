@@ -1,563 +1,614 @@
 <%- include('../partials/navbar') %>
 
-<main class="min-h-screen bg-brand-gray-50">
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <main class="min-h-screen bg-brand-gray-50">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-    <!-- Breadcrumb -->
-    <nav class="flex items-center gap-2 text-xs font-sans text-brand-gray-400 mb-6">
-      <a href="/" class="hover:text-brand-black transition-colors">Home</a>
-      <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
-      <a href="/account/profile" class="hover:text-brand-black transition-colors">My Account</a>
-      <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
-      <span class="text-brand-black font-medium">Saved Addresses</span>
-    </nav>
+      <!-- Breadcrumb -->
+      <nav class="flex items-center gap-2 text-xs font-sans text-brand-gray-400 mb-6">
+        <a href="/" class="hover:text-brand-black transition-colors">Home</a>
+        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+        </svg>
+        <a href="/account/profile" class="hover:text-brand-black transition-colors">My Account</a>
+        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+        </svg>
+        <span class="text-brand-black font-medium">Saved Addresses</span>
+      </nav>
 
-    <!-- Page header -->
-    <p class="font-sans text-xs uppercase tracking-widest text-brand-gray-400 mb-1">Account Dashboard</p>
-    <h1 class="font-serif text-3xl sm:text-4xl font-bold text-brand-black mb-1">My Account</h1>
-    <p class="font-sans text-sm text-brand-gray-400 mb-8 max-w-2xl font-normal">Manage your profile, addresses, orders, wallet, and security settings in one elegant space.</p>
+      <!-- Page header -->
+      <p class="font-sans text-xs uppercase tracking-widest text-brand-gray-400 mb-1">Account Dashboard</p>
+      <h1 class="font-serif text-3xl sm:text-4xl font-bold text-brand-black mb-1">My Account</h1>
+      <p class="font-sans text-sm text-brand-gray-400 mb-8 max-w-2xl font-normal">Manage your profile, addresses,
+        orders, wallet, and security settings in one elegant space.</p>
 
-    <!-- Two-column layout -->
-    <div class="flex flex-col lg:flex-row gap-8">
+      <!-- Two-column layout -->
+      <div class="flex flex-col lg:flex-row gap-8">
 
-      <!-- Sidebar -->
-      <%- include('../partials/account-sidebar') %>
+        <!-- Sidebar -->
+        <%- include('../partials/account-sidebar') %>
 
-      <!-- Main content -->
-      <div class="flex-1">
-        
-        <div class="flex items-start justify-between mb-6">
-          <div>
-            <h2 class="font-serif text-xl font-bold text-brand-black">Saved Addresses</h2>
-            <p class="font-sans text-xs text-brand-gray-400 mt-1">Save and manage your preferred delivery locations.</p>
-          </div>
-          <button id="open-add-modal"
-                  class="inline-flex items-center gap-2 bg-brand-black text-white text-[10px] font-semibold uppercase tracking-widest px-4 py-2.5 hover:bg-brand-gray-600 transition-colors flex-shrink-0 ml-4">
-            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
-            </svg>
-            Add New Address
-          </button>
-        </div>
+          <!-- Main content -->
+          <div class="flex-1">
 
-        <% if (addresses.length === 0) { %>
-          <div class="bg-white border border-brand-gray-100 flex flex-col items-center justify-center py-16 px-6 text-center">
-            <svg class="w-12 h-12 text-brand-gray-200 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"/>
-              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"/>
-            </svg>
-            <p class="font-serif text-lg font-semibold text-brand-black mb-1">No addresses saved</p>
-            <p class="font-sans text-xs text-brand-gray-400">Add your first delivery location to speed up checkout.</p>
-          </div>
-        <% } else { %>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <% addresses.forEach(addr => { %>
-              <div class="bg-white border border-brand-gray-100 p-6 flex flex-col relative <%= addr.isDefault ? 'border-brand-gray-300' : '' %>">
-                
-                <div class="flex items-start justify-between mb-4">
-                  <h3 class="font-serif text-lg font-semibold text-brand-black"><%= addr.fullName %></h3>
-                  <% if (addr.isDefault) { %>
-                    <span class="bg-brand-gray-100 text-brand-black text-[9px] font-bold uppercase tracking-widest px-2 py-1 border border-brand-gray-200">
-                      Default
-                    </span>
-                  <% } %>
-                </div>
-
-                <div class="font-sans text-xs text-brand-gray-500 leading-relaxed mb-6 flex-1">
-                  <p><%= addr.addressLine1 %></p>
-                  <% if (addr.addressLine2) { %><p><%= addr.addressLine2 %></p><% } %>
-                  <p><%= addr.locality ? addr.locality + ', ' : '' %><%= addr.city %></p>
-                  <p><%= addr.state %> - <%= addr.pincode %></p>
-                  <p><%= addr.country || 'India' %></p>
-                  <p class="mt-4 flex items-center gap-1.5 text-brand-black font-medium">
-                    <svg class="w-3.5 h-3.5 text-brand-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-2.896-1.596-5.273-3.974-6.869-6.87l1.292-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z"/>
-                    </svg>
-                    +91 <%= addr.phone %>
-                  </p>
-                </div>
-
-                <div class="flex items-center justify-between pt-4 border-t border-brand-gray-100">
-                  <div class="flex gap-4">
-                    <button class="edit-addr-btn flex items-center gap-1 text-[10px] font-semibold uppercase tracking-widest text-brand-black hover:text-brand-gray-600 transition-colors"
-                            data-id="<%= addr._id %>"
-                            data-fullname="<%= addr.fullName %>"
-                            data-phone="<%= addr.phone %>"
-                            data-line1="<%= addr.addressLine1 %>"
-                            data-line2="<%= addr.addressLine2 || '' %>"
-                            data-pincode="<%= addr.pincode %>"
-                            data-city="<%= addr.city %>"
-                            data-locality="<%= addr.locality || '' %>"
-                            data-state="<%= addr.state %>"
-                            data-country="<%= addr.country || 'India' %>"
-                            data-isdefault="<%= addr.isDefault %>">
-                      <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zM16.862 4.487L19.5 7.125"/>
-                      </svg>
-                      Edit
-                    </button>
-                    <button class="delete-addr-btn flex items-center gap-1 text-[10px] font-semibold uppercase tracking-widest text-brand-gray-400 hover:text-red-600 transition-colors"
-                            data-id="<%= addr._id %>">
-                      <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
-                      </svg>
-                      Delete
-                    </button>
-                  </div>
-                  <% if (!addr.isDefault) { %>
-                    <button class="set-default-btn text-[10px] font-semibold text-brand-gray-400 hover:text-brand-black transition-colors"
-                            data-id="<%= addr._id %>">
-                      Set as Default
-                    </button>
-                  <% } %>
-                </div>
-
+            <div class="flex items-start justify-between mb-6">
+              <div>
+                <h2 class="font-serif text-xl font-bold text-brand-black">Saved Addresses</h2>
+                <p class="font-sans text-xs text-brand-gray-400 mt-1">Save and manage your preferred delivery locations.
+                </p>
               </div>
-            <% }); %>
-          </div>
-        <% } %>
+              <button id="open-add-modal"
+                class="inline-flex items-center gap-2 bg-brand-black text-white text-[10px] font-semibold uppercase tracking-widest px-4 py-2.5 hover:bg-brand-gray-600 transition-colors flex-shrink-0 ml-4">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                Add New Address
+              </button>
+            </div>
 
-      </div><!-- /main content -->
+            <% if (addresses.length===0) { %>
+              <div
+                class="bg-white border border-brand-gray-100 flex flex-col items-center justify-center py-16 px-6 text-center">
+                <svg class="w-12 h-12 text-brand-gray-200 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                  stroke-width="1">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                </svg>
+                <p class="font-serif text-lg font-semibold text-brand-black mb-1">No addresses saved</p>
+                <p class="font-sans text-xs text-brand-gray-400">Add your first delivery location to speed up checkout.
+                </p>
+              </div>
+              <% } else { %>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <% addresses.forEach(addr=> { %>
+                    <div
+                      class="bg-white border border-brand-gray-100 p-6 flex flex-col relative <%= addr.isDefault ? 'border-brand-gray-300' : '' %>">
+
+                      <div class="flex items-start justify-between mb-4">
+                        <h3 class="font-serif text-lg font-semibold text-brand-black">
+                          <%= addr.fullName %>
+                        </h3>
+                        <% if (addr.isDefault) { %>
+                          <span
+                            class="bg-brand-gray-100 text-brand-black text-[9px] font-bold uppercase tracking-widest px-2 py-1 border border-brand-gray-200">
+                            Default
+                          </span>
+                          <% } %>
+                      </div>
+
+                      <div class="font-sans text-xs text-brand-gray-500 leading-relaxed mb-6 flex-1">
+                        <p>
+                          <%= addr.addressLine1 %>
+                        </p>
+                        <% if (addr.addressLine2) { %>
+                          <p>
+                            <%= addr.addressLine2 %>
+                          </p>
+                          <% } %>
+                            <p>
+                              <%= addr.locality ? addr.locality + ', ' : '' %>
+                                <%= addr.city %>
+                            </p>
+                            <p>
+                              <%= addr.state %> - <%= addr.pincode %>
+                            </p>
+                            <p>
+                              <%= addr.country || 'India' %>
+                            </p>
+                            <p class="mt-4 flex items-center gap-1.5 text-brand-black font-medium">
+                              <svg class="w-3.5 h-3.5 text-brand-gray-400" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-2.896-1.596-5.273-3.974-6.869-6.87l1.292-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                              </svg>
+                              +91 <%= addr.phone %>
+                            </p>
+                      </div>
+
+                      <div class="flex items-center justify-between pt-4 border-t border-brand-gray-100">
+                        <div class="flex gap-4">
+                          <button
+                            class="edit-addr-btn flex items-center gap-1 text-[10px] font-semibold uppercase tracking-widest text-brand-black hover:text-brand-gray-600 transition-colors"
+                            data-id="<%= addr._id %>" data-fullname="<%= addr.fullName %>"
+                            data-phone="<%= addr.phone %>" data-line1="<%= addr.addressLine1 %>"
+                            data-line2="<%= addr.addressLine2 || '' %>" data-pincode="<%= addr.pincode %>"
+                            data-city="<%= addr.city %>" data-locality="<%= addr.locality || '' %>"
+                            data-state="<%= addr.state %>" data-country="<%= addr.country || 'India' %>"
+                            data-isdefault="<%= addr.isDefault %>">
+                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                              <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zM16.862 4.487L19.5 7.125" />
+                            </svg>
+                            Edit
+                          </button>
+                          <button
+                            class="delete-addr-btn flex items-center gap-1 text-[10px] font-semibold uppercase tracking-widest text-brand-gray-400 hover:text-red-600 transition-colors"
+                            data-id="<%= addr._id %>">
+                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                              <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                            </svg>
+                            Delete
+                          </button>
+                        </div>
+                        <% if (!addr.isDefault) { %>
+                          <button
+                            class="set-default-btn text-[10px] font-semibold text-brand-gray-400 hover:text-brand-black transition-colors"
+                            data-id="<%= addr._id %>">
+                            Set as Default
+                          </button>
+                          <% } %>
+                      </div>
+
+                    </div>
+                    <% }); %>
+                </div>
+                <% } %>
+
+          </div><!-- /main content -->
+      </div>
     </div>
-  </div>
-</main>
+  </main>
 
-<%- include('../partials/footer') %>
+  <%- include('../partials/footer') %>
 
-<!-- ═══════════════════════════════════════════
+    <!-- ═══════════════════════════════════════════
      ADD / EDIT ADDRESS MODAL
 ═══════════════════════════════════════════ -->
-<div id="addr-modal-backdrop" class="fixed inset-0 bg-black bg-opacity-40 z-50 hidden opacity-0 transition-opacity duration-200"></div>
+    <div id="addr-modal-backdrop"
+      class="fixed inset-0 bg-black bg-opacity-40 z-50 hidden opacity-0 transition-opacity duration-200"></div>
 
-<div id="addr-modal-container" class="fixed inset-0 z-50 flex items-center justify-center pointer-events-none px-4 hidden">
-  <div id="addr-modal" class="pointer-events-auto bg-white w-full max-w-2xl translate-y-4 opacity-0 transition-all duration-200 overflow-y-auto max-h-[95vh]">
-    
-    <div class="flex items-center justify-between px-8 py-5 border-b border-brand-gray-100">
-      <h2 id="modal-title" class="font-serif text-xl font-bold text-brand-black">Add Address</h2>
-      <button id="close-addr-modal" class="text-brand-gray-400 hover:text-brand-black transition-colors" aria-label="Close">
-        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-      </button>
-    </div>
+    <div id="addr-modal-container"
+      class="fixed inset-0 z-50 flex items-center justify-center pointer-events-none px-4 hidden">
+      <div id="addr-modal"
+        class="pointer-events-auto bg-white w-full max-w-2xl translate-y-4 opacity-0 transition-all duration-200 overflow-y-auto max-h-[95vh]">
 
-    <div class="px-8 py-6">
-      <div id="modal-general-error" class="hidden mb-4 px-4 py-3 border border-red-200 bg-red-50 text-red-700 text-xs font-sans font-medium"></div>
-
-      <form id="addr-form" novalidate>
-        <input type="hidden" id="addr-id">
-        
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
-          <div>
-            <label class="block font-sans text-xs font-semibold text-brand-gray-600 mb-1.5">Full Name <span class="text-red-500">*</span></label>
-            <input type="text" id="addr-fullName" placeholder="Full name"
-                   class="w-full bg-brand-gray-50 border border-brand-gray-100 text-brand-black placeholder-brand-gray-400 font-sans text-sm px-4 py-3 focus:outline-none focus:border-brand-gray-600 focus:bg-white transition-all">
-            <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="addr-fullName-err"></p>
-          </div>
-          <div>
-            <label class="block font-sans text-xs font-semibold text-brand-gray-600 mb-1.5">Phone Number <span class="text-red-500">*</span></label>
-            <div class="flex">
-              <span class="inline-flex items-center px-3 border border-r-0 border-brand-gray-100 bg-brand-gray-100 text-brand-gray-600 text-sm font-sans select-none">+91</span>
-              <input type="tel" id="addr-phone" placeholder="10-digit number"
-                     class="flex-1 bg-brand-gray-50 border border-brand-gray-100 text-brand-black placeholder-brand-gray-400 font-sans text-sm px-4 py-3 focus:outline-none focus:border-brand-gray-600 focus:bg-white transition-all">
-            </div>
-            <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="addr-phone-err"></p>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
-          <div>
-            <label class="block font-sans text-xs font-semibold text-brand-gray-600 mb-1.5">Pincode <span class="text-red-500">*</span></label>
-            <div class="relative">
-               <input type="text" id="addr-pincode" placeholder="6-digit pincode" maxlength="6" inputmode="numeric"
-                      class="w-full bg-brand-gray-50 border border-brand-gray-100 text-brand-black placeholder-brand-gray-400 font-sans text-sm px-4 py-3 focus:outline-none focus:border-brand-gray-600 focus:bg-white transition-all">
-               <svg id="pincode-spinner" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-gray-400 animate-spin hidden" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
-               </svg>
-            </div>
-            <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="addr-pincode-err"></p>
-            <p class="hidden text-green-600 text-xs mt-1.5 font-sans pl-1" id="addr-pincode-success"></p>
-          </div>
-
-          <div>
-            <label class="block font-sans text-xs font-semibold text-brand-gray-600 mb-1.5">State <span class="text-red-500">*</span></label>
-            <input type="text" id="addr-state" placeholder="State"
-                   class="w-full bg-brand-gray-50 border border-brand-gray-100 text-brand-black placeholder-brand-gray-400 font-sans text-sm px-4 py-3 focus:outline-none focus:border-brand-gray-600 focus:bg-white transition-all">
-            <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="addr-state-err"></p>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
-          <div>
-            <label class="block font-sans text-xs font-semibold text-brand-gray-600 mb-1.5">City <span class="text-red-500">*</span></label>
-            <input type="text" id="addr-city" placeholder="City"
-                   class="w-full bg-brand-gray-50 border border-brand-gray-100 text-brand-black placeholder-brand-gray-400 font-sans text-sm px-4 py-3 focus:outline-none focus:border-brand-gray-600 focus:bg-white transition-all">
-            <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="addr-city-err"></p>
-          </div>
-
-          <div>
-            <label class="block font-sans text-xs font-semibold text-brand-gray-600 mb-1.5">Locality <span class="text-red-500">*</span></label>
-            <input type="text" id="addr-locality" placeholder="Locality / Area / Colony"
-                   class="w-full bg-brand-gray-50 border border-brand-gray-100 text-brand-black placeholder-brand-gray-400 font-sans text-sm px-4 py-3 focus:outline-none focus:border-brand-gray-600 focus:bg-white transition-all">
-            <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="addr-locality-err"></p>
-          </div>
-        </div>
-
-        <div class="mb-5">
-          <label class="block font-sans text-xs font-semibold text-brand-gray-600 mb-1.5">Address Line 1 <span class="text-red-500">*</span></label>
-          <input type="text" id="addr-line1" placeholder="House / flat / block no."
-                 class="w-full bg-brand-gray-50 border border-brand-gray-100 text-brand-black placeholder-brand-gray-400 font-sans text-sm px-4 py-3 focus:outline-none focus:border-brand-gray-600 focus:bg-white transition-all">
-          <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="addr-line1-err"></p>
-        </div>
-
-        <div class="mb-5">
-          <label class="block font-sans text-xs font-semibold text-brand-gray-600 mb-1.5">Address Line 2 <span class="text-brand-gray-400 font-normal">(Optional)</span></label>
-          <input type="text" id="addr-line2" placeholder="Street / locality / landmark"
-                 class="w-full bg-brand-gray-50 border border-brand-gray-100 text-brand-black placeholder-brand-gray-400 font-sans text-sm px-4 py-3 focus:outline-none focus:border-brand-gray-600 focus:bg-white transition-all">
-        </div>
-
-        <div class="mb-6">
-          <label class="flex items-center gap-2 cursor-pointer group">
-            <input type="checkbox" id="addr-isDefault" class="w-4 h-4 border-brand-gray-200 accent-brand-black cursor-pointer">
-            <span class="font-sans text-xs text-brand-gray-600 group-hover:text-brand-black transition-colors">Set as default delivery address</span>
-          </label>
-        </div>
-
-        <div class="flex items-center justify-end gap-3 pt-4 border-t border-brand-gray-100">
-          <button type="button" id="cancel-addr-modal"
-                  class="px-6 py-3 border border-brand-gray-200 text-brand-gray-600 text-[10px] font-semibold uppercase tracking-widest hover:border-brand-black hover:text-brand-black transition-colors">
-            Cancel
-          </button>
-          <button type="submit" id="addr-save-btn"
-                  class="inline-flex items-center gap-2 bg-brand-black text-white text-[10px] font-semibold uppercase tracking-widest px-8 py-3 hover:bg-brand-gray-600 transition-colors disabled:opacity-60">
-            <span id="addr-save-text">Save Address</span>
-            <svg id="addr-save-spin" class="hidden w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+        <div class="flex items-center justify-between px-8 py-5 border-b border-brand-gray-100">
+          <h2 id="modal-title" class="font-serif text-xl font-bold text-brand-black">Add Address</h2>
+          <button id="close-addr-modal" class="text-brand-gray-400 hover:text-brand-black transition-colors"
+            aria-label="Close">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
-      </form>
+
+        <div class="px-8 py-6">
+          <div id="modal-general-error"
+            class="hidden mb-4 px-4 py-3 border border-red-200 bg-red-50 text-red-700 text-xs font-sans font-medium">
+          </div>
+
+          <form id="addr-form" novalidate>
+            <input type="hidden" id="addr-id">
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
+              <div>
+                <label class="block font-sans text-xs font-semibold text-brand-gray-600 mb-1.5">Full Name <span
+                    class="text-red-500">*</span></label>
+                <input type="text" id="addr-fullName" placeholder="Full name"
+                  class="w-full bg-brand-gray-50 border border-brand-gray-100 text-brand-black placeholder-brand-gray-400 font-sans text-sm px-4 py-3 focus:outline-none focus:border-brand-gray-600 focus:bg-white transition-all">
+                <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="addr-fullName-err"></p>
+              </div>
+              <div>
+                <label class="block font-sans text-xs font-semibold text-brand-gray-600 mb-1.5">Phone Number <span
+                    class="text-red-500">*</span></label>
+                <div class="flex">
+                  <span
+                    class="inline-flex items-center px-3 border border-r-0 border-brand-gray-100 bg-brand-gray-100 text-brand-gray-600 text-sm font-sans select-none">+91</span>
+                  <input type="tel" id="addr-phone" placeholder="10-digit number"
+                    class="flex-1 bg-brand-gray-50 border border-brand-gray-100 text-brand-black placeholder-brand-gray-400 font-sans text-sm px-4 py-3 focus:outline-none focus:border-brand-gray-600 focus:bg-white transition-all">
+                </div>
+                <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="addr-phone-err"></p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
+              <div>
+                <label class="block font-sans text-xs font-semibold text-brand-gray-600 mb-1.5">Pincode <span
+                    class="text-red-500">*</span></label>
+                <div class="relative">
+                  <input type="text" id="addr-pincode" placeholder="6-digit pincode" maxlength="6" inputmode="numeric"
+                    class="w-full bg-brand-gray-50 border border-brand-gray-100 text-brand-black placeholder-brand-gray-400 font-sans text-sm px-4 py-3 focus:outline-none focus:border-brand-gray-600 focus:bg-white transition-all">
+                  <svg id="pincode-spinner"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-gray-400 animate-spin hidden"
+                    fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                  </svg>
+                </div>
+                <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="addr-pincode-err"></p>
+                <p class="hidden text-green-600 text-xs mt-1.5 font-sans pl-1" id="addr-pincode-success"></p>
+              </div>
+
+              <div>
+                <label class="block font-sans text-xs font-semibold text-brand-gray-600 mb-1.5">State <span
+                    class="text-red-500">*</span></label>
+                <input type="text" id="addr-state" placeholder="State"
+                  class="w-full bg-brand-gray-50 border border-brand-gray-100 text-brand-black placeholder-brand-gray-400 font-sans text-sm px-4 py-3 focus:outline-none focus:border-brand-gray-600 focus:bg-white transition-all">
+                <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="addr-state-err"></p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
+              <div>
+                <label class="block font-sans text-xs font-semibold text-brand-gray-600 mb-1.5">City <span
+                    class="text-red-500">*</span></label>
+                <input type="text" id="addr-city" placeholder="City"
+                  class="w-full bg-brand-gray-50 border border-brand-gray-100 text-brand-black placeholder-brand-gray-400 font-sans text-sm px-4 py-3 focus:outline-none focus:border-brand-gray-600 focus:bg-white transition-all">
+                <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="addr-city-err"></p>
+              </div>
+
+              <div>
+                <label class="block font-sans text-xs font-semibold text-brand-gray-600 mb-1.5">Locality <span
+                    class="text-red-500">*</span></label>
+                <input type="text" id="addr-locality" placeholder="Locality / Area / Colony"
+                  class="w-full bg-brand-gray-50 border border-brand-gray-100 text-brand-black placeholder-brand-gray-400 font-sans text-sm px-4 py-3 focus:outline-none focus:border-brand-gray-600 focus:bg-white transition-all">
+                <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="addr-locality-err"></p>
+              </div>
+            </div>
+
+            <div class="mb-5">
+              <label class="block font-sans text-xs font-semibold text-brand-gray-600 mb-1.5">Address Line 1 <span
+                  class="text-red-500">*</span></label>
+              <input type="text" id="addr-line1" placeholder="House / flat / block no."
+                class="w-full bg-brand-gray-50 border border-brand-gray-100 text-brand-black placeholder-brand-gray-400 font-sans text-sm px-4 py-3 focus:outline-none focus:border-brand-gray-600 focus:bg-white transition-all">
+              <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="addr-line1-err"></p>
+            </div>
+
+            <div class="mb-5">
+              <label class="block font-sans text-xs font-semibold text-brand-gray-600 mb-1.5">Address Line 2 <span
+                  class="text-brand-gray-400 font-normal">(Optional)</span></label>
+              <input type="text" id="addr-line2" placeholder="Street / locality / landmark"
+                class="w-full bg-brand-gray-50 border border-brand-gray-100 text-brand-black placeholder-brand-gray-400 font-sans text-sm px-4 py-3 focus:outline-none focus:border-brand-gray-600 focus:bg-white transition-all">
+            </div>
+
+            <div class="mb-6">
+              <label class="flex items-center gap-2 cursor-pointer group">
+                <input type="checkbox" id="addr-isDefault"
+                  class="w-4 h-4 border-brand-gray-200 accent-brand-black cursor-pointer">
+                <span class="font-sans text-xs text-brand-gray-600 group-hover:text-brand-black transition-colors">Set
+                  as default delivery address</span>
+              </label>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-4 border-t border-brand-gray-100">
+              <button type="button" id="cancel-addr-modal"
+                class="px-6 py-3 border border-brand-gray-200 text-brand-gray-600 text-[10px] font-semibold uppercase tracking-widest hover:border-brand-black hover:text-brand-black transition-colors">
+                Cancel
+              </button>
+              <button type="submit" id="addr-save-btn"
+                class="inline-flex items-center gap-2 bg-brand-black text-white text-[10px] font-semibold uppercase tracking-widest px-8 py-3 hover:bg-brand-gray-600 transition-colors disabled:opacity-60">
+                <span id="addr-save-text">Save Address</span>
+                <svg id="addr-save-spin" class="hidden w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                </svg>
+              </button>
+            </div>
+          </form>
+        </div>
+
+      </div>
     </div>
 
-  </div>
-</div>
+    <% extraScripts=` <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js">
+      </script>
+      <script>
+        let editMode = false;
 
-<% extraScripts = `
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-<script>
-  let editMode = false;
+        const backdrop = document.getElementById('addr-modal-backdrop');
+        const container = document.getElementById('addr-modal-container');
+        const modal = document.getElementById('addr-modal');
 
-  const backdrop  = document.getElementById('addr-modal-backdrop');
-  const container = document.getElementById('addr-modal-container');
-  const modal     = document.getElementById('addr-modal');
-  
-  function openModal() {
-    container.classList.remove('hidden');
-    backdrop.classList.remove('hidden');
-    setTimeout(() => {
-      backdrop.classList.replace('opacity-0','opacity-100');
-      modal.classList.replace('opacity-0','opacity-100');
-      modal.classList.replace('translate-y-4','translate-y-0');
-    }, 10);
-  }
-  function closeModal() {
-    backdrop.classList.replace('opacity-100','opacity-0');
-    modal.classList.replace('opacity-100','opacity-0');
-    modal.classList.replace('translate-y-0','translate-y-4');
-    setTimeout(() => {
-      backdrop.classList.add('hidden');
-      container.classList.add('hidden');
-    }, 200);
-    clearErrors();
-    document.getElementById('modal-general-error').classList.add('hidden');
-    document.getElementById('addr-form').reset();
-  }
-
-  document.getElementById('open-add-modal').addEventListener('click', () => {
-    editMode = false;
-    document.getElementById('modal-title').textContent = 'Add Address';
-    document.getElementById('addr-save-text').textContent = 'Save Address';
-    document.getElementById('addr-id').value = '';
-    
-    // Clear read-only fields
-    document.getElementById('addr-state').value = '';
-    document.getElementById('addr-city').value = '';
-    document.getElementById('addr-locality').value = '';
-    
-    document.getElementById('addr-pincode-success').classList.add('hidden');
- 
-     openModal();
-   });
- 
-   document.getElementById('close-addr-modal').addEventListener('click', closeModal);
-   document.getElementById('cancel-addr-modal').addEventListener('click', closeModal);
-   backdrop.addEventListener('click', closeModal);
- 
-   document.querySelectorAll('.edit-addr-btn').forEach(btn => {
-     btn.addEventListener('click', () => {
-       editMode = true;
-       document.getElementById('modal-title').textContent = 'Edit Address';
-       document.getElementById('addr-save-text').textContent = 'Update Address';
-       
-       const d = btn.dataset;
-       document.getElementById('addr-id').value = d.id;
-       document.getElementById('addr-fullName').value = d.fullname;
-       document.getElementById('addr-phone').value = d.phone;
-       document.getElementById('addr-line1').value = d.line1;
-       document.getElementById('addr-line2').value = d.line2;
-       document.getElementById('addr-pincode').value = d.pincode;
-       document.getElementById('addr-state').value = d.state;
-       document.getElementById('addr-city').value = d.city;
-       document.getElementById('addr-locality').value = d.locality || '';
-       document.getElementById('addr-isDefault').checked = d.isdefault === 'true';
-
-      document.getElementById('addr-pincode-success').classList.add('hidden');
-
-      openModal();
-    });
-  });
-
-  // Validation UI helpers
-  function setInvalid(id, msg) {
-    const el = document.getElementById('addr-' + id);
-    const err = document.getElementById('addr-' + id + '-err');
-    if (el) {
-      el.classList.remove('border-brand-gray-100','focus:border-brand-gray-600');
-      el.classList.add('border-red-500','focus:border-red-500');
-    }
-    if (err) { err.textContent = msg; err.classList.remove('hidden'); }
-  }
-  function setValid(id) {
-    const el = document.getElementById('addr-' + id);
-    const err = document.getElementById('addr-' + id + '-err');
-    if (el) {
-      el.classList.remove('border-red-500','focus:border-red-500');
-      el.classList.add('border-brand-gray-100','focus:border-brand-gray-600');
-    }
-    if (err) { err.textContent = ''; err.classList.add('hidden'); }
-  }
-  function clearErrors() {
-    ['fullName','phone','line1','pincode','state','city','locality'].forEach(setValid);
-  }
-
-  ['fullName','phone','line1','pincode','locality','state','city'].forEach(id => {
-    const el = document.getElementById('addr-' + id);
-    if (!el) return;
-    el.addEventListener('input', () => setValid(id));
-  });
-
-  // Helper to format state/city names
-  function toTitleCase(str) {
-    if (!str) return '';
-    return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-  }
-
-  async function fetchLocationDetails(pincode) {
-    let state = '';
-    let city = '';
-    let success = false;
-
-    // 1. Try Primary API
-    try {
-        const res = await fetch('https://aniket-thapa.github.io/india-pincode-api/pincodes/' + pincode + '.json');
-        if (res.ok) {
-            const data = await res.json();
-            if (data && data.state && data.district) {
-                state = toTitleCase(data.state);
-                city = toTitleCase(data.district);
-                success = true;
-            }
+        function openModal() {
+          container.classList.remove('hidden');
+          backdrop.classList.remove('hidden');
+          setTimeout(() => {
+            backdrop.classList.replace('opacity-0', 'opacity-100');
+            modal.classList.replace('opacity-0', 'opacity-100');
+            modal.classList.replace('translate-y-4', 'translate-y-0');
+          }, 10);
         }
-    } catch (error) {
-        console.warn('Primary API failed, trying fallback...', error);
-    }
-
-    // 2. Try Fallback API if primary failed
-    if (!success) {
-        try {
-            const res = await fetch('https://api.postalpincode.in/pincode/' + pincode);
-            if (res.ok) {
-                const data = await res.json();
-                const postOffice = data?.[0]?.PostOffice?.[0];
-                if (data?.[0]?.Status === 'Success' && postOffice) {
-                    state = postOffice.State || '';
-                    city = postOffice.District || '';
-                    success = true;
-                }
-            }
-        } catch (error) {
-            console.error('All Pincode APIs failed', error);
+        function closeModal() {
+          backdrop.classList.replace('opacity-100', 'opacity-0');
+          modal.classList.replace('opacity-100', 'opacity-0');
+          modal.classList.replace('translate-y-0', 'translate-y-4');
+          setTimeout(() => {
+            backdrop.classList.add('hidden');
+            container.classList.add('hidden');
+          }, 200);
+          clearErrors();
+          document.getElementById('modal-general-error').classList.add('hidden');
+          document.getElementById('addr-form').reset();
         }
-    }
 
-    return success ? { state, city } : null;
-  }
+        document.getElementById('open-add-modal').addEventListener('click', () => {
+          editMode = false;
+          document.getElementById('modal-title').textContent = 'Add Address';
+          document.getElementById('addr-save-text').textContent = 'Save Address';
+          document.getElementById('addr-id').value = '';
 
-  // Pincode API lookup
-  const pincodeInput = document.getElementById('addr-pincode');
-  let pincodeTimeout;
-  pincodeInput.addEventListener('input', (e) => {
-    const val = e.target.value.replace(/\D/g, '').slice(0, 6);
-    e.target.value = val;
-    document.getElementById('addr-pincode-success').classList.add('hidden');
-    
-    if (val.length === 6) {
-      clearTimeout(pincodeTimeout);
-      document.getElementById('pincode-spinner').classList.remove('hidden');
-      
-      pincodeTimeout = setTimeout(async () => {
-        const details = await fetchLocationDetails(val);
-        document.getElementById('pincode-spinner').classList.add('hidden');
-        
-        if (details) {
-          document.getElementById('addr-state').value = details.state;
-          document.getElementById('addr-city').value = details.city;
-          setValid('pincode');
-          setValid('state');
-          setValid('city');
-          
-          const successEl = document.getElementById('addr-pincode-success');
-          successEl.textContent = 'Location found: ' + details.city + ', ' + details.state;
-          successEl.classList.remove('hidden');
-        } else {
-          setInvalid('pincode', 'Invalid pincode or API unavailable. Please type manually.');
+          // Clear read-only fields
           document.getElementById('addr-state').value = '';
           document.getElementById('addr-city').value = '';
           document.getElementById('addr-locality').value = '';
+
+          document.getElementById('addr-pincode-success').classList.add('hidden');
+
+          openModal();
+        });
+
+        document.getElementById('close-addr-modal').addEventListener('click', closeModal);
+        document.getElementById('cancel-addr-modal').addEventListener('click', closeModal);
+        backdrop.addEventListener('click', closeModal);
+
+        document.querySelectorAll('.edit-addr-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            editMode = true;
+            document.getElementById('modal-title').textContent = 'Edit Address';
+            document.getElementById('addr-save-text').textContent = 'Update Address';
+
+            const d = btn.dataset;
+            document.getElementById('addr-id').value = d.id;
+            document.getElementById('addr-fullName').value = d.fullname;
+            document.getElementById('addr-phone').value = d.phone;
+            document.getElementById('addr-line1').value = d.line1;
+            document.getElementById('addr-line2').value = d.line2;
+            document.getElementById('addr-pincode').value = d.pincode;
+            document.getElementById('addr-state').value = d.state;
+            document.getElementById('addr-city').value = d.city;
+            document.getElementById('addr-locality').value = d.locality || '';
+            document.getElementById('addr-isDefault').checked = d.isdefault === 'true';
+
+            document.getElementById('addr-pincode-success').classList.add('hidden');
+
+            openModal();
+          });
+        });
+
+        // Validation UI helpers
+        function setInvalid(id, msg) {
+          const el = document.getElementById('addr-' + id);
+          const err = document.getElementById('addr-' + id + '-err');
+          if (el) {
+            el.classList.remove('border-brand-gray-100', 'focus:border-brand-gray-600');
+            el.classList.add('border-red-500', 'focus:border-red-500');
+          }
+          if (err) { err.textContent = msg; err.classList.remove('hidden'); }
         }
-      }, 500); // debounce 500ms
-    } else {
-      document.getElementById('pincode-spinner').classList.add('hidden');
-      document.getElementById('addr-state').value = '';
-      document.getElementById('addr-city').value = '';
-      document.getElementById('addr-locality').value = '';
-    }
-  });
-
-  // Save/Update Address
-  document.getElementById('addr-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    clearErrors();
-    document.getElementById('modal-general-error').classList.add('hidden');
-
-    const payload = {
-      fullName: document.getElementById('addr-fullName').value.trim(),
-      phone: document.getElementById('addr-phone').value.trim(),
-      addressLine1: document.getElementById('addr-line1').value.trim(),
-      addressLine2: document.getElementById('addr-line2').value.trim(),
-      pincode: document.getElementById('addr-pincode').value.trim(),
-      state: document.getElementById('addr-state').value.trim(),
-      city: document.getElementById('addr-city').value.trim(),
-      locality: document.getElementById('addr-locality').value.trim(),
-      isDefault: document.getElementById('addr-isDefault').checked
-    };
-
-    let valid = true;
-    const nameRegex = /^[a-zA-Z\s]+$/;
-    if (!payload.fullName) { setInvalid('fullName', 'Full name is required.'); valid=false; }
-    else if (!nameRegex.test(payload.fullName)) { setInvalid('fullName', 'Name can only contain alphabets.'); valid=false; }
-    if (!/^[6-9]\d{9}$/.test(payload.phone)) { setInvalid('phone', 'Enter a valid 10-digit number.'); valid=false; }
-    if (!payload.pincode || !/^\d{6}$/.test(payload.pincode)) { setInvalid('pincode', 'Valid 6-digit pincode is required.'); valid=false; }
-    if (!payload.state) { setInvalid('state', 'State is required. Enter valid pincode.'); valid=false; }
-    if (!payload.city) { setInvalid('city', 'City is required. Enter valid pincode.'); valid=false; }
-    if (!payload.locality) { setInvalid('locality', 'Locality is required.'); valid=false; }
-    if (!payload.addressLine1) { setInvalid('line1', 'Address line 1 is required.'); valid=false; }
-    
-    if (!valid) return;
-
-    const btn = document.getElementById('addr-save-btn');
-    const text = document.getElementById('addr-save-text');
-    const spin = document.getElementById('addr-save-spin');
-    btn.disabled = true;
-    text.textContent = 'Saving...';
-    spin.classList.remove('hidden');
-
-    try {
-      if (editMode) {
-        const id = document.getElementById('addr-id').value;
-        await axios.post('/account/addresses/edit/' + id, payload);
-      } else {
-        await axios.post('/account/addresses/add', payload);
-      }
-      location.reload();
-    } catch (err) {
-      const data = err.response?.data || {};
-      if (data.field) {
-        setInvalid(data.field, data.message);
-      } else {
-        const genErr = document.getElementById('modal-general-error');
-        genErr.textContent = data.message || 'Something went wrong.';
-        genErr.classList.remove('hidden');
-      }
-      btn.disabled = false;
-      text.textContent = editMode ? 'Update Address' : 'Save Address';
-      spin.classList.add('hidden');
-    }
-  });
-
-  // Delete Address
-  document.querySelectorAll('.delete-addr-btn').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      Swal.fire({
-        title: 'Delete Address?',
-        text: 'Are you sure you want to delete this address?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Yes, delete it',
-        cancelButtonText: 'Cancel',
-        buttonsStyling: false,
-        customClass: {
-          popup: 'bg-white border border-brand-gray-100 font-sans rounded-none',
-          title: 'font-serif text-lg font-bold text-brand-black',
-          htmlContainer: 'font-sans text-xs text-brand-gray-400',
-          confirmButton: 'bg-red-600 text-white text-[10px] font-bold uppercase tracking-widest px-5 py-2.5 mx-2 hover:bg-red-700 transition-colors cursor-pointer',
-          cancelButton: 'border border-brand-gray-200 text-brand-gray-600 text-[10px] font-bold uppercase tracking-widest px-5 py-2.5 mx-2 hover:border-brand-black hover:text-brand-black transition-colors cursor-pointer'
+        function setValid(id) {
+          const el = document.getElementById('addr-' + id);
+          const err = document.getElementById('addr-' + id + '-err');
+          if (el) {
+            el.classList.remove('border-red-500', 'focus:border-red-500');
+            el.classList.add('border-brand-gray-100', 'focus:border-brand-gray-600');
+          }
+          if (err) { err.textContent = ''; err.classList.add('hidden'); }
         }
-      }).then(async (result) => {
-        if (result.isConfirmed) {
+        function clearErrors() {
+          ['fullName', 'phone', 'line1', 'pincode', 'state', 'city', 'locality'].forEach(setValid);
+        }
+
+        ['fullName', 'phone', 'line1', 'pincode', 'locality', 'state', 'city'].forEach(id => {
+          const el = document.getElementById('addr-' + id);
+          if (!el) return;
+          el.addEventListener('input', () => setValid(id));
+        });
+
+        // Helper to format state/city names
+        function toTitleCase(str) {
+          if (!str) return '';
+          return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        }
+
+        async function fetchLocationDetails(pincode) {
+          let state = '';
+          let city = '';
+          let success = false;
+
+          // 1. Try Primary API
           try {
-            await axios.delete('/account/addresses/delete/' + btn.dataset.id);
+            const res = await fetch('https://aniket-thapa.github.io/india-pincode-api/pincodes/' + pincode + '.json');
+            if (res.ok) {
+              const data = await res.json();
+              if (data && data.state && data.district) {
+                state = toTitleCase(data.state);
+                city = toTitleCase(data.district);
+                success = true;
+              }
+            }
+          } catch (error) {
+            console.warn('Primary API failed, trying fallback...', error);
+          }
+
+          // 2. Try Fallback API if primary failed
+          if (!success) {
+            try {
+              const res = await fetch('https://api.postalpincode.in/pincode/' + pincode);
+              if (res.ok) {
+                const data = await res.json();
+                const postOffice = data?.[0]?.PostOffice?.[0];
+                if (data?.[0]?.Status === 'Success' && postOffice) {
+                  state = postOffice.State || '';
+                  city = postOffice.District || '';
+                  success = true;
+                }
+              }
+            } catch (error) {
+              console.error('All Pincode APIs failed', error);
+            }
+          }
+
+          return success ? { state, city } : null;
+        }
+
+        // Pincode API lookup
+        const pincodeInput = document.getElementById('addr-pincode');
+        let pincodeTimeout;
+        pincodeInput.addEventListener('input', (e) => {
+          const val = e.target.value.replace(/\\D/g, '').slice(0, 6);
+          e.target.value = val;
+          document.getElementById('addr-pincode-success').classList.add('hidden');
+
+          if (val.length === 6) {
+            clearTimeout(pincodeTimeout);
+            document.getElementById('pincode-spinner').classList.remove('hidden');
+
+            pincodeTimeout = setTimeout(async () => {
+              const details = await fetchLocationDetails(val);
+              document.getElementById('pincode-spinner').classList.add('hidden');
+
+              if (details) {
+                document.getElementById('addr-state').value = details.state;
+                document.getElementById('addr-city').value = details.city;
+                setValid('pincode');
+                setValid('state');
+                setValid('city');
+
+                const successEl = document.getElementById('addr-pincode-success');
+                successEl.textContent = 'Location found: ' + details.city + ', ' + details.state;
+                successEl.classList.remove('hidden');
+              } else {
+                setInvalid('pincode', 'Invalid pincode or API unavailable. Please type manually.');
+                document.getElementById('addr-state').value = '';
+                document.getElementById('addr-city').value = '';
+                document.getElementById('addr-locality').value = '';
+              }
+            }, 500); // debounce 500ms
+          } else {
+            document.getElementById('pincode-spinner').classList.add('hidden');
+            document.getElementById('addr-state').value = '';
+            document.getElementById('addr-city').value = '';
+            document.getElementById('addr-locality').value = '';
+          }
+        });
+
+        // Save/Update Address
+        document.getElementById('addr-form').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          clearErrors();
+          document.getElementById('modal-general-error').classList.add('hidden');
+
+          const payload = {
+            fullName: document.getElementById('addr-fullName').value.trim(),
+            phone: document.getElementById('addr-phone').value.trim(),
+            addressLine1: document.getElementById('addr-line1').value.trim(),
+            addressLine2: document.getElementById('addr-line2').value.trim(),
+            pincode: document.getElementById('addr-pincode').value.trim(),
+            state: document.getElementById('addr-state').value.trim(),
+            city: document.getElementById('addr-city').value.trim(),
+            locality: document.getElementById('addr-locality').value.trim(),
+            isDefault: document.getElementById('addr-isDefault').checked
+          };
+
+          let valid = true;
+          const nameRegex = /^[a-zA-Z\\s]+$/;
+          if (!payload.fullName) { setInvalid('fullName', 'Full name is required.'); valid = false; }
+          else if (payload.fullName.length < 3) { setInvalid('fullName', 'Full name must be at least 3 characters.'); valid = false; }
+          else if (!nameRegex.test(payload.fullName)) { setInvalid('fullName', 'Full name can only contain alphabets and spaces.'); valid = false; }
+          if (!/^[6-9]\\d{9}$/.test(payload.phone)) { setInvalid('phone', 'Enter a valid 10-digit number.'); valid = false; }
+          if (!payload.pincode || !/^\\d{6}$/.test(payload.pincode)) { setInvalid('pincode', 'Valid 6-digit pincode is required.'); valid = false; }
+          if (!payload.state) { setInvalid('state', 'State is required. Enter valid pincode.'); valid = false; }
+          if (!payload.city) { setInvalid('city', 'City is required. Enter valid pincode.'); valid = false; }
+          if (!payload.locality) { setInvalid('locality', 'Locality is required.'); valid = false; }
+          if (!payload.addressLine1) { setInvalid('line1', 'Address line 1 is required.'); valid = false; }
+
+          if (!valid) return;
+
+          const btn = document.getElementById('addr-save-btn');
+          const text = document.getElementById('addr-save-text');
+          const spin = document.getElementById('addr-save-spin');
+          btn.disabled = true;
+          text.textContent = 'Saving...';
+          spin.classList.remove('hidden');
+
+          try {
+            if (editMode) {
+              const id = document.getElementById('addr-id').value;
+              await axios.post('/account/addresses/edit/' + id, payload);
+            } else {
+              await axios.post('/account/addresses/add', payload);
+            }
             location.reload();
           } catch (err) {
-            Swal.fire({
-              title: 'Error',
-              text: err.response?.data?.message || 'Failed to delete address.',
-              icon: 'error',
-              buttonsStyling: false,
-              customClass: {
-                popup: 'bg-white border border-brand-gray-100 font-sans rounded-none',
-                title: 'font-serif text-lg font-bold text-brand-black',
-                htmlContainer: 'font-sans text-xs text-brand-gray-400',
-                confirmButton: 'bg-brand-black text-white text-[10px] font-bold uppercase tracking-widest px-5 py-2.5 hover:bg-brand-gray-600 transition-colors cursor-pointer'
-              }
-            });
+            const data = err.response?.data || {};
+            if (data.field) {
+              setInvalid(data.field, data.message);
+            } else {
+              const genErr = document.getElementById('modal-general-error');
+              genErr.textContent = data.message || 'Something went wrong.';
+              genErr.classList.remove('hidden');
+            }
+            btn.disabled = false;
+            text.textContent = editMode ? 'Update Address' : 'Save Address';
+            spin.classList.add('hidden');
           }
-        }
-      });
-    });
-  });
+        });
 
-  // Set Default
-  document.querySelectorAll('.set-default-btn').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      try {
-        await axios.post('/account/addresses/set-default/' + btn.dataset.id);
-        location.reload();
-      } catch (err) {
-        Swal.fire({
-              title: 'Error',
-              text: err.response?.data?.message || 'Failed to update default address.',
-              icon: 'error',
+        // Delete Address
+        document.querySelectorAll('.delete-addr-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            Swal.fire({
+              title: 'Delete Address?',
+              text: 'Are you sure you want to delete this address?',
+              icon: 'warning',
+              showCancelButton: true,
+              confirmButtonText: 'Yes, delete it',
+              cancelButtonText: 'Cancel',
               buttonsStyling: false,
               customClass: {
                 popup: 'bg-white border border-brand-gray-100 font-sans rounded-none',
                 title: 'font-serif text-lg font-bold text-brand-black',
                 htmlContainer: 'font-sans text-xs text-brand-gray-400',
-                confirmButton: 'bg-brand-black text-white text-[10px] font-bold uppercase tracking-widest px-5 py-2.5 hover:bg-brand-gray-600 transition-colors cursor-pointer'
+                confirmButton: 'bg-red-600 text-white text-[10px] font-bold uppercase tracking-widest px-5 py-2.5 mx-2 hover:bg-red-700 transition-colors cursor-pointer',
+                cancelButton: 'border border-brand-gray-200 text-brand-gray-600 text-[10px] font-bold uppercase tracking-widest px-5 py-2.5 mx-2 hover:border-brand-black hover:text-brand-black transition-colors cursor-pointer'
+              }
+            }).then(async (result) => {
+              if (result.isConfirmed) {
+                try {
+                  await axios.delete('/account/addresses/delete/' + btn.dataset.id);
+                  location.reload();
+                } catch (err) {
+                  Swal.fire({
+                    title: 'Error',
+                    text: err.response?.data?.message || 'Failed to delete address.',
+                    icon: 'error',
+                    buttonsStyling: false,
+                    customClass: {
+                      popup: 'bg-white border border-brand-gray-100 font-sans rounded-none',
+                      title: 'font-serif text-lg font-bold text-brand-black',
+                      htmlContainer: 'font-sans text-xs text-brand-gray-400',
+                      confirmButton: 'bg-brand-black text-white text-[10px] font-bold uppercase tracking-widest px-5 py-2.5 hover:bg-brand-gray-600 transition-colors cursor-pointer'
+                    }
+                  });
+                }
               }
             });
-      }
-    });
-  });
-</script>
-`; %>
+          });
+        });
+
+        // Set Default
+        document.querySelectorAll('.set-default-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            try {
+              await axios.post('/account/addresses/set-default/' + btn.dataset.id);
+              location.reload();
+            } catch (err) {
+              Swal.fire({
+                title: 'Error',
+                text: err.response?.data?.message || 'Failed to update default address.',
+                icon: 'error',
+                buttonsStyling: false,
+                customClass: {
+                  popup: 'bg-white border border-brand-gray-100 font-sans rounded-none',
+                  title: 'font-serif text-lg font-bold text-brand-black',
+                  htmlContainer: 'font-sans text-xs text-brand-gray-400',
+                  confirmButton: 'bg-brand-black text-white text-[10px] font-bold uppercase tracking-widest px-5 py-2.5 hover:bg-brand-gray-600 transition-colors cursor-pointer'
+                }
+              });
+            }
+          });
+        });
+      </script>
+      `; %>

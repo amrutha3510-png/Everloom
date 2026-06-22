@@ -330,6 +330,11 @@
   let originalPhone = '${user.phone || ''}';
   let originalDob = '${user.dob || ''}';
 
+  // Disable future dates in DOB picker
+  const now = new Date();
+  const todayDateString = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+  document.getElementById('ep-dob').max = todayDateString;
+
   // Pending email change timers
   let pendingEmail = '${user.pendingEmail || ''}';
   let timeLeft = parseInt('${typeof remainingSeconds !== "undefined" ? remainingSeconds : 0}') || 0;
@@ -504,10 +509,20 @@
     const phoneRegex = /^[6-9]\\d{9}$/;
     const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
 
+    const nameRegex = /^[a-zA-Z\\s]+$/;
     if (!fullName) { setInvalid('ep-fullName','ep-fullName-err','Full name is required.'); valid=false; }
-    else if (fullName.length < 2) { setInvalid('ep-fullName','ep-fullName-err','Must be at least 2 characters.'); valid=false; }
+    else if (fullName.length < 3) { setInvalid('ep-fullName','ep-fullName-err','Full name must be at least 3 characters.'); valid=false; }
+    else if (!nameRegex.test(fullName)) { setInvalid('ep-fullName','ep-fullName-err','Full name can only contain alphabets and spaces.'); valid=false; }
     if (phone && !phoneRegex.test(phone)) { setInvalid('ep-phone','ep-phone-err','Enter a valid 10-digit number.'); valid=false; }
     if (!isGoogle && email && !emailRegex.test(email)) { setInvalid('ep-email','ep-email-err','Enter a valid email address.'); valid=false; }
+    if (dob) {
+      const now = new Date();
+      const today = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+      if (dob > today) {
+        setInvalid('ep-dob','ep-dob-err','Date of birth cannot be in the future.');
+        valid=false;
+      }
+    }
     if (!valid) return;
 
     const emailChanged = !isGoogle && email && email.toLowerCase() !== originalEmail.toLowerCase();

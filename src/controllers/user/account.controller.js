@@ -15,11 +15,11 @@ import {
 } from '../../services/user/account.service.js';
 import { getRemainingSeconds } from '../../services/general/otp.service.js';
 
-const PHONE_REGEX   = /^[6-9]\d{9}$/;
-const EMAIL_REGEX   = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_REGEX = /^[6-9]\d{9}$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
-const PINCODE_REGEX  = /^\d{6}$/;
-const NAME_REGEX     = /^[a-zA-Z\s]+$/;
+const PINCODE_REGEX = /^\d{6}$/;
+const NAME_REGEX = /^[a-zA-Z\s]+$/;
 
 // ── Render ────────────────────────────────────
 
@@ -60,7 +60,7 @@ export const getAddressesPage = async (req, res) => {
 
 export const getSecurityPage = async (req, res) => {
   try {
-    const user       = await getProfile(req.session.user.id);
+    const user = await getProfile(req.session.user.id);
     const isGoogleOnly = !!user.googleId && !user.password;
     res.render('user/account/security', {
       title: 'Security Settings',
@@ -84,10 +84,19 @@ export const updateProfileHandler = async (req, res) => {
 
     if (!fullName || !fullName.trim())
       return res.status(400).json({ success: false, field: 'fullName', message: 'Full name is required.' });
-    if (fullName.trim().length < 2)
-      return res.status(400).json({ success: false, field: 'fullName', message: 'Full name must be at least 2 characters.' });
+    if (fullName.trim().length < 3)
+      return res.status(400).json({ success: false, field: 'fullName', message: 'Full name must be at least 3 characters.' });
     if (phone && phone.trim() && !PHONE_REGEX.test(phone.trim()))
       return res.status(400).json({ success: false, field: 'phone', message: 'Enter a valid 10-digit mobile number.' });
+    if (dob) {
+      const dobDate = new Date(`${dob}T00:00:00Z`);
+      const limitDate = new Date();
+      limitDate.setUTCDate(limitDate.getUTCDate() + 1);
+      limitDate.setUTCHours(23, 59, 59, 999);
+      if (dobDate > limitDate) {
+        return res.status(400).json({ success: false, field: 'dob', message: 'Date of birth cannot be in the future.' });
+      }
+    }
 
     const updatedUser = await updateProfile(userId, { fullName, phone, dob });
     return res.json({ success: true, message: 'Profile updated successfully.', user: updatedUser });
@@ -195,26 +204,27 @@ export const createAddressHandler = async (req, res) => {
     const userId = req.session.user.id;
     const { fullName, phone, addressLine1, addressLine2, city, state, pincode, country, isDefault, locality } = req.body;
 
-    if (!fullName?.trim())                         return res.status(400).json({ success: false, field: 'fullName',     message: 'Full name is required.' });
-    if (!NAME_REGEX.test(fullName.trim()))         return res.status(400).json({ success: false, field: 'fullName',     message: 'Full name can only contain alphabets and spaces.' });
-    if (!phone || !PHONE_REGEX.test(phone.trim())) return res.status(400).json({ success: false, field: 'phone',        message: 'Valid 10-digit phone is required.' });
-    if (!addressLine1?.trim())                     return res.status(400).json({ success: false, field: 'addressLine1', message: 'Address line 1 is required.' });
-    if (!pincode || !PINCODE_REGEX.test(pincode))  return res.status(400).json({ success: false, field: 'pincode',      message: 'Valid 6-digit pincode is required.' });
-    if (!city?.trim())                             return res.status(400).json({ success: false, field: 'city',         message: 'City is required.' });
-    if (!locality?.trim())                         return res.status(400).json({ success: false, field: 'locality',     message: 'Locality is required.' });
-    if (!state?.trim())                            return res.status(400).json({ success: false, field: 'state',        message: 'State is required.' });
+    if (!fullName?.trim()) return res.status(400).json({ success: false, field: 'fullName', message: 'Full name is required.' });
+    if (fullName.trim().length < 3) return res.status(400).json({ success: false, field: 'fullName', message: 'Full name must be at least 3 characters.' });
+    if (!NAME_REGEX.test(fullName.trim())) return res.status(400).json({ success: false, field: 'fullName', message: 'Full name can only contain alphabets and spaces.' });
+    if (!phone || !PHONE_REGEX.test(phone.trim())) return res.status(400).json({ success: false, field: 'phone', message: 'Valid 10-digit phone is required.' });
+    if (!addressLine1?.trim()) return res.status(400).json({ success: false, field: 'addressLine1', message: 'Address line 1 is required.' });
+    if (!pincode || !PINCODE_REGEX.test(pincode)) return res.status(400).json({ success: false, field: 'pincode', message: 'Valid 6-digit pincode is required.' });
+    if (!city?.trim()) return res.status(400).json({ success: false, field: 'city', message: 'City is required.' });
+    if (!locality?.trim()) return res.status(400).json({ success: false, field: 'locality', message: 'Locality is required.' });
+    if (!state?.trim()) return res.status(400).json({ success: false, field: 'state', message: 'State is required.' });
 
     const address = await addAddress(userId, {
-      fullName:     fullName.trim(),
-      phone:        phone.trim(),
+      fullName: fullName.trim(),
+      phone: phone.trim(),
       addressLine1: addressLine1.trim(),
       addressLine2: addressLine2 ? addressLine2.trim() : '',
-      city:         city.trim(),
-      locality:     locality.trim(),
-      state:        state.trim(),
-      pincode:      pincode.trim(),
-      country:      country ? country.trim() : 'India',
-      isDefault:    isDefault === 'true' || isDefault === true,
+      city: city.trim(),
+      locality: locality.trim(),
+      state: state.trim(),
+      pincode: pincode.trim(),
+      country: country ? country.trim() : 'India',
+      isDefault: isDefault === 'true' || isDefault === true,
     });
     return res.json({ success: true, message: 'Address added.', address });
   } catch (err) {
@@ -225,30 +235,31 @@ export const createAddressHandler = async (req, res) => {
 
 export const updateAddressHandler = async (req, res) => {
   try {
-    const userId    = req.session.user.id;
+    const userId = req.session.user.id;
     const addressId = req.params.id;
     const { fullName, phone, addressLine1, addressLine2, city, state, pincode, country, isDefault, locality } = req.body;
 
-    if (!fullName?.trim())                         return res.status(400).json({ success: false, field: 'fullName',     message: 'Full name is required.' });
-    if (!NAME_REGEX.test(fullName.trim()))         return res.status(400).json({ success: false, field: 'fullName',     message: 'Full name can only contain alphabets and spaces.' });
-    if (!phone || !PHONE_REGEX.test(phone.trim())) return res.status(400).json({ success: false, field: 'phone',        message: 'Valid 10-digit phone is required.' });
-    if (!addressLine1?.trim())                     return res.status(400).json({ success: false, field: 'addressLine1', message: 'Address line 1 is required.' });
-    if (!pincode || !PINCODE_REGEX.test(pincode))  return res.status(400).json({ success: false, field: 'pincode',      message: 'Valid 6-digit pincode is required.' });
-    if (!city?.trim())                             return res.status(400).json({ success: false, field: 'city',         message: 'City is required.' });
-    if (!locality?.trim())                         return res.status(400).json({ success: false, field: 'locality',     message: 'Locality is required.' });
-    if (!state?.trim())                            return res.status(400).json({ success: false, field: 'state',        message: 'State is required.' });
+    if (!fullName?.trim()) return res.status(400).json({ success: false, field: 'fullName', message: 'Full name is required.' });
+    if (fullName.trim().length < 3) return res.status(400).json({ success: false, field: 'fullName', message: 'Full name must be at least 3 characters.' });
+    if (!NAME_REGEX.test(fullName.trim())) return res.status(400).json({ success: false, field: 'fullName', message: 'Full name can only contain alphabets and spaces.' });
+    if (!phone || !PHONE_REGEX.test(phone.trim())) return res.status(400).json({ success: false, field: 'phone', message: 'Valid 10-digit phone is required.' });
+    if (!addressLine1?.trim()) return res.status(400).json({ success: false, field: 'addressLine1', message: 'Address line 1 is required.' });
+    if (!pincode || !PINCODE_REGEX.test(pincode)) return res.status(400).json({ success: false, field: 'pincode', message: 'Valid 6-digit pincode is required.' });
+    if (!city?.trim()) return res.status(400).json({ success: false, field: 'city', message: 'City is required.' });
+    if (!locality?.trim()) return res.status(400).json({ success: false, field: 'locality', message: 'Locality is required.' });
+    if (!state?.trim()) return res.status(400).json({ success: false, field: 'state', message: 'State is required.' });
 
     const address = await updateAddress(addressId, userId, {
-      fullName:     fullName.trim(),
-      phone:        phone.trim(),
+      fullName: fullName.trim(),
+      phone: phone.trim(),
       addressLine1: addressLine1.trim(),
       addressLine2: addressLine2 ? addressLine2.trim() : '',
-      city:         city.trim(),
-      locality:     locality.trim(),
-      state:        state.trim(),
-      pincode:      pincode.trim(),
-      country:      country ? country.trim() : 'India',
-      isDefault:    isDefault === 'true' || isDefault === true,
+      city: city.trim(),
+      locality: locality.trim(),
+      state: state.trim(),
+      pincode: pincode.trim(),
+      country: country ? country.trim() : 'India',
+      isDefault: isDefault === 'true' || isDefault === true,
     });
     return res.json({ success: true, message: 'Address updated.', address });
   } catch (err) {

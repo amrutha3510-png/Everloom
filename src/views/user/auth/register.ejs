@@ -281,8 +281,13 @@
     };
 
     // 1. Full Name Validation
+    const nameRegex = /^[a-zA-Z\s]+$/;
     if (!fullName.value.trim()) {
       setInvalid(fullName, 'fullNameError', 'Full name is required.');
+    } else if (fullName.value.trim().length < 3) {
+      setInvalid(fullName, 'fullNameError', 'Full name must be at least 3 characters.');
+    } else if (!nameRegex.test(fullName.value.trim())) {
+      setInvalid(fullName, 'fullNameError', 'Full name can only contain alphabets and spaces.');
     } else {
       setValid(fullName, 'fullNameError');
     }
