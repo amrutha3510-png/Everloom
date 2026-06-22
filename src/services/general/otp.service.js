@@ -62,7 +62,7 @@ export const sendOtp = async ({ email, purpose }) => {
     };
 
     await transporter.sendMail(mailOptions);
-    console.log(`[EMAIL] OTP ${otpCode} successfully sent to ${email}`);
+    
   } catch (error) {
     console.error(`[EMAIL ERROR] Failed to send OTP to ${email}:`, error);
     throw new Error('Could not send OTP email. Please verify SMTP settings in your environment variables.');
