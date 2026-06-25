@@ -98,7 +98,8 @@ export const updateProfileHandler = async (req, res) => {
       }
     }
 
-    const updatedUser = await updateProfile(userId, { fullName, phone, dob });
+ const updatedUser = await updateProfile(userId, { fullName, phone, dob });
+   
     return res.json({ success: true, message: 'Profile updated successfully.', user: updatedUser });
   } catch (err) {
     console.error('updateProfileHandler:', err);
@@ -121,6 +122,7 @@ export const updateProfileImageHandler = async (req, res) => {
     }
 
     const updatedUser = await updateProfileImage(userId, imageUrl, imagePublicId);
+   
     return res.json({ success: true, message: 'Profile image updated.', imageUrl: updatedUser.profileImage });
   } catch (err) {
     console.error('updateProfileImageHandler:', err);

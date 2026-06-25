@@ -2,18 +2,32 @@ import User from '../../models/userModel.js';
 
 export const getAllCustomers = async (query = {}, page = 1, limit = 10) => {
   const skip = (page - 1) * limit;
-  
+
   const filter = { role: 'user' };
-  
+
   if (query.status && query.status !== 'All Status') {
     filter.status = query.status.toLowerCase();
   }
-  
+
   if (query.search) {
     filter.$or = [
       { fullName: { $regex: query.search, $options: 'i' } },
       { email: { $regex: query.search, $options: 'i' } }
     ];
+  }
+
+  if (query.joinedDate) {
+    const startDate = new Date(query.joinedDate);
+    if (!isNaN(startDate.getTime())) {
+      startDate.setHours(0, 0, 0, 0);
+      const endDate = new Date(startDate);
+      endDate.setHours(23, 59, 59, 999);
+
+      filter.createdAt = {
+        $gte: startDate,
+        $lte: endDate
+      };
+    }
   }
 
   const customers = await User.find(filter)
@@ -23,7 +37,7 @@ export const getAllCustomers = async (query = {}, page = 1, limit = 10) => {
     .lean();
 
   const totalCustomers = await User.countDocuments(filter);
-  
+
   // Stats for cards
   const totalUsers = await User.countDocuments({ role: 'user' });
   const activeUsers = await User.countDocuments({ role: 'user', status: 'active' });
@@ -48,10 +62,10 @@ export const toggleCustomerStatus = async (userId) => {
   const user = await User.findById(userId);
   if (!user) throw new Error('User not found');
   if (user.role === 'admin') throw new Error('Cannot toggle status of an admin');
-  
+
   user.status = user.status === 'active' ? 'blocked' : 'active';
   await user.save();
-  
+
   return user.status;
 };
 
