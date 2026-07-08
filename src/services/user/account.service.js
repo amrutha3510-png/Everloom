@@ -154,11 +154,46 @@ export const resendEmailChangeOtp = async (userId) => {
 // Addresses
 // ──────────────────────────────────────────────
 
+const escapeRegExp = (string) => {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
+
+const checkDuplicateAddress = async (userId, addressData, excludeAddressId = null) => {
+  const query = {
+    userId,
+    addressLine1: { $regex: new RegExp(`^${escapeRegExp(addressData.addressLine1.trim())}$`, 'i') },
+    city: { $regex: new RegExp(`^${escapeRegExp(addressData.city.trim())}$`, 'i') },
+    locality: { $regex: new RegExp(`^${escapeRegExp(addressData.locality.trim())}$`, 'i') },
+    state: { $regex: new RegExp(`^${escapeRegExp(addressData.state.trim())}$`, 'i') },
+    pincode: addressData.pincode.trim(),
+  };
+
+  if (addressData.addressLine2 && addressData.addressLine2.trim()) {
+    query.addressLine2 = { $regex: new RegExp(`^${escapeRegExp(addressData.addressLine2.trim())}$`, 'i') };
+  } else {
+    query.$or = [
+      { addressLine2: { $exists: false } },
+      { addressLine2: '' }
+    ];
+  }
+
+  if (excludeAddressId) {
+    query._id = { $ne: excludeAddressId };
+  }
+
+  const duplicate = await Address.findOne(query);
+  if (duplicate) {
+    throw new Error('This address already exists in your account.');
+  }
+};
+
 export const getAddresses = async (userId) => {
   return Address.find({ userId }).sort({ isDefault: -1, createdAt: -1 }).lean();
 };
 
 export const addAddress = async (userId, addressData) => {
+  await checkDuplicateAddress(userId, addressData);
+
   const count = await Address.countDocuments({ userId });
   if (count === 0) {
     addressData.isDefault = true;
@@ -170,6 +205,8 @@ export const addAddress = async (userId, addressData) => {
 };
 
 export const updateAddress = async (addressId, userId, addressData) => {
+  await checkDuplicateAddress(userId, addressData, addressId);
+
   const address = await Address.findOne({ _id: addressId, userId });
   if (!address) throw new Error('Address not found.');
 

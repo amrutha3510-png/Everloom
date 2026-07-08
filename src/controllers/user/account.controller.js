@@ -215,7 +215,7 @@ export const createAddressHandler = async (req, res) => {
     if (!city?.trim()) return res.status(400).json({ success: false, field: 'city', message: 'City is required.' });
     if (!locality?.trim()) return res.status(400).json({ success: false, field: 'locality', message: 'Locality is required.' });
     if (!state?.trim()) return res.status(400).json({ success: false, field: 'state', message: 'State is required.' });
-
+ 
     const address = await addAddress(userId, {
       fullName: fullName.trim(),
       phone: phone.trim(),
@@ -231,7 +231,7 @@ export const createAddressHandler = async (req, res) => {
     return res.json({ success: true, message: 'Address added.', address });
   } catch (err) {
     console.error('createAddressHandler:', err);
-    return res.status(500).json({ success: false, message: err.message || 'An error occurred.' });
+    return res.status(400).json({ success: false, message: err.message || 'An error occurred.' });
   }
 };
 
@@ -250,7 +250,7 @@ export const updateAddressHandler = async (req, res) => {
     if (!city?.trim()) return res.status(400).json({ success: false, field: 'city', message: 'City is required.' });
     if (!locality?.trim()) return res.status(400).json({ success: false, field: 'locality', message: 'Locality is required.' });
     if (!state?.trim()) return res.status(400).json({ success: false, field: 'state', message: 'State is required.' });
-
+    
     const address = await updateAddress(addressId, userId, {
       fullName: fullName.trim(),
       phone: phone.trim(),
@@ -266,7 +266,7 @@ export const updateAddressHandler = async (req, res) => {
     return res.json({ success: true, message: 'Address updated.', address });
   } catch (err) {
     console.error('updateAddressHandler:', err);
-    return res.status(500).json({ success: false, message: err.message || 'An error occurred.' });
+    return res.status(400).json({ success: false, message: err.message || 'An error occurred.' });
   }
 };
 

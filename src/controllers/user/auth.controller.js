@@ -237,7 +237,7 @@ export const resendOtpUser = async (req, res) => {
 };
 
 // ==================== PASSWORD RESET FLOW ====================
-
+  
 export const getForgotPasswordPage = (req, res) => {
     res.render("user/auth/forgot-password", {
         title: "Forgot Password"

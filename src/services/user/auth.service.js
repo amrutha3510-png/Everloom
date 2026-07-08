@@ -32,14 +32,14 @@ export const registerUser = async (userData) => {
   await sendOtp({ email, purpose: 'register' });
 
   return { success: true, message: 'User registered, please verify OTP' };
-};
+};  
 
 /**
  * Calls verifyOtp. If successful, updates isVerified to true.
  */
 export const verifyRegistration = async (email, otp) => {
   const verificationResult = await verifyOtp({ email, otp, purpose: 'register' });
-
+  
   if (!verificationResult.ok) {
     return { success: false, message: 'Invalid or expired OTP' };
   }
