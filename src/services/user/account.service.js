@@ -22,7 +22,7 @@ export const updateProfile = async (userId, { fullName, phone, dob }) => {
   if (phone    !== undefined) updates.phone    = phone.trim();
   if (dob      !== undefined) updates.dob      = dob.trim();
 
-  const user = await User.findByIdAndUpdate(userId, updates, { new: true }).lean();
+  const user = await User.findByIdAndUpdate(userId, updates, { returnDocument: 'after' }).lean();
   if (!user) throw new Error('User not found.');
   return user;
 };
