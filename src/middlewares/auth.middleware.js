@@ -55,7 +55,6 @@ export const checkBlocked = async (req, res, next) => {
       if (req.session.passport) {
         req.session.passport = null; // Clear passport session for Google users safely
       }
-      
       req.session.toast = { type: 'error', message: 'Your account has been blocked.' };
       return req.session.save((err) => {
         if (err) console.error("Session save error during block intercept:", err);

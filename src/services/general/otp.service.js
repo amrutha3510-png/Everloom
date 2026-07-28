@@ -44,7 +44,7 @@ export const sendOtp = async ({ email, purpose }) => {
   // Send the email using nodemailer
   try {
     const transporter = getTransporter();
-    
+
     const mailOptions = {
       from: `"Everloom Support" <${process.env.EMAIL_USER}>`,
       to: email,
@@ -62,12 +62,12 @@ export const sendOtp = async ({ email, purpose }) => {
     };
 
     await transporter.sendMail(mailOptions);
-    
+
   } catch (error) {
     console.error(`[EMAIL ERROR] Failed to send OTP to ${email}:`, error);
     throw new Error('Could not send OTP email. Please verify SMTP settings in your environment variables.');
   }
-  
+
   return { success: true, message: 'OTP sent successfully' };
 };
 
@@ -98,7 +98,7 @@ export const verifyOtp = async ({ email, otp, purpose }) => {
 export const getRemainingSeconds = async (email, purpose) => {
   const otpRecord = await Otp.findOne({ email, purpose });
   if (!otpRecord) return 0;
-  
+
   const elapsedMs = Date.now() - otpRecord.createdAt.getTime();
   const remainingSeconds = Math.max(0, 120 - Math.floor(elapsedMs / 1000));
   return remainingSeconds;
@@ -115,13 +115,13 @@ export const resendOtp = async (email, purpose) => {
   if (remaining > 0) {
     throw new Error(`OTP is still active. Please wait ${remaining} seconds.`);
   }
-  
+
   // Deletes any old expired/inactive OTP record
   await Otp.deleteMany({ email, purpose });
-  
+
   // Send new OTP
   await sendOtp({ email, purpose });
-  
+
   // Return the new remaining seconds (120)
   return 120;
 };

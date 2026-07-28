@@ -23,13 +23,32 @@ app.use(express.static("public"));
 // 2. Disable caching for all subsequent dynamic routes (EJS HTML views)
 app.use(nocache());
 
-// Session
-app.use(session({
+// User Session Middleware
+const userSession = session({
+    name: "user.sid",
     secret: process.env.SESSION_SECRET || "everloom_secret_key",
     resave: false,
     saveUninitialized: false,
     cookie: { secure: false } // Set to true if using HTTPS in production
-}));
+});
+
+// Admin Session Middleware
+const adminSession = session({
+    name: "admin.sid",
+    secret: process.env.SESSION_SECRET || "everloom_secret_key",
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false } // Set to true if using HTTPS in production
+});
+
+// Dynamic session middleware selection based on path
+app.use((req, res, next) => {
+    if (req.path.startsWith("/admin")) {
+        adminSession(req, res, next);
+    } else {
+        userSession(req, res, next);
+    }
+});
 
 // Passport initialization
 app.use(passport.initialize());
