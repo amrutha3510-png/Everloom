@@ -96,7 +96,7 @@ export const verifyOtp = async ({ email, otp, purpose }) => {
  * @returns {number} Remaining seconds
  */
 export const getRemainingSeconds = async (email, purpose) => {
-  const otpRecord = await Otp.findOne({ email, purpose });
+  const otpRecord = await Otp.findOne({ email, purpose }).sort({ createdAt: -1 });
   if (!otpRecord) return 0;
 
   const elapsedMs = Date.now() - otpRecord.createdAt.getTime();
