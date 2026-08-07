@@ -16,20 +16,6 @@ export const getAllCustomers = async (query = {}, page = 1, limit = 10) => {
     ];
   }
 
-  if (query.joinedDate) {
-    const startDate = new Date(query.joinedDate);
-    if (!isNaN(startDate.getTime())) {
-      startDate.setHours(0, 0, 0, 0);
-      const endDate = new Date(startDate);
-      endDate.setHours(23, 59, 59, 999);
-
-      filter.createdAt = {
-        $gte: startDate,
-        $lte: endDate
-      };
-    }
-  }
-
   const customers = await User.find(filter)
     .sort({ createdAt: -1 })
     .skip(skip)

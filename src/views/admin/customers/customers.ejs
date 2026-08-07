@@ -83,19 +83,13 @@
         </div>
       </div>
       
-      <!-- Joined Date Filter -->
-      <div class="relative w-full sm:w-48">
-        <input type="date" id="joined-date-filter" name="joinedDate" value="<%= joinedDateFilter || '' %>" 
-               class="w-full px-4 py-2.5 bg-white border border-brand-gray-200 rounded-md font-sans text-sm focus:outline-none focus:ring-1 focus:ring-brand-black focus:border-brand-black">
-      </div>
-      
       <div class="flex gap-2 w-full sm:w-auto">
         <!-- Search Button -->
         <button type="submit" class="flex-1 sm:flex-initial bg-brand-black text-white px-6 py-2.5 rounded-md font-sans font-medium text-sm hover:bg-brand-gray-600 transition-colors">
           Search
         </button>
         
-        <% if (searchQuery || statusFilter !== 'All Status' || (typeof joinedDateFilter !== 'undefined' && joinedDateFilter)) { %>
+        <% if (searchQuery || statusFilter !== 'All Status') { %>
           <!-- Clear Filters Button -->
           <a href="/admin/customers" class="flex-1 sm:flex-initial bg-brand-gray-100 text-brand-black border border-brand-gray-200 px-6 py-2.5 rounded-md font-sans font-medium text-sm hover:bg-brand-gray-200 transition-colors flex items-center justify-center" title="Clear all search and filters">
             Clear Filters
@@ -234,7 +228,7 @@
       
       <div class="flex items-center justify-between w-full sm:w-auto gap-2">
         <% if (currentPage > 1) { %>
-          <a href="?page=<%= currentPage - 1 %>&search=<%= encodeURIComponent(searchQuery) %>&status=<%= encodeURIComponent(statusFilter) %>&joinedDate=<%= encodeURIComponent(joinedDateFilter) %>" class="px-3 py-1.5 border border-brand-gray-200 rounded-md text-brand-gray-600 hover:bg-brand-gray-50 transition-colors flex items-center gap-1 text-xs sm:text-sm">
+          <a href="?page=<%= currentPage - 1 %>&search=<%= encodeURIComponent(searchQuery) %>&status=<%= encodeURIComponent(statusFilter) %>" class="px-3 py-1.5 border border-brand-gray-200 rounded-md text-brand-gray-600 hover:bg-brand-gray-50 transition-colors flex items-center gap-1 text-xs sm:text-sm">
             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
             Previous
           </a>
@@ -251,7 +245,7 @@
             <% if (i === currentPage) { %>
               <span class="w-8 h-8 flex items-center justify-center bg-brand-gray-100 rounded-md font-medium text-brand-black"><%= i %></span>
             <% } else if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) { %>
-              <a href="?page=<%= i %>&search=<%= encodeURIComponent(searchQuery) %>&status=<%= encodeURIComponent(statusFilter) %>&joinedDate=<%= encodeURIComponent(joinedDateFilter) %>" class="w-8 h-8 flex items-center justify-center border border-brand-gray-200 rounded-md text-brand-gray-600 hover:bg-brand-gray-50 transition-colors"><%= i %></a>
+              <a href="?page=<%= i %>&search=<%= encodeURIComponent(searchQuery) %>&status=<%= encodeURIComponent(statusFilter) %>" class="w-8 h-8 flex items-center justify-center border border-brand-gray-200 rounded-md text-brand-gray-600 hover:bg-brand-gray-50 transition-colors"><%= i %></a>
             <% } else if (i === currentPage - 2 || i === currentPage + 2) { %>
               <span class="w-8 h-8 flex items-center justify-center text-brand-gray-400">...</span>
             <% } %>
@@ -264,7 +258,7 @@
         </span>
 
         <% if (currentPage < totalPages) { %>
-          <a href="?page=<%= currentPage + 1 %>&search=<%= encodeURIComponent(searchQuery) %>&status=<%= encodeURIComponent(statusFilter) %>&joinedDate=<%= encodeURIComponent(joinedDateFilter) %>" class="px-3 py-1.5 border border-brand-gray-200 rounded-md text-brand-gray-600 hover:bg-brand-gray-50 transition-colors flex items-center gap-1 text-xs sm:text-sm">
+          <a href="?page=<%= currentPage + 1 %>&search=<%= encodeURIComponent(searchQuery) %>&status=<%= encodeURIComponent(statusFilter) %>" class="px-3 py-1.5 border border-brand-gray-200 rounded-md text-brand-gray-600 hover:bg-brand-gray-50 transition-colors flex items-center gap-1 text-xs sm:text-sm">
             Next
             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
           </a>
@@ -283,13 +277,6 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
   // Filter form auto-submit & clear logic
-  const joinedDateFilterSelect = document.getElementById('joined-date-filter');
-  if (joinedDateFilterSelect) {
-    joinedDateFilterSelect.addEventListener('change', () => {
-      document.getElementById('filter-form').submit();
-    });
-  }
-
   const clearSearchBtn = document.getElementById('clear-search-btn');
   if (clearSearchBtn) {
     clearSearchBtn.addEventListener('click', () => {

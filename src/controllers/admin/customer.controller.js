@@ -6,8 +6,7 @@ export const getCustomersPage = async (req, res) => {
     const limit = 10;
     const query = {
       status: req.query.status || 'All Status',
-      search: req.query.search || '',
-      joinedDate: req.query.joinedDate || ''
+      search: req.query.search || ''
     };
 
     const result = await customerService.getAllCustomers(query, page, limit);
@@ -21,7 +20,6 @@ export const getCustomersPage = async (req, res) => {
       totalEntries: result.totalEntries,
       searchQuery: query.search,
       statusFilter: query.status,
-      joinedDateFilter: query.joinedDate,
       layout: 'layouts/admin-layout',
       path: '/admin/customers'
     });
