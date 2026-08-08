@@ -1,6 +1,7 @@
 import express from 'express';
 import authRoutes from './auth.routes.js';
 import customerRoutes from './customer.routes.js';
+import categoryRoutes from './category.routes.js';
 import { getAdminDashboard } from '../../controllers/admin/dashboard.controller.js';
 import { isAdmin } from '../../middlewares/auth.middleware.js';
 
@@ -14,5 +15,8 @@ router.get('/dashboard', isAdmin, getAdminDashboard);
 
 // Mount customer routes
 router.use('/customers', customerRoutes);
+
+// Mount category routes
+router.use('/categories', categoryRoutes);
 
 export default router;

@@ -18,12 +18,21 @@ export const toastFlash = (req, res, next) => {
       res.locals.oldData = {};
     }
 
+    // Expose form errors
+    if (req.session.formErrors) {
+      res.locals.formErrors = req.session.formErrors;
+      delete req.session.formErrors;
+    } else {
+      res.locals.formErrors = {};
+    }
+
     // Expose user session to all views (used by navbar and other partials)
     res.locals.currentUser = req.session.user || null;
   } else {
     res.locals.toastMessage = null;
     res.locals.toastType = null;
     res.locals.oldData = {};
+    res.locals.formErrors = {};
     res.locals.currentUser = null;
   }
   next();
