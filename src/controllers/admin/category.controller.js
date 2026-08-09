@@ -101,3 +101,53 @@ export const toggleCategoryStatusHandler = async (req, res) => {
     return res.status(400).json({ success: false, message: error.message || 'Failed to update category status.' });
   }
 };
+
+export const getDeletedCategoriesPage = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = 10;
+    const query = {
+      search: req.query.search || '',
+      sort: req.query.sort || 'newest'
+    };
+
+    const result = await categoryService.getDeletedCategories(query, page, limit);
+
+    res.render('admin/categories/deleted', {
+      title: 'Deleted Categories',
+      categories: result.categories,
+      totalPages: result.totalPages,
+      currentPage: result.currentPage,
+      totalEntries: result.totalEntries,
+      searchQuery: query.search,
+      sortOption: result.sortOption,
+      layout: 'layouts/admin-layout',
+      path: '/admin/categories'
+    });
+  } catch (error) {
+    console.error('Error rendering deleted category listing:', error);
+    req.session.toast = { type: 'error', message: 'Failed to load deleted categories.' };
+    res.redirect('/admin/categories');
+  }
+};
+
+export const softDeleteCategoryHandler = async (req, res) => {
+  try {
+    await categoryService.softDeleteCategory(req.params.id);
+    return res.json({ success: true, message: 'Category deleted successfully.' });
+  } catch (error) {
+    console.error('Error soft deleting category:', error);
+    return res.status(400).json({ success: false, message: error.message || 'Failed to delete category.' });
+  }
+};
+
+export const restoreCategoryHandler = async (req, res) => {
+  try {
+    await categoryService.restoreCategory(req.params.id);
+    return res.json({ success: true, message: 'Category restored successfully.' });
+  } catch (error) {
+    console.error('Error restoring category:', error);
+    return res.status(400).json({ success: false, message: error.message || 'Failed to restore category.' });
+  }
+};
+

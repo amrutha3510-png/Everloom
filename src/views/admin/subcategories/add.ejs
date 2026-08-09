@@ -1,0 +1,342 @@
+<!-- Cropper.js CSS & JS CDN -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+<div class="mb-8 flex items-center justify-between">
+  <div>
+    <a href="/admin/subcategories" class="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-gray-500 hover:text-brand-black transition-colors mb-2">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+      </svg>
+      Back to Subcategories
+    </a>
+    <h1 class="text-2xl font-serif font-bold text-brand-black flex items-center gap-2">
+      Add New Subcategory
+    </h1>
+  </div>
+</div>
+
+<div class="max-w-2xl bg-white border border-brand-gray-100 rounded-xl shadow-sm overflow-hidden p-6 sm:p-8">
+  <form id="subcategory-form" action="/admin/subcategories/add" method="POST" enctype="multipart/form-data" class="space-y-6" novalidate>
+    
+    <!-- Category -->
+    <div>
+      <label for="category" class="block font-sans text-xs font-semibold uppercase tracking-wider text-brand-black mb-2">
+        Parent Category <span class="text-red-500">*</span>
+      </label>
+      <select 
+        id="category" 
+        name="category" 
+        required
+        class="w-full px-4 py-3 bg-white border border-brand-gray-200 rounded-md font-sans text-sm text-brand-black focus:outline-none focus:ring-1 focus:ring-brand-black focus:border-brand-black transition-colors appearance-none"
+      >
+        <option value="">Select a Category</option>
+        <% categories.forEach(cat => { %>
+          <option value="<%= cat._id %>" <%= (typeof oldData !== 'undefined' && oldData.category === cat._id.toString()) ? 'selected' : '' %>><%= cat.name %></option>
+        <% }) %>
+      </select>
+      <p id="category-err" class="<%= (typeof formErrors !== 'undefined' && formErrors.category) ? '' : 'hidden' %> text-red-500 text-xs mt-1.5 font-sans pl-1"><%= (typeof formErrors !== 'undefined' && formErrors.category) ? formErrors.category : '' %></p>
+    </div>
+
+    <!-- Subcategory Name -->
+    <div>
+      <label for="name" class="block font-sans text-xs font-semibold uppercase tracking-wider text-brand-black mb-2">
+        Subcategory Name <span class="text-red-500">*</span>
+      </label>
+      <input 
+        type="text" 
+        id="name" 
+        name="name" 
+        value="<%= typeof oldData !== 'undefined' && oldData.name ? oldData.name : '' %>" 
+        placeholder="e.g. T-Shirts" 
+        required 
+        class="w-full px-4 py-3 bg-white border border-brand-gray-200 rounded-md font-sans text-sm text-brand-black focus:outline-none focus:ring-1 focus:ring-brand-black focus:border-brand-black transition-colors"
+      >
+      <p id="name-err" class="<%= (typeof formErrors !== 'undefined' && formErrors.name) ? '' : 'hidden' %> text-red-500 text-xs mt-1.5 font-sans pl-1"><%= (typeof formErrors !== 'undefined' && formErrors.name) ? formErrors.name : '' %></p>
+    </div>
+
+    <!-- Description -->
+    <div>
+      <label for="description" class="block font-sans text-xs font-semibold uppercase tracking-wider text-brand-black mb-2">
+        Description <span class="text-red-500">*</span>
+      </label>
+      <textarea 
+        id="description" 
+        name="description" 
+        rows="4" 
+        required
+        placeholder="Brief description of the subcategory..."
+        class="w-full px-4 py-3 bg-white border border-brand-gray-200 rounded-md font-sans text-sm text-brand-black focus:outline-none focus:ring-1 focus:ring-brand-black focus:border-brand-black transition-colors resize-y"
+      ><%= typeof oldData !== 'undefined' && oldData.description ? oldData.description : '' %></textarea>
+      <p id="description-err" class="<%= (typeof formErrors !== 'undefined' && formErrors.description) ? '' : 'hidden' %> text-red-500 text-xs mt-1.5 font-sans pl-1"><%= (typeof formErrors !== 'undefined' && formErrors.description) ? formErrors.description : '' %></p>
+    </div>
+
+    <!-- Active Visibility -->
+    <div>
+      <label class="block font-sans text-xs font-semibold uppercase tracking-wider text-brand-black mb-2">
+        Active Visibility
+      </label>
+      <div class="flex items-center gap-3">
+        <label for="status-toggle" class="relative inline-flex items-center cursor-pointer">
+          <input 
+            type="checkbox" 
+            id="status-toggle" 
+            name="status" 
+            value="Active" 
+            class="sr-only peer" 
+            <%= (typeof oldData !== 'undefined' && oldData.status === 'Inactive') ? '' : 'checked' %>
+          >
+          <div class="w-11 h-6 bg-brand-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-black"></div>
+        </label>
+        <span id="toggle-label" class="font-sans text-sm font-semibold text-brand-black">Active</span>
+      </div>
+    </div>
+
+    <!-- Subcategory Image -->
+    <div>
+      <label for="image-input" class="block font-sans text-xs font-semibold uppercase tracking-wider text-brand-black mb-2">
+        Subcategory Image <span class="text-red-500">*</span>
+      </label>
+      
+      <div id="preview-container" class="hidden mb-3 relative w-full h-40 bg-brand-gray-50 border border-brand-gray-200 rounded-lg overflow-hidden">
+        <img id="image-preview" src="#" alt="Preview" class="w-full h-full object-cover">
+        <button type="button" id="change-image-btn" class="absolute top-2 right-2 bg-brand-black/70 hover:bg-brand-black text-white text-xs px-3 py-1.5 rounded-md font-sans transition-colors shadow">
+          Change Image
+        </button>
+      </div>
+
+      <div id="upload-box" class="flex flex-col items-center justify-center p-6 border-2 border-dashed border-brand-gray-200 rounded-lg hover:border-brand-black transition-colors cursor-pointer bg-brand-gray-50/50">
+        <svg class="w-8 h-8 text-brand-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+        </svg>
+        <span class="font-sans text-xs font-semibold text-brand-black mb-1">Click to upload image</span>
+        <span class="font-sans text-[11px] text-brand-gray-400">JPG, JPEG, PNG, WEBP (Max 5 MB)</span>
+        <input 
+          type="file" 
+          id="image-input" 
+          name="image" 
+          accept="image/jpeg,image/png,image/webp,image/jpg" 
+          required 
+          class="hidden"
+        >
+      </div>
+      <p id="image-err" class="<%= (typeof formErrors !== 'undefined' && formErrors.image) ? '' : 'hidden' %> text-red-500 text-xs mt-1.5 font-sans pl-1"><%= (typeof formErrors !== 'undefined' && formErrors.image) ? formErrors.image : '' %></p>
+    </div>
+
+    <div class="pt-6 border-t border-brand-gray-100 flex items-center gap-4">
+      <button 
+        type="submit" 
+        id="submit-btn"
+        class="bg-brand-black text-white px-6 py-3 rounded-md font-sans font-medium text-sm hover:bg-brand-gray-600 transition-colors shadow-sm"
+      >
+        Save Subcategory
+      </button>
+      <a 
+        href="/admin/subcategories" 
+        class="bg-brand-gray-100 text-brand-black border border-brand-gray-200 px-6 py-3 rounded-md font-sans font-medium text-sm hover:bg-brand-gray-200 transition-colors"
+      >
+        Cancel
+      </a>
+    </div>
+  </form>
+</div>
+
+<!-- Image Cropper Modal -->
+<div id="cropper-modal" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white rounded-xl max-w-2xl w-full p-6 shadow-2xl flex flex-col gap-4">
+    <div class="flex items-center justify-between border-b border-brand-gray-100 pb-3">
+      <h3 class="font-serif text-lg font-bold text-brand-black">Crop Subcategory Image</h3>
+      <button type="button" id="close-cropper-btn" class="text-brand-gray-400 hover:text-brand-black text-xl font-bold">&times;</button>
+    </div>
+    
+    <div class="w-full max-h-[60vh] overflow-hidden bg-black/5 rounded-lg flex items-center justify-center">
+      <img id="cropper-image" src="#" alt="Crop Target" class="max-w-full max-h-[60vh]">
+    </div>
+
+    <div class="flex justify-end gap-3 pt-2">
+      <button type="button" id="cancel-crop-btn" class="px-5 py-2.5 border border-brand-gray-200 rounded-md font-sans text-xs font-semibold text-brand-black hover:bg-brand-gray-50 transition-colors">
+        Cancel
+      </button>
+      <button type="button" id="apply-crop-btn" class="px-5 py-2.5 bg-brand-black text-white rounded-md font-sans text-xs font-semibold hover:bg-brand-gray-600 transition-colors shadow">
+        Crop & Apply Image
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const statusToggle = document.getElementById('status-toggle');
+  const toggleLabel = document.getElementById('toggle-label');
+  if (statusToggle && toggleLabel) {
+    statusToggle.addEventListener('change', function() {
+      toggleLabel.textContent = this.checked ? 'Active' : 'Inactive';
+    });
+  }
+
+  const form = document.getElementById('subcategory-form');
+  const nameInput = document.getElementById('name');
+  const descInput = document.getElementById('description');
+  const catInput = document.getElementById('category');
+
+  // Cropper JS
+  const uploadBox = document.getElementById('upload-box');
+  const imageInput = document.getElementById('image-input');
+  const previewContainer = document.getElementById('preview-container');
+  const imagePreview = document.getElementById('image-preview');
+  const changeImageBtn = document.getElementById('change-image-btn');
+  const imageError = document.getElementById('image-err');
+
+  const cropperModal = document.getElementById('cropper-modal');
+  const cropperImage = document.getElementById('cropper-image');
+  const applyCropBtn = document.getElementById('apply-crop-btn');
+  const cancelCropBtn = document.getElementById('cancel-crop-btn');
+  const closeCropperBtn = document.getElementById('close-cropper-btn');
+
+  let cropper = null;
+  let croppedBlob = null;
+
+  uploadBox.addEventListener('click', () => imageInput.click());
+  if (changeImageBtn) changeImageBtn.addEventListener('click', () => imageInput.click());
+
+  imageInput.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    imageError.classList.add('hidden');
+    imageError.textContent = '';
+
+    if (!file) return;
+
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+    if (!validTypes.includes(file.type)) {
+      imageError.textContent = 'Invalid file format. Only JPG, JPEG, PNG, and WEBP are allowed.';
+      imageError.classList.remove('hidden');
+      imageInput.value = '';
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      imageError.textContent = 'File size is too large. Maximum limit is 5 MB.';
+      imageError.classList.remove('hidden');
+      imageInput.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      cropperImage.src = evt.target.result;
+      cropperModal.classList.remove('hidden');
+
+      if (cropper) cropper.destroy();
+      cropper = new Cropper(cropperImage, {
+        aspectRatio: 1, // Square image for subcategory
+        viewMode: 1,
+        autoCropArea: 1,
+        responsive: true
+      });
+    };
+    reader.readAsDataURL(file);
+  });
+
+  function closeCropper() {
+    cropperModal.classList.add('hidden');
+    if (cropper) {
+      cropper.destroy();
+      cropper = null;
+    }
+  }
+
+  cancelCropBtn.addEventListener('click', closeCropper);
+  closeCropperBtn.addEventListener('click', closeCropper);
+
+  applyCropBtn.addEventListener('click', function() {
+    if (!cropper) return;
+
+    const canvas = cropper.getCroppedCanvas({ width: 800, height: 800 });
+
+    canvas.toBlob(function(blob) {
+      croppedBlob = blob;
+      const previewUrl = URL.createObjectURL(blob);
+      imagePreview.src = previewUrl;
+      
+      uploadBox.classList.add('hidden');
+      previewContainer.classList.remove('hidden');
+      
+      closeCropper();
+    }, 'image/jpeg', 0.9);
+  });
+
+  function setInvalid(id, msg) {
+    const el = document.getElementById(id);
+    const err = document.getElementById(id + '-err');
+    if (el) {
+      el.classList.remove('border-brand-gray-200', 'focus:border-brand-black');
+      el.classList.add('border-red-500', 'focus:border-red-500');
+    }
+    if (err) { err.textContent = msg; err.classList.remove('hidden'); }
+  }
+
+  function setValid(id) {
+    const el = document.getElementById(id);
+    const err = document.getElementById(id + '-err');
+    if (el) {
+      el.classList.remove('border-red-500', 'focus:border-red-500');
+      el.classList.add('border-brand-gray-200', 'focus:border-brand-black');
+    }
+    if (err) { err.textContent = ''; err.classList.add('hidden'); }
+  }
+
+  function clearErrors() {
+    ['name', 'description', 'category', 'image'].forEach(setValid);
+  }
+
+  nameInput.addEventListener('input', () => setValid('name'));
+  descInput.addEventListener('input', () => setValid('description'));
+  catInput.addEventListener('change', () => setValid('category'));
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    clearErrors();
+    let isValid = true;
+
+    if (!catInput.value) {
+      setInvalid('category', 'Category is required.');
+      isValid = false;
+    }
+
+    const nameVal = nameInput.value.trim();
+    if (!nameVal) {
+      setInvalid('name', 'Subcategory name cannot be empty.');
+      isValid = false;
+    } else if (nameVal.length < 2 || nameVal.length > 50) {
+      setInvalid('name', 'Name must be between 2 and 50 characters.');
+      isValid = false;
+    } else if (!/^[a-zA-Z0-9\s\-_&]+$/.test(nameVal)) {
+      setInvalid('name', 'Name contains invalid characters.');
+      isValid = false;
+    }
+
+    const descVal = descInput.value.trim();
+    if (!descVal || descVal.length < 10) {
+      setInvalid('description', 'Description must be at least 10 characters.');
+      isValid = false;
+    }
+
+    if (!croppedBlob) {
+      setInvalid('image', 'Subcategory Image is required. Please upload and crop an image.');
+      isValid = false;
+    }
+
+    if (!isValid) return;
+
+    if (croppedBlob) {
+      const dataTransfer = new DataTransfer();
+      const file = new File([croppedBlob], "cropped-image.jpg", { type: "image/jpeg" });
+      dataTransfer.items.add(file);
+      imageInput.files = dataTransfer.files;
+    }
+
+    document.getElementById('submit-btn').textContent = 'Saving...';
+    document.getElementById('submit-btn').disabled = true;
+    
+    HTMLFormElement.prototype.submit.call(this);
+  });
+</script>

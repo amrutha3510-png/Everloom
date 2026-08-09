@@ -6,7 +6,10 @@ import {
   createCategoryHandler,
   getEditCategoryPage,
   updateCategoryHandler,
-  toggleCategoryStatusHandler
+  toggleCategoryStatusHandler,
+  getDeletedCategoriesPage,
+  softDeleteCategoryHandler,
+  restoreCategoryHandler
 } from '../../controllers/admin/category.controller.js';
 import { isAdmin } from '../../middlewares/auth.middleware.js';
 import { uploadCategoryBanner } from '../../configs/categoryUpload.config.js';
@@ -37,10 +40,13 @@ const handleBannerUpload = (req, res, next) => {
 };
 
 router.get('/', getCategoriesPage);
+router.get('/deleted', getDeletedCategoriesPage);
 router.get('/add', getAddCategoryPage);
 router.post('/add', handleBannerUpload, createCategoryHandler);
 router.get('/edit/:id', getEditCategoryPage);
 router.post('/edit/:id', handleBannerUpload, updateCategoryHandler);
 router.post('/toggle-status/:id', toggleCategoryStatusHandler);
+router.post('/soft-delete/:id', softDeleteCategoryHandler);
+router.post('/restore/:id', restoreCategoryHandler);
 
 export default router;

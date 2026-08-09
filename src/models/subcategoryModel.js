@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const categorySchema = new mongoose.Schema({
+const subcategorySchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
@@ -10,6 +10,11 @@ const categorySchema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true,
+  },
+  category: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Category',
+    required: true,
   },
   image: {
     type: String,
@@ -31,5 +36,5 @@ const categorySchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-const Category = mongoose.model('Category', categorySchema);
-export default Category;
+const Subcategory = mongoose.model('Subcategory', subcategorySchema);
+export default Subcategory;

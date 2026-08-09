@@ -1,0 +1,673 @@
+<!-- Cropper.js CSS & JS CDN -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+<div class="mb-8 flex items-center justify-between">
+  <div>
+    <a href="/admin/products" class="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-gray-500 hover:text-brand-black transition-colors mb-2">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+      </svg>
+      Back to Products
+    </a>
+    <h1 class="text-2xl font-serif font-bold text-brand-black flex items-center gap-2">
+      Add New Product
+    </h1>
+  </div>
+</div>
+
+<div class="max-w-4xl bg-white border border-brand-gray-100 rounded-xl shadow-sm overflow-hidden p-6 sm:p-8">
+  <form id="product-form" action="/admin/products/add" method="POST" enctype="multipart/form-data" class="space-y-6" novalidate>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Product Name -->
+      <div class="md:col-span-2">
+        <label for="name" class="block font-sans text-xs font-semibold uppercase tracking-wider text-brand-black mb-2">
+          Product Name <span class="text-red-500">*</span>
+        </label>
+        <input 
+          type="text" 
+          id="name" 
+          name="name" 
+          value="<%= typeof oldData !== 'undefined' && oldData.name ? oldData.name : '' %>" 
+          placeholder="e.g. Classic White Shirt" 
+          required 
+          class="w-full px-4 py-3 bg-white border border-brand-gray-200 rounded-md font-sans text-sm text-brand-black focus:outline-none focus:ring-1 focus:ring-brand-black focus:border-brand-black transition-colors"
+        >
+        <p id="name-err" class="<%= (typeof formErrors !== 'undefined' && formErrors.name) ? '' : 'hidden' %> text-red-500 text-xs mt-1.5 font-sans pl-1"><%= (typeof formErrors !== 'undefined' && formErrors.name) ? formErrors.name : '' %></p>
+      </div>
+
+      <!-- Category -->
+      <div>
+        <label for="category" class="block font-sans text-xs font-semibold uppercase tracking-wider text-brand-black mb-2">
+          Category <span class="text-red-500">*</span>
+        </label>
+        <select 
+          id="category" 
+          name="category" 
+          required
+          class="w-full px-4 py-3 bg-white border border-brand-gray-200 rounded-md font-sans text-sm text-brand-black focus:outline-none focus:ring-1 focus:ring-brand-black focus:border-brand-black transition-colors appearance-none"
+        >
+          <option value="">Select a Category</option>
+          <% categories.forEach(cat => { %>
+            <option value="<%= cat._id %>" <%= (typeof oldData !== 'undefined' && oldData.category === cat._id.toString()) ? 'selected' : '' %>><%= cat.name %></option>
+          <% }) %>
+        </select>
+        <p id="category-err" class="<%= (typeof formErrors !== 'undefined' && formErrors.category) ? '' : 'hidden' %> text-red-500 text-xs mt-1.5 font-sans pl-1"><%= (typeof formErrors !== 'undefined' && formErrors.category) ? formErrors.category : '' %></p>
+      </div>
+
+      <!-- Subcategory -->
+      <div>
+        <label for="subcategory" class="block font-sans text-xs font-semibold uppercase tracking-wider text-brand-black mb-2">
+          Subcategory <span class="text-red-500">*</span>
+        </label>
+        <select 
+          id="subcategory" 
+          name="subcategory" 
+          required
+          disabled
+          class="w-full px-4 py-3 bg-white border border-brand-gray-200 rounded-md font-sans text-sm text-brand-black focus:outline-none focus:ring-1 focus:ring-brand-black focus:border-brand-black transition-colors appearance-none disabled:bg-brand-gray-50 disabled:cursor-not-allowed"
+        >
+          <option value="">Select a Subcategory</option>
+        </select>
+        <p id="subcategory-err" class="<%= (typeof formErrors !== 'undefined' && formErrors.subcategory) ? '' : 'hidden' %> text-red-500 text-xs mt-1.5 font-sans pl-1"><%= (typeof formErrors !== 'undefined' && formErrors.subcategory) ? formErrors.subcategory : '' %></p>
+      </div>
+
+
+
+      <!-- Description -->
+      <div class="md:col-span-2">
+        <label for="description" class="block font-sans text-xs font-semibold uppercase tracking-wider text-brand-black mb-2">
+          Description <span class="text-red-500">*</span>
+        </label>
+        <textarea 
+          id="description" 
+          name="description" 
+          rows="5" 
+          required
+          placeholder="Detailed description of the product..."
+          class="w-full px-4 py-3 bg-white border border-brand-gray-200 rounded-md font-sans text-sm text-brand-black focus:outline-none focus:ring-1 focus:ring-brand-black focus:border-brand-black transition-colors resize-y"
+        ><%= typeof oldData !== 'undefined' && oldData.description ? oldData.description : '' %></textarea>
+        <p id="description-err" class="<%= (typeof formErrors !== 'undefined' && formErrors.description) ? '' : 'hidden' %> text-red-500 text-xs mt-1.5 font-sans pl-1"><%= (typeof formErrors !== 'undefined' && formErrors.description) ? formErrors.description : '' %></p>
+      </div>
+
+      <!-- Active Visibility -->
+      <div class="md:col-span-2">
+        <label class="block font-sans text-xs font-semibold uppercase tracking-wider text-brand-black mb-2">
+          Active Visibility
+        </label>
+        <div class="flex items-center gap-3">
+          <label for="status-toggle" class="relative inline-flex items-center cursor-pointer">
+            <input 
+              type="checkbox" 
+              id="status-toggle" 
+              name="status" 
+              value="Active" 
+              class="sr-only peer" 
+              <%= (typeof oldData !== 'undefined' && oldData.status === 'Inactive') ? '' : 'checked' %>
+            >
+            <div class="w-11 h-6 bg-brand-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-black"></div>
+          </label>
+          <span id="toggle-label" class="font-sans text-sm font-semibold text-brand-black">Active</span>
+        </div>
+      </div>
+
+      <!-- Product Variants -->
+      <div class="md:col-span-2 border border-brand-gray-200 rounded-lg overflow-hidden bg-brand-gray-50/30">
+        <div class="px-5 py-4 border-b border-brand-gray-200 flex items-center justify-between bg-brand-gray-50">
+          <h3 class="font-sans text-sm font-semibold text-brand-black">Product Variants</h3>
+          <button type="button" id="add-variant-btn" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-brand-gray-200 text-brand-black rounded text-xs font-medium hover:bg-brand-gray-100 transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+            Add Variant
+          </button>
+        </div>
+        <div class="p-5">
+          <div class="hidden md:block overflow-x-auto">
+            <table class="w-full text-left" id="variants-table">
+              <thead>
+                <tr class="text-xs font-semibold text-brand-gray-500 uppercase tracking-wider">
+                  <th class="pb-3 w-1/4">Size <span class="text-red-500">*</span></th>
+                  <th class="pb-3 w-1/4">Color <span class="text-red-500">*</span></th>
+                  <th class="pb-3 w-1/5">Price (₹) <span class="text-red-500">*</span></th>
+                  <th class="pb-3 w-1/5">Stock <span class="text-red-500">*</span></th>
+                  <th class="pb-3 w-[10%] text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="variants-tbody" class="space-y-2">
+                <!-- Variants will be injected here -->
+              </tbody>
+            </table>
+          </div>
+          <div id="variants-mobile" class="block md:hidden space-y-4">
+             <!-- Mobile variants will be injected here -->
+          </div>
+          <p id="variants-err" class="<%= (typeof formErrors !== 'undefined' && formErrors.variants) ? '' : 'hidden' %> text-red-500 text-xs mt-2 font-sans pl-1"><%= (typeof formErrors !== 'undefined' && formErrors.variants) ? formErrors.variants : '' %></p>
+        </div>
+        <input type="hidden" name="variants" id="variants-input">
+      </div>
+
+      <!-- Multiple Image Upload -->
+      <div class="md:col-span-2">
+        <label class="block font-sans text-xs font-semibold uppercase tracking-wider text-brand-black mb-2">
+          Product Images (Min 3) <span class="text-red-500">*</span>
+        </label>
+        
+        <!-- Previews Container -->
+        <div id="image-previews-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-4">
+          <!-- Dynamically populated previews go here -->
+        </div>
+
+        <!-- Upload Trigger Box -->
+        <div id="upload-box" class="flex flex-col items-center justify-center p-6 border-2 border-dashed border-brand-gray-200 rounded-lg hover:border-brand-black transition-colors cursor-pointer bg-brand-gray-50/50">
+          <svg class="w-8 h-8 text-brand-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          <span class="font-sans text-xs font-semibold text-brand-black mb-1">Add Images</span>
+          <span class="font-sans text-[11px] text-brand-gray-400">JPG, JPEG, PNG, WEBP</span>
+          <input 
+            type="file" 
+            id="image-input" 
+            accept="image/jpeg,image/png,image/webp,image/jpg" 
+            multiple
+            class="hidden"
+          >
+          <input type="file" id="final-images" name="images" multiple class="hidden">
+        </div>
+        <p id="images-err" class="<%= (typeof formErrors !== 'undefined' && formErrors.images) ? '' : 'hidden' %> text-red-500 text-xs mt-1.5 font-sans pl-1"><%= (typeof formErrors !== 'undefined' && formErrors.images) ? formErrors.images : '' %></p>
+      </div>
+
+    </div>
+
+    <div class="pt-6 border-t border-brand-gray-100 flex items-center gap-4">
+      <button 
+        type="submit" 
+        id="submit-btn"
+        class="bg-brand-black text-white px-6 py-3 rounded-md font-sans font-medium text-sm hover:bg-brand-gray-600 transition-colors shadow-sm"
+      >
+        Save Product
+      </button>
+      <a 
+        href="/admin/products" 
+        class="bg-brand-gray-100 text-brand-black border border-brand-gray-200 px-6 py-3 rounded-md font-sans font-medium text-sm hover:bg-brand-gray-200 transition-colors"
+      >
+        Cancel
+      </a>
+    </div>
+  </form>
+</div>
+
+<!-- Image Cropper Modal -->
+<div id="cropper-modal" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white rounded-xl max-w-2xl w-full p-6 shadow-2xl flex flex-col gap-4">
+    <div class="flex items-center justify-between border-b border-brand-gray-100 pb-3">
+      <h3 class="font-serif text-lg font-bold text-brand-black">Crop Product Image</h3>
+      <button type="button" id="close-cropper-btn" class="text-brand-gray-400 hover:text-brand-black text-xl font-bold">&times;</button>
+    </div>
+    
+    <div class="w-full max-h-[60vh] overflow-hidden bg-black/5 rounded-lg flex items-center justify-center">
+      <img id="cropper-image" src="#" alt="Crop Target" class="max-w-full max-h-[60vh]">
+    </div>
+
+    <div class="flex justify-end gap-3 pt-2">
+      <button type="button" id="cancel-crop-btn" class="px-5 py-2.5 border border-brand-gray-200 rounded-md font-sans text-xs font-semibold text-brand-black hover:bg-brand-gray-50 transition-colors">
+        Cancel
+      </button>
+      <button type="button" id="apply-crop-btn" class="px-5 py-2.5 bg-brand-black text-white rounded-md font-sans text-xs font-semibold hover:bg-brand-gray-600 transition-colors shadow">
+        Crop & Apply
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const statusToggle = document.getElementById('status-toggle');
+  const toggleLabel = document.getElementById('toggle-label');
+  if (statusToggle && toggleLabel) {
+    statusToggle.addEventListener('change', function() {
+      toggleLabel.textContent = this.checked ? 'Active' : 'Inactive';
+    });
+  }
+
+  // File Upload & Cropper Logic
+  const uploadBox = document.getElementById('upload-box');
+  const imageInput = document.getElementById('image-input');
+  const finalImagesInput = document.getElementById('final-images');
+  const previewsContainer = document.getElementById('image-previews-container');
+  const imagesError = document.getElementById('images-err');
+
+  const cropperModal = document.getElementById('cropper-modal');
+  const cropperImage = document.getElementById('cropper-image');
+  const applyCropBtn = document.getElementById('apply-crop-btn');
+  const cancelCropBtn = document.getElementById('cancel-crop-btn');
+  const closeCropperBtn = document.getElementById('close-cropper-btn');
+
+  let cropper = null;
+  let currentCropId = null;
+  
+  // State: holds objects { id, originalFile, croppedBlob, url }
+  let productImages = [];
+
+  function generateId() {
+    return Math.random().toString(36).substr(2, 9);
+  }
+
+  uploadBox.addEventListener('click', () => imageInput.click());
+
+  imageInput.addEventListener('change', function(e) {
+    const files = Array.from(e.target.files);
+    imagesError.classList.add('hidden');
+    imagesError.textContent = '';
+    imageInput.value = ''; // Reset to allow same file selection again
+
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+    
+    files.forEach(file => {
+      if (!validTypes.includes(file.type)) {
+        alert(`${file.name} is not a valid format.`);
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        alert(`${file.name} exceeds 5 MB limit.`);
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const id = generateId();
+        productImages.push({
+          id: id,
+          originalFile: file,
+          croppedBlob: null,
+          url: evt.target.result // initial uncropped preview
+        });
+        renderPreviews();
+        // Automatically open cropper for the newly added image
+        openCropper(id);
+      };
+      reader.readAsDataURL(file);
+    });
+  });
+
+  function renderPreviews() {
+    previewsContainer.innerHTML = '';
+    productImages.forEach(imgData => {
+      const div = document.createElement('div');
+      div.className = 'relative group aspect-square rounded-lg border border-brand-gray-200 overflow-hidden bg-brand-gray-50';
+      
+      const img = document.createElement('img');
+      img.src = imgData.croppedBlob ? URL.createObjectURL(imgData.croppedBlob) : imgData.url;
+      img.className = 'w-full h-full object-cover';
+      
+      const overlay = document.createElement('div');
+      overlay.className = 'absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2';
+      
+      const cropBtn = document.createElement('button');
+      cropBtn.type = 'button';
+      cropBtn.className = 'p-1.5 bg-white text-brand-black rounded hover:bg-gray-200';
+      cropBtn.innerHTML = '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>';
+      // Let's use standard crop icon for cropping, and trash for removing
+      cropBtn.innerHTML = '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>'; // Trash icon is actually X for simplicity, wait, let's just make two buttons.
+      
+      const realCropBtn = document.createElement('button');
+      realCropBtn.type = 'button';
+      realCropBtn.className = 'p-1.5 bg-white text-brand-black rounded hover:bg-gray-200';
+      realCropBtn.title = "Crop Image";
+      realCropBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12.75 15l3-3m0 0l-3-3m3 3h-7.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>'; // just some edit icon
+      
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'p-1.5 bg-red-500 text-white rounded hover:bg-red-600';
+      removeBtn.title = "Remove Image";
+      removeBtn.innerHTML = '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>';
+
+      realCropBtn.onclick = () => openCropper(imgData.id);
+      removeBtn.onclick = () => removeImage(imgData.id);
+
+      overlay.appendChild(realCropBtn);
+      overlay.appendChild(removeBtn);
+
+      div.appendChild(img);
+      div.appendChild(overlay);
+      previewsContainer.appendChild(div);
+    });
+  }
+
+  function removeImage(id) {
+    productImages = productImages.filter(img => img.id !== id);
+    renderPreviews();
+  }
+
+  function openCropper(id) {
+    const imgData = productImages.find(img => img.id === id);
+    if (!imgData) return;
+    currentCropId = id;
+    
+    // Always crop from original URL to prevent quality loss from repeated cropping
+    cropperImage.src = imgData.url;
+    cropperModal.classList.remove('hidden');
+
+    if (cropper) cropper.destroy();
+    cropper = new Cropper(cropperImage, {
+      aspectRatio: 1, // 1:1 ratio for product images usually, adjust as needed
+      viewMode: 1,
+      autoCropArea: 1,
+      responsive: true
+    });
+  }
+
+  function closeCropper() {
+    cropperModal.classList.add('hidden');
+    if (cropper) {
+      cropper.destroy();
+      cropper = null;
+    }
+    currentCropId = null;
+  }
+
+  cancelCropBtn.addEventListener('click', closeCropper);
+  closeCropperBtn.addEventListener('click', closeCropper);
+
+  applyCropBtn.addEventListener('click', function() {
+    if (!cropper || !currentCropId) return;
+
+    const canvas = cropper.getCroppedCanvas({
+      width: 800,
+      height: 800
+    });
+
+    canvas.toBlob(function(blob) {
+      const imgData = productImages.find(img => img.id === currentCropId);
+      if (imgData) {
+        imgData.croppedBlob = blob;
+      }
+      renderPreviews();
+      closeCropper();
+    }, 'image/jpeg', 0.9);
+  });
+
+  // Form Validations
+  const productForm = document.getElementById('product-form');
+  const nameInput = document.getElementById('name');
+  const descInput = document.getElementById('description');
+  const catInput = document.getElementById('category');
+  const subcatInput = document.getElementById('subcategory');
+
+  const allSubcategories = <%- JSON.stringify(subcategories || []) %>;
+  const oldSubcategory = "<%= typeof oldData !== 'undefined' && oldData.subcategory ? oldData.subcategory : '' %>";
+
+  function populateSubcategories(categoryId) {
+    subcatInput.innerHTML = '<option value="">Select a Subcategory</option>';
+    if (!categoryId) {
+      subcatInput.disabled = true;
+      return;
+    }
+    const filtered = allSubcategories.filter(s => s.category === categoryId || (s.category && s.category._id === categoryId));
+    if (filtered.length > 0) {
+      filtered.forEach(sub => {
+        const option = document.createElement('option');
+        option.value = sub._id;
+        option.textContent = sub.name;
+        if (sub._id === oldSubcategory) option.selected = true;
+        subcatInput.appendChild(option);
+      });
+      subcatInput.disabled = false;
+    } else {
+      subcatInput.disabled = true;
+    }
+  }
+
+  if (catInput.value) populateSubcategories(catInput.value);
+
+  catInput.addEventListener('change', (e) => {
+    setValid('category');
+    populateSubcategories(e.target.value);
+  });
+  subcatInput.addEventListener('change', () => setValid('subcategory'));
+
+  // Variants Management
+  const addVariantBtn = document.getElementById('add-variant-btn');
+  const variantsTbody = document.getElementById('variants-tbody');
+  const variantsMobile = document.getElementById('variants-mobile');
+  const variantsInput = document.getElementById('variants-input');
+  const variantsErr = document.getElementById('variants-err');
+  
+  let variantCounter = 0;
+  
+  function addVariantRow() {
+    const id = variantCounter++;
+    
+    // Desktop Row
+    const tr = document.createElement('tr');
+    tr.id = `variant-row-${id}`;
+    tr.className = 'group';
+    tr.innerHTML = `
+      <td class="pr-3 pb-2"><input type="text" class="v-size w-full px-3 py-2 bg-white border border-brand-gray-200 rounded text-sm focus:border-brand-black focus:ring-1 focus:ring-brand-black transition-colors" placeholder="e.g. M"></td>
+      <td class="pr-3 pb-2"><input type="text" class="v-color w-full px-3 py-2 bg-white border border-brand-gray-200 rounded text-sm focus:border-brand-black focus:ring-1 focus:ring-brand-black transition-colors" placeholder="e.g. Black"></td>
+      <td class="pr-3 pb-2"><input type="number" step="0.01" min="0" class="v-price w-full px-3 py-2 bg-white border border-brand-gray-200 rounded text-sm focus:border-brand-black focus:ring-1 focus:ring-brand-black transition-colors" placeholder="0"></td>
+      <td class="pr-3 pb-2"><input type="number" step="1" min="0" class="v-stock w-full px-3 py-2 bg-white border border-brand-gray-200 rounded text-sm focus:border-brand-black focus:ring-1 focus:ring-brand-black transition-colors" placeholder="0"></td>
+      <td class="pb-2 text-right"><button type="button" class="text-red-500 hover:text-red-700 p-1.5" onclick="removeVariant(${id})"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button></td>
+    `;
+    variantsTbody.appendChild(tr);
+
+    // Mobile Card
+    const card = document.createElement('div');
+    card.id = `variant-card-${id}`;
+    card.className = 'p-4 border border-brand-gray-200 rounded-md bg-white relative';
+    card.innerHTML = `
+      <button type="button" class="absolute top-2 right-2 text-red-500 hover:text-red-700" onclick="removeVariant(${id})"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+      <div class="grid grid-cols-2 gap-3 mt-2">
+        <div>
+          <label class="block text-[10px] font-semibold uppercase text-brand-gray-500 mb-1">Size</label>
+          <input type="text" class="mv-size w-full px-2 py-1.5 border border-brand-gray-200 rounded text-xs" placeholder="Size">
+        </div>
+        <div>
+          <label class="block text-[10px] font-semibold uppercase text-brand-gray-500 mb-1">Color</label>
+          <input type="text" class="mv-color w-full px-2 py-1.5 border border-brand-gray-200 rounded text-xs" placeholder="Color">
+        </div>
+        <div>
+          <label class="block text-[10px] font-semibold uppercase text-brand-gray-500 mb-1">Price</label>
+          <input type="number" class="mv-price w-full px-2 py-1.5 border border-brand-gray-200 rounded text-xs" placeholder="0">
+        </div>
+        <div>
+          <label class="block text-[10px] font-semibold uppercase text-brand-gray-500 mb-1">Stock</label>
+          <input type="number" class="mv-stock w-full px-2 py-1.5 border border-brand-gray-200 rounded text-xs" placeholder="0">
+        </div>
+      </div>
+    `;
+    variantsMobile.appendChild(card);
+
+    // Sync Desktop <-> Mobile
+    const desktopInputs = tr.querySelectorAll('input');
+    const mobileInputs = card.querySelectorAll('input');
+    
+    desktopInputs.forEach((dInp, idx) => {
+      dInp.addEventListener('input', () => { mobileInputs[idx].value = dInp.value; setValidVariant(); });
+      mobileInputs[idx].addEventListener('input', () => { dInp.value = mobileInputs[idx].value; setValidVariant(); });
+    });
+  }
+
+  window.removeVariant = function(id) {
+    const tr = document.getElementById(`variant-row-${id}`);
+    const card = document.getElementById(`variant-card-${id}`);
+    if (tr) tr.remove();
+    if (card) card.remove();
+    setValidVariant();
+  };
+
+  addVariantBtn.addEventListener('click', addVariantRow);
+
+  function setValidVariant() {
+    variantsErr.textContent = '';
+    variantsErr.classList.add('hidden');
+  }
+
+  function setInvalidVariant(msg) {
+    variantsErr.textContent = msg;
+    variantsErr.classList.remove('hidden');
+  }
+
+  // Pre-fill variants if they existed in oldData
+  const oldVariantsRaw = <%- typeof oldData !== 'undefined' && oldData.variants ? `'${oldData.variants.replace(/'/g, "\\'")}'` : 'null' %>;
+  if (oldVariantsRaw) {
+    try {
+      const vArr = JSON.parse(oldVariantsRaw);
+      vArr.forEach(v => {
+        addVariantRow();
+        const rows = variantsTbody.querySelectorAll('tr');
+        const lastRow = rows[rows.length - 1];
+        lastRow.querySelector('.v-size').value = v.size;
+        lastRow.querySelector('.v-color').value = v.color;
+        lastRow.querySelector('.v-price').value = v.price;
+        lastRow.querySelector('.v-stock').value = v.stock;
+        
+        const cards = variantsMobile.querySelectorAll('div[id^="variant-card"]');
+        const lastCard = cards[cards.length - 1];
+        lastCard.querySelector('.mv-size').value = v.size;
+        lastCard.querySelector('.mv-color').value = v.color;
+        lastCard.querySelector('.mv-price').value = v.price;
+        lastCard.querySelector('.mv-stock').value = v.stock;
+      });
+    } catch(e) {}
+  } else {
+    // Start with one blank row
+    addVariantRow();
+  }
+
+  function setInvalid(id, msg) {
+    const el = document.getElementById(id);
+    const err = document.getElementById(id + '-err');
+    if (el) {
+      el.classList.remove('border-brand-gray-200', 'focus:border-brand-black');
+      el.classList.add('border-red-500', 'focus:border-red-500');
+    }
+    if (err) { err.textContent = msg; err.classList.remove('hidden'); }
+  }
+
+  function setValid(id) {
+    const el = document.getElementById(id);
+    const err = document.getElementById(id + '-err');
+    if (el) {
+      el.classList.remove('border-red-500', 'focus:border-red-500');
+      el.classList.add('border-brand-gray-200', 'focus:border-brand-black');
+    }
+    if (err) { err.textContent = ''; err.classList.add('hidden'); }
+  }
+
+  function clearErrors() {
+    ['name', 'description', 'category', 'subcategory', 'images'].forEach(setValid);
+  }
+
+  nameInput.addEventListener('input', () => setValid('name'));
+  descInput.addEventListener('input', () => setValid('description'));
+  catInput.addEventListener('change', () => setValid('category'));
+
+  productForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    clearErrors();
+    
+    let isValid = true;
+    
+    const nameVal = nameInput.value.trim();
+    if (!nameVal) {
+      setInvalid('name', 'Product name is required.');
+      isValid = false;
+    } else if (nameVal.length < 2) {
+      setInvalid('name', 'Product name must be at least 2 characters.');
+      isValid = false;
+    }
+
+    const descVal = descInput.value.trim();
+    if (!descVal || descVal.length < 10) {
+      setInvalid('description', 'Description must be at least 10 characters.');
+      isValid = false;
+    }
+
+    if (!catInput.value) {
+      setInvalid('category', 'Category is required.');
+      isValid = false;
+    }
+
+    if (!subcatInput.value) {
+      setInvalid('subcategory', 'Subcategory is required.');
+      isValid = false;
+    }
+
+    // Parse and validate variants
+    const variantRows = variantsTbody.querySelectorAll('tr');
+    const finalVariants = [];
+    const comboSet = new Set();
+    
+    if (variantRows.length === 0) {
+      setInvalidVariant('At least one product variant is required.');
+      isValid = false;
+    }
+
+    let variantsValid = true;
+    variantRows.forEach((row, i) => {
+      const size = row.querySelector('.v-size').value.trim();
+      const color = row.querySelector('.v-color').value.trim();
+      const vprice = parseFloat(row.querySelector('.v-price').value);
+      const vstock = parseFloat(row.querySelector('.v-stock').value);
+
+      if (!size || !color || isNaN(vprice) || isNaN(vstock)) {
+        setInvalidVariant('All fields in every variant are required.');
+        variantsValid = false;
+        return;
+      }
+      if (vprice < 0) {
+        setInvalidVariant('Variant price cannot be negative.');
+        variantsValid = false;
+        return;
+      }
+      if (vstock < 0 || !Number.isInteger(vstock)) {
+        setInvalidVariant('Variant stock must be a non-negative integer.');
+        variantsValid = false;
+        return;
+      }
+
+      const combo = `${size.toLowerCase()}-${color.toLowerCase()}`;
+      if (comboSet.has(combo)) {
+        setInvalidVariant(`Duplicate variant: Size ${size} and Color ${color}.`);
+        variantsValid = false;
+        return;
+      }
+      comboSet.add(combo);
+      
+      finalVariants.push({ size, color, price: vprice, stock: vstock });
+    });
+
+    if (!variantsValid) isValid = false;
+    else {
+      variantsInput.value = JSON.stringify(finalVariants);
+    }
+
+    // Check images count
+    if (productImages.length < 3) {
+      setInvalid('images', 'Please upload at least 3 product images.');
+      isValid = false;
+    }
+
+    // Check if all are cropped
+    const uncropped = productImages.find(img => !img.croppedBlob);
+    if (uncropped) {
+      setInvalid('images', 'Please crop all selected images before submitting.');
+      isValid = false;
+    }
+
+    if (!isValid) return;
+
+    // Attach all cropped blobs to the final-images file input
+    const dataTransfer = new DataTransfer();
+    productImages.forEach((imgData, index) => {
+      const file = new File([imgData.croppedBlob], `product-img-${index}.jpg`, { type: "image/jpeg" });
+      dataTransfer.items.add(file);
+    });
+    finalImagesInput.files = dataTransfer.files;
+
+    const submitBtn = document.getElementById('submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Saving...';
+    
+    HTMLFormElement.prototype.submit.call(this);
+  });
+</script>

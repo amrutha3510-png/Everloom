@@ -6,7 +6,7 @@ const escapeRegex = (text) => {
 
 export const getAllCategories = async (query = {}, page = 1, limit = 10) => {
   const skip = (page - 1) * limit;
-  const filter = {};
+  const filter = { isDeleted: false };
 
   // Status Filter
   if (query.status && query.status !== 'All Status') {
@@ -40,9 +40,9 @@ export const getAllCategories = async (query = {}, page = 1, limit = 10) => {
   const totalCategories = await Category.countDocuments(filter);
 
   // Statistics for summary cards
-  const totalCount = await Category.countDocuments({});
-  const activeCount = await Category.countDocuments({ status: 'Active' });
-  const inactiveCount = await Category.countDocuments({ status: 'Inactive' });
+  const totalCount = await Category.countDocuments({ isDeleted: false });
+  const activeCount = await Category.countDocuments({ status: 'Active', isDeleted: false });
+  const inactiveCount = await Category.countDocuments({ status: 'Inactive', isDeleted: false });
 
   return {
     categories,
@@ -198,3 +198,61 @@ export const toggleCategoryStatus = async (id) => {
   return category.status;
 };
 
+export const softDeleteCategory = async (id) => {
+  const category = await Category.findOne({ _id: id });
+  if (!category) {
+    throw new Error('Category not found.');
+  }
+  category.isDeleted = true;
+  await category.save();
+  return true;
+};
+
+export const restoreCategory = async (id) => {
+  const category = await Category.findOne({ _id: id });
+  if (!category) {
+    throw new Error('Category not found.');
+  }
+  category.isDeleted = false;
+  await category.save();
+  return true;
+};
+
+export const getDeletedCategories = async (query = {}, page = 1, limit = 10) => {
+  const skip = (page - 1) * limit;
+  const filter = { isDeleted: true };
+
+  // Name Search
+  if (query.search && query.search.trim()) {
+    filter.name = { $regex: query.search.trim(), $options: 'i' };
+  }
+
+  // Sorting Options
+  let sortOption = { createdAt: -1 };
+  const sortParam = query.sort || 'newest';
+
+  if (sortParam === 'oldest') {
+    sortOption = { createdAt: 1 };
+  } else if (sortParam === 'az') {
+    sortOption = { name: 1 };
+  } else if (sortParam === 'za') {
+    sortOption = { name: -1 };
+  }
+
+  const categories = await Category.find(filter)
+    .collation({ locale: 'en', strength: 2 }) // For case-insensitive A-Z sorting
+    .sort(sortOption)
+    .skip(skip)
+    .limit(limit)
+    .lean();
+
+  const totalCategories = await Category.countDocuments(filter);
+
+  return {
+    categories,
+    totalPages: Math.ceil(totalCategories / limit) || 1,
+    currentPage: page,
+    totalEntries: totalCategories,
+    sortOption: sortParam,
+  };
+};
