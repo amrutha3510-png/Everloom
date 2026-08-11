@@ -140,6 +140,62 @@ export const createProduct = async (data, files) => {
     throw new Error('Subcategory does not belong to the selected category.');
   }
 
+
+  // Color Options validation & mapping
+  let colorOptions = [];
+  try {
+    if (data.colorOptions) {
+      colorOptions = typeof data.colorOptions === 'string' ? JSON.parse(data.colorOptions) : data.colorOptions;
+    }
+  } catch (err) {
+    throw new Error('Invalid color options format.');
+  }
+
+  if (colorOptions.length === 0) {
+    throw new Error('At least one color option is required.');
+  }
+
+  const uploadedImages = [];
+  const uploadedImageIds = [];
+  if (files && files.length > 0) {
+    for (const file of files) {
+      const imagePath = file.path && file.path.startsWith('http') 
+        ? file.path 
+        : `/uploads/product-images/${file.filename}`;
+      uploadedImages.push(imagePath);
+      uploadedImageIds.push(file.filename || file.public_id || '');
+    }
+  }
+
+  const processedColorOptions = [];
+  for (const co of colorOptions) {
+    if (!co.name || !co.code) {
+      throw new Error('Color name and code are required for each color option.');
+    }
+    const optionImages = [];
+    const optionImageIds = [];
+
+    if (co.imageIndices) {
+      for (const idx of co.imageIndices) {
+        if (uploadedImages[idx]) {
+          optionImages.push(uploadedImages[idx]);
+          optionImageIds.push(uploadedImageIds[idx]);
+        }
+      }
+    }
+
+    if (optionImages.length < 3) {
+      throw new Error(`At least 3 images are required for color: ${co.name}`);
+    }
+
+    processedColorOptions.push({
+      name: co.name.trim(),
+      code: co.code.trim(),
+      images: optionImages,
+      imageIds: optionImageIds
+    });
+  }
+
   // Variants validation
   let variants = [];
   try {
@@ -160,6 +216,12 @@ export const createProduct = async (data, files) => {
     if (isNaN(p) || p < 0) throw new Error('Variant price must be a valid non-negative number.');
     if (isNaN(s) || s < 0 || !Number.isInteger(s)) throw new Error('Variant stock must be a valid non-negative integer.');
     
+    // Ensure variant's color exists in colorOptions
+    const colorExists = processedColorOptions.some(co => co.name.toLowerCase() === v.color.trim().toLowerCase());
+    if (!colorExists) {
+      throw new Error(`Variant color "${v.color}" must be defined in the Color Options list.`);
+    }
+
     const combo = `${v.size.trim().toLowerCase()}-${v.color.trim().toLowerCase()}`;
     if (comboSet.has(combo)) {
       throw new Error(`Duplicate variant combination: ${v.size} + ${v.color}`);
@@ -167,22 +229,6 @@ export const createProduct = async (data, files) => {
     comboSet.add(combo);
     v.price = p;
     v.stock = s;
-  }
-
-  // Image validation
-  if (!files || files.length < 3) {
-    throw new Error('At least 3 product images are required.');
-  }
-
-  const images = [];
-  const imageIds = [];
-  
-  for (const file of files) {
-    const imagePath = file.path && file.path.startsWith('http') 
-      ? file.path 
-      : `/uploads/product-images/${file.filename}`;
-    images.push(imagePath);
-    imageIds.push(file.filename || file.public_id || '');
   }
 
   // Duplicate Check (Case-Insensitive)
@@ -198,6 +244,10 @@ export const createProduct = async (data, files) => {
     ? 'Inactive' 
     : 'Active';
 
+  // Fallback root images is the first color option's images
+  const images = processedColorOptions[0].images;
+  const imageIds = processedColorOptions[0].imageIds;
+
   const newProduct = new Product({
     name: trimmedName,
     description: trimmedDesc,
@@ -205,6 +255,7 @@ export const createProduct = async (data, files) => {
     subcategory: data.subcategory,
     images,
     imageIds,
+    colorOptions: processedColorOptions,
     variants,
     status
   });
@@ -238,6 +289,74 @@ export const updateProduct = async (id, data, files) => {
     throw new Error('Subcategory does not belong to the selected category.');
   }
 
+  // Color Options validation & mapping
+  let colorOptions = [];
+  try {
+    if (data.colorOptions) {
+      colorOptions = typeof data.colorOptions === 'string' ? JSON.parse(data.colorOptions) : data.colorOptions;
+    }
+  } catch (err) {
+    throw new Error('Invalid color options format.');
+  }
+
+  if (colorOptions.length === 0) {
+    throw new Error('At least one color option is required.');
+  }
+
+  const uploadedImages = [];
+  const uploadedImageIds = [];
+  if (files && files.length > 0) {
+    for (const file of files) {
+      const imagePath = file.path && file.path.startsWith('http') 
+        ? file.path 
+        : `/uploads/product-images/${file.filename}`;
+      uploadedImages.push(imagePath);
+      uploadedImageIds.push(file.filename || file.public_id || '');
+    }
+  }
+
+  const processedColorOptions = [];
+  for (const co of colorOptions) {
+    if (!co.name || !co.code) {
+      throw new Error('Color name and code are required for each color option.');
+    }
+    const optionImages = [];
+    const optionImageIds = [];
+
+    // Add existing images
+    if (co.existingImages) {
+      const extImgs = Array.isArray(co.existingImages) ? co.existingImages : [co.existingImages];
+      const extIds = Array.isArray(co.existingImageIds) ? co.existingImageIds : [co.existingImageIds];
+      extImgs.forEach((img, i) => {
+        if (img && img.trim() !== '') {
+          optionImages.push(img);
+          optionImageIds.push(extIds[i] || '');
+        }
+      });
+    }
+
+    // Add new uploaded images
+    if (co.newImageIndices) {
+      for (const idx of co.newImageIndices) {
+        if (uploadedImages[idx]) {
+          optionImages.push(uploadedImages[idx]);
+          optionImageIds.push(uploadedImageIds[idx]);
+        }
+      }
+    }
+
+    if (optionImages.length < 3) {
+      throw new Error(`At least 3 images are required for color: ${co.name}`);
+    }
+
+    processedColorOptions.push({
+      name: co.name.trim(),
+      code: co.code.trim(),
+      images: optionImages,
+      imageIds: optionImageIds
+    });
+  }
+
   // Variants validation
   let variants = [];
   try {
@@ -258,6 +377,12 @@ export const updateProduct = async (id, data, files) => {
     if (isNaN(p) || p < 0) throw new Error('Variant price must be a valid non-negative number.');
     if (isNaN(s) || s < 0 || !Number.isInteger(s)) throw new Error('Variant stock must be a valid non-negative integer.');
     
+    // Ensure variant's color exists in colorOptions
+    const colorExists = processedColorOptions.some(co => co.name.toLowerCase() === v.color.trim().toLowerCase());
+    if (!colorExists) {
+      throw new Error(`Variant color "${v.color}" must be defined in the Color Options list.`);
+    }
+
     const combo = `${v.size.trim().toLowerCase()}-${v.color.trim().toLowerCase()}`;
     if (comboSet.has(combo)) {
       throw new Error(`Duplicate variant combination: ${v.size} + ${v.color}`);
@@ -265,37 +390,6 @@ export const updateProduct = async (id, data, files) => {
     comboSet.add(combo);
     v.price = p;
     v.stock = s;
-  }
-
-  // Existing images handling
-  let existingImages = data.existingImages || [];
-  let existingImageIds = data.existingImageIds || [];
-  
-  if (!Array.isArray(existingImages)) existingImages = [existingImages];
-  if (!Array.isArray(existingImageIds)) existingImageIds = [existingImageIds];
-  
-  // Filter out any empty strings
-  existingImages = existingImages.filter(img => img.trim() !== '');
-  existingImageIds = existingImageIds.filter(id => id.trim() !== '');
-
-  // New images handling
-  const newImages = [];
-  const newImageIds = [];
-  if (files && files.length > 0) {
-    for (const file of files) {
-      const imagePath = file.path && file.path.startsWith('http') 
-        ? file.path 
-        : `/uploads/product-images/${file.filename}`;
-      newImages.push(imagePath);
-      newImageIds.push(file.filename || file.public_id || '');
-    }
-  }
-
-  const totalImages = [...existingImages, ...newImages];
-  const totalImageIds = [...existingImageIds, ...newImageIds];
-
-  if (totalImages.length < 3) {
-    throw new Error('At least 3 product images are required.');
   }
 
   const duplicate = await Product.findOne({
@@ -307,12 +401,17 @@ export const updateProduct = async (id, data, files) => {
     throw new Error('Product name already exists.');
   }
 
+  // Sync root-level images with the first color option's images
+  const images = processedColorOptions[0].images;
+  const imageIds = processedColorOptions[0].imageIds;
+
   product.name = trimmedName;
   product.description = trimmedDesc;
   product.category = data.category;
   product.subcategory = data.subcategory;
-  product.images = totalImages;
-  product.imageIds = totalImageIds;
+  product.images = images;
+  product.imageIds = imageIds;
+  product.colorOptions = processedColorOptions;
   product.variants = variants;
   product.status = (data.status === 'Inactive' || data.status === 'off' || data.status === 'false') ? 'Inactive' : 'Active';
 

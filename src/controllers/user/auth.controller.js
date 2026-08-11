@@ -7,10 +7,27 @@ import {
 } from '../../services/user/auth.service.js';
 import { getRemainingSeconds, resendOtp, sendOtp, verifyOtp } from '../../services/general/otp.service.js';
 
-export const getHomePage = (req, res) => {
-    res.render("user/auth/home", {
-        title: "Home | Everloom"
-    });
+import { getActiveCategories, getListedProducts } from '../../services/user/shop.service.js';
+
+export const getHomePage = async (req, res) => {
+    try {
+        const categories = await getActiveCategories();
+        const result = await getListedProducts({ sort: 'newest' }, 1, 4);
+        const latestProducts = result.products;
+        
+        res.render("user/auth/home", {
+            title: "Home | Everloom",
+            categories,
+            latestProducts
+        });
+    } catch (error) {
+        console.error("Error loading home page:", error);
+        res.render("user/auth/home", {
+            title: "Home | Everloom",
+            categories: [],
+            latestProducts: []
+        });
+    }
 };
 
 export const logoutUser = (req, res) => {

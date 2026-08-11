@@ -24,10 +24,10 @@
       </div>
 
       <div class="hidden sm:flex space-x-8 text-xs font-medium uppercase tracking-widest text-brand-gray-600">
-        <a href="/" class="text-brand-black border-b border-brand-black pb-1">Home</a>
-        <a href="/shop" class="hover:text-brand-black transition-colors">Shop</a>
-        <a href="/collections" class="hover:text-brand-black transition-colors">Collections</a>
-        <a href="/support" class="hover:text-brand-black transition-colors">Support</a>
+        <a href="/" class="<%= (typeof title !== 'undefined' && title.includes('Home')) ? 'text-brand-black border-b border-brand-black pb-1' : 'hover:text-brand-black transition-colors' %>">Home</a>
+        <a href="/shop" class="<%= (typeof title !== 'undefined' && title.includes('Shop')) ? 'text-brand-black border-b border-brand-black pb-1' : 'hover:text-brand-black transition-colors' %>">Shop</a>
+        <a href="/collections" class="<%= (typeof title !== 'undefined' && title.includes('Collection')) ? 'text-brand-black border-b border-brand-black pb-1' : 'hover:text-brand-black transition-colors' %>">Collections</a>
+        <a href="/support" class="<%= (typeof title !== 'undefined' && title.includes('Support')) ? 'text-brand-black border-b border-brand-black pb-1' : 'hover:text-brand-black transition-colors' %>">Support</a>
       </div>
 
       <div class="flex items-center gap-4 sm:gap-5 text-brand-black">
@@ -41,7 +41,7 @@
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 sm:w-5.5 sm:h-5.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z" />
           </svg>
-          <span class="absolute -top-1.5 -right-1.5 bg-brand-black text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-sans font-bold">0</span>
+          <span id="nav-cart-count" class="absolute -top-1.5 -right-1.5 bg-brand-black text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-sans font-bold <%= (typeof cartCount !== 'undefined' && cartCount > 0) ? '' : 'hidden' %>"><%= typeof cartCount !== 'undefined' ? cartCount : 0 %></span>
         </a>
 
         <%# ─── Account icon with dropdown ─────────────────── %>
@@ -153,10 +153,10 @@
 
   <%# ─── Mobile menu ─────────────────────────────────────── %>
   <div id="mobileMenu" class="hidden sm:hidden border-t border-brand-gray-100 bg-white px-4 pt-2 pb-4 space-y-3 text-xs font-semibold uppercase tracking-widest text-brand-gray-600">
-    <a href="/" class="block text-brand-black py-1">Home</a>
-    <a href="/shop" class="block py-1">Shop</a>
-    <a href="/collections" class="block py-1">Collections</a>
-    <a href="/support" class="block py-1">Support</a>
+    <a href="/" class="block py-1 <%= (typeof title !== 'undefined' && title.includes('Home')) ? 'text-brand-black' : '' %>">Home</a>
+    <a href="/shop" class="block py-1 <%= (typeof title !== 'undefined' && title.includes('Shop')) ? 'text-brand-black' : '' %>">Shop</a>
+    <a href="/collections" class="block py-1 <%= (typeof title !== 'undefined' && title.includes('Collection')) ? 'text-brand-black' : '' %>">Collections</a>
+    <a href="/support" class="block py-1 <%= (typeof title !== 'undefined' && title.includes('Support')) ? 'text-brand-black' : '' %>">Support</a>
 
     <% if (typeof currentUser !== 'undefined' && currentUser) { %>
       <%# Mobile — logged in links %>

@@ -36,6 +36,12 @@ const productSchema = new mongoose.Schema({
     default: 'Active',
     index: true,
   },
+  colorOptions: [{
+    name: { type: String, required: true },
+    code: { type: String, required: true },
+    images: { type: [String], required: true },
+    imageIds: { type: [String] }
+  }],
   variants: [{
     size: { type: String, required: true },
     color: { type: String, required: true },

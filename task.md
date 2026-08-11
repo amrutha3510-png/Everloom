@@ -1,0 +1,5 @@
+- `[x]` 1. Update productModel.js schema
+- `[x]` 2. Update product.service.js logic
+- `[x]` 3. Update add.ejs admin view
+- `[x]` 4. Update edit.ejs admin view
+- `[x]` 5. Update product-details.ejs frontend view
