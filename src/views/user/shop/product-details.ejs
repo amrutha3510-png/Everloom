@@ -177,50 +177,12 @@
                   </div>
                 </div>
 
-                <!-- Size Chart -->
-                <details class="group mb-4 cursor-pointer border border-brand-gray-200 rounded-md">
-                  <summary class="flex justify-between items-center font-sans font-bold text-sm uppercase tracking-wider text-brand-black list-none bg-brand-gray-50 p-3">
-                    Size Chart
-                    <span class="transition group-open:rotate-180">
-                      <svg fill="none" height="20" shape-rendering="geometricPrecision" stroke="currentColor"
-                        stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24" width="20">
-                        <path d="M6 9l6 6 6-6"></path>
-                      </svg>
-                    </span>
-                  </summary>
-                  <div class="text-brand-gray-600 text-sm font-sans p-3 bg-white">
-                    <table class="w-full text-left border-collapse">
-                      <thead>
-                        <tr class="border-b border-brand-gray-100">
-                          <th class="py-2 font-semibold">Size</th>
-                          <th class="py-2 font-semibold">Chest (in)</th>
-                          <th class="py-2 font-semibold">Length (in)</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr class="border-b border-brand-gray-50">
-                          <td class="py-1.5">S</td>
-                          <td class="py-1.5">38</td>
-                          <td class="py-1.5">27</td>
-                        </tr>
-                        <tr class="border-b border-brand-gray-50">
-                          <td class="py-1.5">M</td>
-                          <td class="py-1.5">40</td>
-                          <td class="py-1.5">28</td>
-                        </tr>
-                        <tr class="border-b border-brand-gray-50">
-                          <td class="py-1.5">L</td>
-                          <td class="py-1.5">42</td>
-                          <td class="py-1.5">29</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </details>
-
-                <div>
-                  <div class="flex justify-between items-center mb-3">
+                <div class="mb-6">
+                  <div class="flex justify-between items-baseline mb-3 border-b border-brand-gray-100 pb-2">
                     <h3 class="font-sans text-sm font-bold text-brand-black uppercase tracking-wider">Size</h3>
+                    <button type="button" onclick="openSizeChart()" class="text-xs text-brand-gray-500 hover:text-brand-black underline font-sans focus:outline-none">
+                      Size Chart
+                    </button>
                   </div>
                   <div class="flex flex-wrap gap-3" id="size-container">
                     <% sizes.forEach(size=> { %>
@@ -650,6 +612,92 @@
         addBtn.innerHTML = 'Add to Cart';
       }
     }
+  </script>
+
+  <!-- Size Chart Modal -->
+  <div id="size-chart-modal" class="fixed inset-0 z-50 hidden overflow-y-auto animate-fade-in" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+      <div class="fixed inset-0 bg-brand-black/40 backdrop-blur-sm transition-opacity" onclick="closeSizeChart()" aria-hidden="true"></div>
+
+      <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+      <div class="inline-block align-middle bg-white border border-brand-gray-200 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full p-6 sm:p-8">
+        <div class="flex justify-between items-center pb-4 border-b border-brand-gray-100">
+          <h3 class="font-serif text-xl font-bold text-brand-black" id="modal-title">Size Chart</h3>
+          <button type="button" onclick="closeSizeChart()" class="text-brand-gray-400 hover:text-brand-black transition-colors focus:outline-none">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="mt-6">
+          <table class="w-full text-left border-collapse font-sans text-sm">
+            <thead>
+              <tr class="border-b border-brand-gray-200 text-brand-black font-semibold">
+                <th class="py-3 pr-4">Size</th>
+                <th class="py-3 px-4">Chest (in)</th>
+                <th class="py-3 pl-4">Length (in)</th>
+              </tr>
+            </thead>
+            <tbody class="text-brand-gray-600">
+              <tr class="border-b border-brand-gray-100 hover:bg-brand-gray-50/50 transition-colors">
+                <td class="py-3 pr-4 font-medium text-brand-black">XS</td>
+                <td class="py-3 px-4">36</td>
+                <td class="py-3 pl-4">26</td>
+              </tr>
+              <tr class="border-b border-brand-gray-100 hover:bg-brand-gray-50/50 transition-colors">
+                <td class="py-3 pr-4 font-medium text-brand-black">S</td>
+                <td class="py-3 px-4">38</td>
+                <td class="py-3 pl-4">27</td>
+              </tr>
+              <tr class="border-b border-brand-gray-100 hover:bg-brand-gray-50/50 transition-colors">
+                <td class="py-3 pr-4 font-medium text-brand-black">M</td>
+                <td class="py-3 px-4">40</td>
+                <td class="py-3 pl-4">28</td>
+              </tr>
+              <tr class="border-b border-brand-gray-100 hover:bg-brand-gray-50/50 transition-colors">
+                <td class="py-3 pr-4 font-medium text-brand-black">L</td>
+                <td class="py-3 px-4">42</td>
+                <td class="py-3 pl-4">29</td>
+              </tr>
+              <tr class="border-b border-brand-gray-100 hover:bg-brand-gray-50/50 transition-colors">
+                <td class="py-3 pr-4 font-medium text-brand-black">XL</td>
+                <td class="py-3 px-4">44</td>
+                <td class="py-3 pl-4">30</td>
+              </tr>
+              <tr class="border-b border-brand-gray-100 hover:bg-brand-gray-50/50 transition-colors">
+                <td class="py-3 pr-4 font-medium text-brand-black">XXL</td>
+                <td class="py-3 px-4">46</td>
+                <td class="py-3 pl-4">31</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="mt-6 pt-4 border-t border-brand-gray-100 text-xs text-brand-gray-400 font-sans">
+          * Measurements are in inches and refer to garment dimensions. Please allow +/- 0.5" tolerance.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    window.openSizeChart = function() {
+      const modal = document.getElementById('size-chart-modal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      }
+    };
+
+    window.closeSizeChart = function() {
+      const modal = document.getElementById('size-chart-modal');
+      if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+      }
+    };
   </script>
 
   <%- include('../partials/footer') %>
