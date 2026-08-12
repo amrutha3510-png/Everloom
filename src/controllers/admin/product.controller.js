@@ -164,7 +164,7 @@ export const updateProductHandler = async (req, res) => {
     if (msg.includes('name')) field = 'name';
     else if (msg.includes('description')) field = 'description';
     else if (msg.includes('category')) field = 'category';
-    else if (msg.includes('variant')) field = 'variants';
+    else if (msg.includes('variant') || msg.includes('price')) field = 'variants';
 
     req.session.formErrors = { [field]: error.message || 'Failed to update product.' };
     req.session.oldData = req.body;

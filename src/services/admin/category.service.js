@@ -111,9 +111,7 @@ export const createCategory = async (data, file) => {
   }
 
   // Active Visibility Status
-  const status = (data.status === 'Inactive' || data.status === 'off' || data.status === 'false') 
-    ? 'Inactive' 
-    : 'Active';
+  const status = (data.status === 'Active') ? 'Active' : 'Inactive';
 
   const newCategory = new Category({
     name: trimmedName,
@@ -171,9 +169,7 @@ export const updateCategory = async (id, data, file) => {
   category.description = trimmedDesc;
 
   // Active Visibility Status
-  category.status = (data.status === 'Inactive' || data.status === 'off' || data.status === 'false') 
-    ? 'Inactive' 
-    : 'Active';
+  category.status = (data.status === 'Active') ? 'Active' : 'Inactive';
 
   // Replace Banner Image if new file is uploaded
   if (file) {

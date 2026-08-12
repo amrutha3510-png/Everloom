@@ -159,7 +159,7 @@ export const createSubcategory = async (data, file) => {
     ? file.path 
     : `/uploads/subcategory-images/${file.filename}`;
 
-  const status = (data.status === 'Inactive' || data.status === 'off' || data.status === 'false') ? 'Inactive' : 'Active';
+  const status = (data.status === 'Active') ? 'Active' : 'Inactive';
 
   const newSubcategory = new Subcategory({
     name: trimmedName,
@@ -208,7 +208,7 @@ export const updateSubcategory = async (id, data, file) => {
   subcategory.name = trimmedName;
   subcategory.description = trimmedDesc;
   subcategory.category = data.category;
-  subcategory.status = (data.status === 'Inactive' || data.status === 'off' || data.status === 'false') ? 'Inactive' : 'Active';
+  subcategory.status = (data.status === 'Active') ? 'Active' : 'Inactive';
 
   if (file) {
     const imagePath = file.path && file.path.startsWith('http') 

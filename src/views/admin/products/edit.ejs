@@ -154,17 +154,18 @@
         <div class="flex items-center gap-3">
           <label for="status-toggle" class="relative inline-flex items-center cursor-pointer">
             <% const currentStatus = typeof oldData !== 'undefined' && oldData.status ? oldData.status : product.status; %>
+            <% const isChecked = currentStatus !== 'Inactive'; %>
             <input 
               type="checkbox" 
               id="status-toggle" 
               name="status" 
               value="Active" 
               class="sr-only peer" 
-              <%= currentStatus === 'Inactive' ? '' : 'checked' %>
+              <%= isChecked ? 'checked' : '' %>
             >
             <div class="w-11 h-6 bg-brand-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-black"></div>
           </label>
-          <span id="toggle-label" class="font-sans text-sm font-semibold text-brand-black">Active</span>
+          <span id="toggle-label" class="font-sans text-sm font-semibold text-brand-black"><%= isChecked ? 'Active' : 'Inactive' %></span>
         </div>
       </div>
 
@@ -333,15 +334,22 @@
           <label class="block text-xs font-semibold uppercase text-brand-gray-500 mb-1">Color Hex (Color Picker)</label>
           <div class="flex items-center gap-2">
             <input type="color" class="co-color h-10 w-16 border border-brand-gray-200 rounded cursor-pointer" value="${co.code}">
-            <input type="text" class="co-color-hex w-full px-3 py-2 border border-brand-gray-200 rounded text-sm focus:border-brand-black focus:ring-1 focus:ring-brand-black transition-colors uppercase" value="${co.code}" placeholder="&quot;${co.code}&quot;" maxlength="7">
+            <input type="text" class="co-color-hex w-full px-3 py-2 border border-brand-gray-200 rounded text-sm focus:border-brand-black focus:ring-1 focus:ring-brand-black transition-colors uppercase" value="${co.code}" placeholder="${co.code}" maxlength="7">
+            <button type="button" class="co-eyedropper p-2.5 bg-brand-gray-50 border border-brand-gray-200 text-brand-gray-600 rounded hover:bg-brand-gray-100 hover:text-brand-black transition-colors flex items-center justify-center" title="Pick color from screen">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m2 22 1-1a3 3 0 0 0 0-4.24l-1.8-1.8a2 2 0 0 1 0-2.83l9.9-9.9a3 3 0 0 1 4.24 0L19.9 6.9a3 3 0 0 1 0 4.24l-9.9 9.9a2 2 0 0 1-2.83 0L5.37 19.24a3 3 0 0 0-4.24 0L0 20.37"/>
+                <path d="m18 10 3 3"/>
+                <path d="m14 6-6 6"/>
+              </svg>
+            </button>
           </div>
         </div>
       </div>
 
       <div>
         <label class="block text-xs font-semibold uppercase text-brand-gray-500 mb-2">Color Images (Min 3) <span class="text-red-500">*</span></label>
-        <div id="previews-color-&quot;${co.id}&quot;" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-3"></div>
-        <div onclick="triggerUploadForColor(&quot;${co.id}&quot;)" class="flex flex-col items-center justify-center p-4 border-2 border-dashed border-brand-gray-200 rounded-lg hover:border-brand-black transition-colors cursor-pointer bg-brand-gray-50/50">
+        <div id="previews-color-${co.id}" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-3"></div>
+        <div onclick="triggerUploadForColor(${co.id})" class="flex flex-col items-center justify-center p-4 border-2 border-dashed border-brand-gray-200 rounded-lg hover:border-brand-black transition-colors cursor-pointer bg-brand-gray-50/50">
           <svg class="w-6 h-6 text-brand-gray-400 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
@@ -356,6 +364,25 @@
     const nameInp = cardEl.querySelector('.co-name');
     const colorPicker = cardEl.querySelector('.co-color');
     const hexInp = cardEl.querySelector('.co-color-hex');
+    const eyedropperBtn = cardEl.querySelector('.co-eyedropper');
+
+    if (!('EyeDropper' in window)) {
+      eyedropperBtn.style.display = 'none';
+    } else {
+      eyedropperBtn.addEventListener('click', async () => {
+        try {
+          const eyeDropper = new EyeDropper();
+          const result = await eyeDropper.open();
+          const hex = result.sRGBHex.toUpperCase();
+          hexInp.value = hex;
+          colorPicker.value = hex;
+          const item = colorOptionsList.find(c => c.id === co.id);
+          if (item) item.code = hex;
+        } catch (e) {
+          console.log('EyeDropper closed or failed:', e);
+        }
+      });
+    }
 
     nameInp.addEventListener('input', (e) => {
       const item = colorOptionsList.find(c => c.id === co.id);
@@ -404,7 +431,7 @@
     imageInput.click();
   };
 
-  imageInput.addEventListener('change', function(e) {
+  imageInput.addEventListener('change', async function(e) {
     const files = Array.from(e.target.files);
     imageInput.value = ''; // Reset
     
@@ -412,33 +439,47 @@
 
     const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
     
-    files.forEach(file => {
-      if (!validTypes.includes(file.type)) {
-        alert(`${file.name} is not a valid format.`);
-        return;
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        alert(`${file.name} exceeds 5 MB limit.`);
-        return;
-      }
+    const readers = files.map(file => {
+      return new Promise((resolve) => {
+        if (!validTypes.includes(file.type)) {
+          alert(`${file.name} is not a valid format.`);
+          return resolve();
+        }
+        if (file.size > 5 * 1024 * 1024) {
+          alert(`${file.name} exceeds 5 MB limit.`);
+          return resolve();
+        }
 
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        const id = generateId();
-        productImages.push({
-          id: id,
-          colorOptId: activeColorOptId,
-          originalFile: file,
-          croppedBlob: null,
-          url: evt.target.result,
-          isExisting: false
-        });
-        renderPreviewsForColor(activeColorOptId);
-        openCropper(id);
-      };
-      reader.readAsDataURL(file);
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          const id = generateId();
+          productImages.push({
+            id: id,
+            colorOptId: activeColorOptId,
+            originalFile: file,
+            croppedBlob: null,
+            url: evt.target.result,
+            isExisting: false
+          });
+          resolve();
+        };
+        reader.readAsDataURL(file);
+      });
     });
+
+    await Promise.all(readers);
+    renderPreviewsForColor(activeColorOptId);
+    checkCropQueue();
   });
+
+  function checkCropQueue() {
+    const nextToCrop = productImages.find(img => !img.isExisting && !img.croppedBlob);
+    if (nextToCrop) {
+      openCropper(nextToCrop.id);
+    } else {
+      closeCropper();
+    }
+  }
 
   function renderPreviewsForColor(colorOptId) {
     const container = document.getElementById(`previews-color-${colorOptId}`);
@@ -533,7 +574,14 @@
         imgData.croppedBlob = blob;
         renderPreviewsForColor(imgData.colorOptId);
       }
-      closeCropper();
+      
+      if (cropper) {
+        cropper.destroy();
+        cropper = null;
+      }
+      currentCropId = null;
+
+      checkCropQueue();
     }, 'image/jpeg', 0.9);
   });
 
@@ -627,7 +675,7 @@
           <option value="">Select Color</option>
         </select>
       </td>
-      <td class="pr-3 pb-2"><input type="number" step="0.01" min="0" class="v-price w-full px-3 py-2 bg-white border border-brand-gray-200 rounded text-sm focus:border-brand-black focus:ring-1 focus:ring-brand-black transition-colors" placeholder="0"></td>
+      <td class="pr-3 pb-2"><input type="number" step="1" min="1" class="v-price w-full px-3 py-2 bg-white border border-brand-gray-200 rounded text-sm focus:border-brand-black focus:ring-1 focus:ring-brand-black transition-colors" placeholder="0"></td>
       <td class="pr-3 pb-2"><input type="number" step="1" min="0" class="v-stock w-full px-3 py-2 bg-white border border-brand-gray-200 rounded text-sm focus:border-brand-black focus:ring-1 focus:ring-brand-black transition-colors" placeholder="0"></td>
       <td class="pb-2 text-right"><button type="button" class="text-red-500 hover:text-red-700 p-1.5" onclick="removeVariant(${id})"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button></td>
     `;
@@ -660,7 +708,7 @@
         </div>
         <div>
           <label class="block text-[10px] font-semibold uppercase text-brand-gray-500 mb-1">Price</label>
-          <input type="number" class="mv-price w-full px-2 py-1.5 border border-brand-gray-200 rounded text-xs" placeholder="0">
+          <input type="number" step="1" min="1" class="mv-price w-full px-2 py-1.5 border border-brand-gray-200 rounded text-xs" placeholder="0">
         </div>
         <div>
           <label class="block text-[10px] font-semibold uppercase text-brand-gray-500 mb-1">Stock</label>
@@ -879,16 +927,17 @@
     variantRows.forEach((row, i) => {
       const size = row.querySelector('.v-size').value.trim();
       const color = row.querySelector('.v-color').value.trim();
-      const vprice = parseFloat(row.querySelector('.v-price').value);
+      const priceInputVal = row.querySelector('.v-price').value;
+      const vprice = Number(priceInputVal);
       const vstock = parseFloat(row.querySelector('.v-stock').value);
 
-      if (!size || !color || isNaN(vprice) || isNaN(vstock)) {
+      if (!size || !color || priceInputVal.trim() === '' || isNaN(vprice) || isNaN(vstock)) {
         setInvalidVariant('All fields in every variant are required.');
         variantsValid = false;
         return;
       }
-      if (vprice < 0) {
-        setInvalidVariant('Variant price cannot be negative.');
+      if (vprice <= 0 || !Number.isInteger(vprice)) {
+        setInvalidVariant('Price must be a positive whole number.');
         variantsValid = false;
         return;
       }

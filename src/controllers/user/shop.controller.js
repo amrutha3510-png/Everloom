@@ -79,7 +79,7 @@ export const getProductDetails = async (req, res) => {
     const product = await shopService.getProductById(productId);
 
     if (!product) {
-      req.session.toast = { type: 'error', message: 'Product is unavailable or does not exist.' };
+      req.session.toast = { type: 'error', message: 'Product is currently unavailable.' };
       return res.redirect('/shop');
     }
 

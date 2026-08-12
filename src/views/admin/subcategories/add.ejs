@@ -107,6 +107,7 @@
       <label class="block font-sans text-xs font-semibold uppercase tracking-wider text-brand-black mb-2">
         Active Visibility
       </label>
+      <% const isChecked = !(typeof oldData !== 'undefined' && oldData.status === 'Inactive'); %>
       <div class="flex items-center gap-3">
         <label for="status-toggle" class="relative inline-flex items-center cursor-pointer">
           <input 
@@ -115,11 +116,11 @@
             name="status" 
             value="Active" 
             class="sr-only peer" 
-            <%= (typeof oldData !== 'undefined' && oldData.status === 'Inactive') ? '' : 'checked' %>
+            <%= isChecked ? 'checked' : '' %>
           >
           <div class="w-11 h-6 bg-brand-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-black"></div>
         </label>
-        <span id="toggle-label" class="font-sans text-sm font-semibold text-brand-black">Active</span>
+        <span id="toggle-label" class="font-sans text-sm font-semibold text-brand-black"><%= isChecked ? 'Active' : 'Inactive' %></span>
       </div>
     </div>
 

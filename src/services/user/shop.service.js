@@ -1,5 +1,6 @@
 import Product from '../../models/productModel.js';
 import Category from '../../models/categoryModel.js';
+import Subcategory from '../../models/subcategoryModel.js';
 import mongoose from 'mongoose';
 
 export const getActiveCategories = async () => {
@@ -8,21 +9,42 @@ export const getActiveCategories = async () => {
 
 export const getListedProducts = async (query = {}, page = 1, limit = 12) => {
   const skip = (page - 1) * limit;
-  const filter = { isDeleted: false, status: 'Active' };
+
+  const activeCategories = await Category.find({ isDeleted: false, status: 'Active' }).select('_id');
+  const activeCategoryIds = activeCategories.map(c => c._id);
+  
+  const activeSubcategories = await Subcategory.find({ isDeleted: false, status: 'Active' }).select('_id');
+  const activeSubcategoryIds = activeSubcategories.map(s => s._id);
+
+  const filter = { 
+    isDeleted: false, 
+    status: 'Active',
+    category: { $in: activeCategoryIds },
+    subcategory: { $in: activeSubcategoryIds }
+  };
 
   // Category Filter
   if (query.category && query.category !== 'All Categories') {
     if (mongoose.Types.ObjectId.isValid(query.category)) {
-      filter.category = query.category;
+      if (activeCategoryIds.some(id => id.toString() === query.category.toString())) {
+        filter.category = query.category;
+      } else {
+        filter.category = new mongoose.Types.ObjectId();
+      }
     }
   }
 
   // Subcategory Filter (Multiple)
   if (query.subcategory) {
     const subcats = Array.isArray(query.subcategory) ? query.subcategory : [query.subcategory];
-    const validSubcats = subcats.filter(id => mongoose.Types.ObjectId.isValid(id));
+    const validSubcats = subcats.filter(id => 
+      mongoose.Types.ObjectId.isValid(id) && 
+      activeSubcategoryIds.some(activeId => activeId.toString() === id.toString())
+    );
     if (validSubcats.length > 0) {
       filter.subcategory = { $in: validSubcats };
+    } else {
+      filter.subcategory = new mongoose.Types.ObjectId();
     }
   }
 
@@ -75,11 +97,14 @@ export const getListedProducts = async (query = {}, page = 1, limit = 12) => {
     .limit(limit)
     .lean();
 
+  products.forEach(p => {
+    p.images = (p.colorOptions && p.colorOptions[0] && p.colorOptions[0].images) || [];
+    p.imageIds = (p.colorOptions && p.colorOptions[0] && p.colorOptions[0].imageIds) || [];
+  });
+
   const totalProducts = await Product.countDocuments(filter);
 
-  // Exclude deleted categories from populated data if any crept in, 
-  // though the category filter in UI will only show valid ones.
-  const activeProducts = products.filter(p => p.category && !p.category.isDeleted);
+  const activeProducts = products;
 
   return {
     products: activeProducts,
@@ -92,41 +117,60 @@ export const getListedProducts = async (query = {}, page = 1, limit = 12) => {
 
 export const getProductById = async (id) => {
   const product = await Product.findOne({ _id: id, isDeleted: false, status: 'Active' })
-    .populate('category', 'name isDeleted')
-    .populate('subcategory', 'name isDeleted')
+    .populate('category', 'name isDeleted status')
+    .populate('subcategory', 'name isDeleted status')
     .lean();
 
-  if (!product || !product.category || product.category.isDeleted || !product.subcategory || product.subcategory.isDeleted) {
+  if (!product || 
+      !product.category || product.category.isDeleted || product.category.status !== 'Active' ||
+      !product.subcategory || product.subcategory.isDeleted || product.subcategory.status !== 'Active') {
     return null; // Unavailable
   }
+  product.images = (product.colorOptions && product.colorOptions[0] && product.colorOptions[0].images) || [];
+  product.imageIds = (product.colorOptions && product.colorOptions[0] && product.colorOptions[0].imageIds) || [];
   return product;
 };
 
 export const getRelatedProducts = async (categoryId, subcategoryId, excludeProductId, limit = 4) => {
+  const activeCategories = await Category.find({ isDeleted: false, status: 'Active' }).select('_id');
+  const activeCategoryIds = activeCategories.map(c => c._id.toString());
+  
+  const activeSubcategories = await Subcategory.find({ isDeleted: false, status: 'Active' }).select('_id');
+  const activeSubcategoryIds = activeSubcategories.map(s => s._id.toString());
+
+  if (!activeCategoryIds.includes(categoryId.toString()) || !activeSubcategoryIds.includes(subcategoryId.toString())) {
+    return [];
+  }
+
   const filter = {
     _id: { $ne: excludeProductId },
     isDeleted: false,
     status: 'Active',
+    category: categoryId,
     subcategory: subcategoryId
   };
 
-  let related = await Product.find(filter).populate('category', 'name isDeleted').limit(limit).lean();
+  let related = await Product.find(filter).populate('category', 'name isDeleted status').limit(limit).lean();
   
-  // Exclude ones with deleted category
-  related = related.filter(p => p.category && !p.category.isDeleted);
+  related = related.filter(p => p.category && !p.category.isDeleted && p.category.status !== 'Inactive');
 
-  // If not enough, fetch from category
   if (related.length < limit) {
     const moreFilter = {
       _id: { $ne: excludeProductId, $nin: related.map(p => p._id) },
       isDeleted: false,
       status: 'Active',
-      category: categoryId
+      category: categoryId,
+      subcategory: { $in: activeSubcategoryIds }
     };
-    let more = await Product.find(moreFilter).populate('category', 'name isDeleted').limit(limit - related.length).lean();
-    more = more.filter(p => p.category && !p.category.isDeleted);
+    let more = await Product.find(moreFilter).populate('category', 'name isDeleted status').limit(limit - related.length).lean();
+    more = more.filter(p => p.category && !p.category.isDeleted && p.category.status !== 'Inactive');
     related = [...related, ...more];
   }
+
+  related.forEach(p => {
+    p.images = (p.colorOptions && p.colorOptions[0] && p.colorOptions[0].images) || [];
+    p.imageIds = (p.colorOptions && p.colorOptions[0] && p.colorOptions[0].imageIds) || [];
+  });
 
   return related;
 };

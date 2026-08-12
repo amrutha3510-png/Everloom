@@ -27,6 +27,10 @@ export const getCart = async (userId) => {
   let cartTotal = 0;
   cart.items = cart.items.map(item => {
     const product = item.product;
+    if (product) {
+      product.images = (product.colorOptions && product.colorOptions[0] && product.colorOptions[0].images) || [];
+      product.imageIds = (product.colorOptions && product.colorOptions[0] && product.colorOptions[0].imageIds) || [];
+    }
     
     // Check if product exists and is available
     if (!product || product.isDeleted || product.status !== 'Active' || product.category?.isDeleted || product.subcategory?.isDeleted) {

@@ -55,6 +55,11 @@ export const getAllProducts = async (query = {}, page = 1, limit = 10) => {
     .limit(limit)
     .lean();
 
+  products.forEach(p => {
+    p.images = (p.colorOptions && p.colorOptions[0] && p.colorOptions[0].images) || [];
+    p.imageIds = (p.colorOptions && p.colorOptions[0] && p.colorOptions[0].imageIds) || [];
+  });
+
   const totalProducts = await Product.countDocuments(filter);
 
   // Stats
@@ -98,6 +103,11 @@ export const getDeletedProducts = async (query = {}, page = 1, limit = 10) => {
     .limit(limit)
     .lean();
 
+  products.forEach(p => {
+    p.images = (p.colorOptions && p.colorOptions[0] && p.colorOptions[0].images) || [];
+    p.imageIds = (p.colorOptions && p.colorOptions[0] && p.colorOptions[0].imageIds) || [];
+  });
+
   const totalProducts = await Product.countDocuments(filter);
 
   return {
@@ -112,6 +122,8 @@ export const getDeletedProducts = async (query = {}, page = 1, limit = 10) => {
 export const getProductById = async (id) => {
   const product = await Product.findOne({ _id: id }).populate('category').populate('subcategory').lean();
   if (!product) throw new Error('Product not found.');
+  product.images = (product.colorOptions && product.colorOptions[0] && product.colorOptions[0].images) || [];
+  product.imageIds = (product.colorOptions && product.colorOptions[0] && product.colorOptions[0].imageIds) || [];
   return product;
 };
 
@@ -213,7 +225,9 @@ export const createProduct = async (data, files) => {
     }
     const p = parseFloat(v.price);
     const s = parseFloat(v.stock);
-    if (isNaN(p) || p < 0) throw new Error('Variant price must be a valid non-negative number.');
+    if (isNaN(p) || p <= 0 || !Number.isInteger(p)) {
+      throw new Error('Price must be a positive whole number.');
+    }
     if (isNaN(s) || s < 0 || !Number.isInteger(s)) throw new Error('Variant stock must be a valid non-negative integer.');
     
     // Ensure variant's color exists in colorOptions
@@ -240,21 +254,13 @@ export const createProduct = async (data, files) => {
     throw new Error('Product name already exists.');
   }
 
-  const status = (data.status === 'Inactive' || data.status === 'off' || data.status === 'false') 
-    ? 'Inactive' 
-    : 'Active';
-
-  // Fallback root images is the first color option's images
-  const images = processedColorOptions[0].images;
-  const imageIds = processedColorOptions[0].imageIds;
+  const status = (data.status === 'Active') ? 'Active' : 'Inactive';
 
   const newProduct = new Product({
     name: trimmedName,
     description: trimmedDesc,
     category: data.category,
     subcategory: data.subcategory,
-    images,
-    imageIds,
     colorOptions: processedColorOptions,
     variants,
     status
@@ -374,7 +380,9 @@ export const updateProduct = async (id, data, files) => {
     }
     const p = parseFloat(v.price);
     const s = parseFloat(v.stock);
-    if (isNaN(p) || p < 0) throw new Error('Variant price must be a valid non-negative number.');
+    if (isNaN(p) || p <= 0 || !Number.isInteger(p)) {
+      throw new Error('Price must be a positive whole number.');
+    }
     if (isNaN(s) || s < 0 || !Number.isInteger(s)) throw new Error('Variant stock must be a valid non-negative integer.');
     
     // Ensure variant's color exists in colorOptions
@@ -401,19 +409,13 @@ export const updateProduct = async (id, data, files) => {
     throw new Error('Product name already exists.');
   }
 
-  // Sync root-level images with the first color option's images
-  const images = processedColorOptions[0].images;
-  const imageIds = processedColorOptions[0].imageIds;
-
   product.name = trimmedName;
   product.description = trimmedDesc;
   product.category = data.category;
   product.subcategory = data.subcategory;
-  product.images = images;
-  product.imageIds = imageIds;
   product.colorOptions = processedColorOptions;
   product.variants = variants;
-  product.status = (data.status === 'Inactive' || data.status === 'off' || data.status === 'false') ? 'Inactive' : 'Active';
+  product.status = (data.status === 'Active') ? 'Active' : 'Inactive';
 
   return await product.save();
 };

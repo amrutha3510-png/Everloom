@@ -21,15 +21,6 @@ const productSchema = new mongoose.Schema({
     ref: 'Subcategory',
     required: true,
   },
-
-  images: {
-    type: [String],
-    required: true,
-    validate: [arrayLimit, 'A product must have at least 3 images']
-  },
-  imageIds: {
-    type: [String]
-  },
   status: {
     type: String,
     enum: ['Active', 'Inactive'],
@@ -53,11 +44,19 @@ const productSchema = new mongoose.Schema({
     default: false,
     index: true,
   }
-}, { timestamps: true });
+}, { 
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
+});
 
-function arrayLimit(val) {
-  return val.length >= 3;
-}
+productSchema.virtual('images').get(function() {
+  return (this.colorOptions && this.colorOptions[0] && this.colorOptions[0].images) || [];
+});
+
+productSchema.virtual('imageIds').get(function() {
+  return (this.colorOptions && this.colorOptions[0] && this.colorOptions[0].imageIds) || [];
+});
 
 const Product = mongoose.model('Product', productSchema);
 export default Product;
