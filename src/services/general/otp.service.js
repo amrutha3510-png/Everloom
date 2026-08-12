@@ -26,13 +26,25 @@ export const generateOtp = () => {
  * @param {Object} params - { email, purpose }
  * @returns {Object} { success, message }
  */
-export const sendOtp = async ({ email, purpose }) => {
+export const sendOtp = async ({ email, purpose, isResend = false }) => {
   // Delete any existing OTP for this email and purpose
   await Otp.deleteMany({ email, purpose });
 
   const otpCode = generateOtp();
 
-  console.log(`\n========================================\n[OTP] Generated OTP: ${otpCode} for ${email} (Purpose: ${purpose})\n========================================\n`);
+  if (purpose === 'register') {
+    console.log(`[OTP] Registration OTP for ${email}: ${otpCode}`);
+  } else if (purpose === 'reset-password') {
+    console.log(`[OTP] Forgot Password OTP for ${email}: ${otpCode}`);
+  } else if (purpose === 'email-change') {
+    if (isResend) {
+      console.log(`[OTP] Email Change Resend OTP for ${email}: ${otpCode}`);
+    } else {
+      console.log(`[OTP] Email Change OTP for ${email}: ${otpCode}`);
+    }
+  } else {
+    console.log(`[OTP] Generated OTP: ${otpCode} for ${email} (Purpose: ${purpose})`);
+  }
 
   // Save to the Otp collection
   await Otp.create({
@@ -120,7 +132,7 @@ export const resendOtp = async (email, purpose) => {
   await Otp.deleteMany({ email, purpose });
 
   // Send new OTP
-  await sendOtp({ email, purpose });
+  await sendOtp({ email, purpose, isResend: true });
 
   // Return the new remaining seconds (120)
   return 120;

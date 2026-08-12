@@ -100,7 +100,7 @@ export const validateUserLogin = async (email, password) => {
 export const requestPasswordReset = async (email) => {
   const user = await User.findOne({ email });
   if (!user) {
-    return { success: false, message: 'No account found with that email.' };
+    return { success: false, message: 'No account found with this email.' };
   }
   if (!user.isVerified) {
     return { success: false, message: 'Account is not verified. Please complete registration first.' };
