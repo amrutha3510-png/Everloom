@@ -19,8 +19,8 @@ export const getProfile = async (userId) => {
 export const updateProfile = async (userId, { fullName, phone, dob }) => {
   const updates = {};
   if (fullName !== undefined) updates.fullName = fullName.trim();
-  if (phone    !== undefined) updates.phone    = phone.trim();
-  if (dob      !== undefined) updates.dob      = dob.trim();
+  if (phone !== undefined) updates.phone = phone.trim();
+  if (dob !== undefined) updates.dob = dob.trim();
 
   const user = await User.findByIdAndUpdate(userId, updates, { returnDocument: 'after' }).lean();
   if (!user) throw new Error('User not found.');
@@ -51,7 +51,7 @@ export const updateProfileImage = async (userId, imageUrl, imagePublicId) => {
     }
   }
 
-  user.profileImage   = imageUrl;
+  user.profileImage = imageUrl;
   user.profileImageId = imagePublicId;
   await user.save();
   return user.toObject();
@@ -81,7 +81,7 @@ export const removeProfileImage = async (userId) => {
     }
   }
 
-  user.profileImage   = undefined;
+  user.profileImage = undefined;
   user.profileImageId = undefined;
   await user.save();
   return user.toObject();
@@ -129,9 +129,9 @@ export const verifyEmailChange = async (userId, otp) => {
     return { success: false, message: 'Invalid or expired OTP. Please request a new code.' };
   }
 
-  const newEmail     = user.pendingEmail;
-  user.email         = newEmail;
-  user.pendingEmail  = undefined;
+  const newEmail = user.pendingEmail;
+  user.email = newEmail;
+  user.pendingEmail = undefined;
   await user.save();
 
   return { success: true, newEmail };
@@ -283,8 +283,8 @@ export const changePassword = async (userId, currentPassword, newPassword) => {
     throw new Error('New password cannot be the same as the current password.');
   }
 
-  const salt     = await bcrypt.genSalt(10);
-  user.password  = await bcrypt.hash(newPassword, salt);
+  const salt = await bcrypt.genSalt(10);
+  user.password = await bcrypt.hash(newPassword, salt);
   await user.save();
 
   return { success: true };

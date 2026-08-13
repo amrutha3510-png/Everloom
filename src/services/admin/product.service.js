@@ -130,11 +130,17 @@ export const getProductById = async (id) => {
 export const createProduct = async (data, files) => {
   const trimmedName = (data.name || '').trim();
   const trimmedDesc = (data.description || '').trim();
-  if (!trimmedName || trimmedName.length < 2 || trimmedName.length > 100) {
-    throw new Error('Product name must be between 2 and 100 characters.');
+  if (!trimmedName || trimmedName.length < 3 || trimmedName.length > 100) {
+    throw new Error('Product name must be between 3 and 100 characters.');
+  }
+  if ((trimmedName.match(/[a-zA-Z]/g) || []).length < 3) {
+    throw new Error('Product name must contain at least 3 alphabetic characters.');
   }
   if (!trimmedDesc || trimmedDesc.length < 10) {
     throw new Error('Description must be at least 10 characters long.');
+  }
+  if ((trimmedDesc.match(/[a-zA-Z]/g) || []).length < 3) {
+    throw new Error('Product description must contain at least 3 alphabetic characters.');
   }
 
   // Category validation
@@ -171,8 +177,8 @@ export const createProduct = async (data, files) => {
   const uploadedImageIds = [];
   if (files && files.length > 0) {
     for (const file of files) {
-      const imagePath = file.path && file.path.startsWith('http') 
-        ? file.path 
+      const imagePath = file.path && file.path.startsWith('http')
+        ? file.path
         : `/uploads/product-images/${file.filename}`;
       uploadedImages.push(imagePath);
       uploadedImageIds.push(file.filename || file.public_id || '');
@@ -229,7 +235,7 @@ export const createProduct = async (data, files) => {
       throw new Error('Price must be a positive whole number.');
     }
     if (isNaN(s) || s < 0 || !Number.isInteger(s)) throw new Error('Variant stock must be a valid non-negative integer.');
-    
+
     // Ensure variant's color exists in colorOptions
     const colorExists = processedColorOptions.some(co => co.name.toLowerCase() === v.color.trim().toLowerCase());
     if (!colorExists) {
@@ -275,11 +281,17 @@ export const updateProduct = async (id, data, files) => {
 
   const trimmedName = (data.name || '').trim();
   const trimmedDesc = (data.description || '').trim();
-  if (!trimmedName || trimmedName.length < 2 || trimmedName.length > 100) {
-    throw new Error('Product name must be between 2 and 100 characters.');
+  if (!trimmedName || trimmedName.length < 3 || trimmedName.length > 100) {
+    throw new Error('Product name must be between 3 and 100 characters.');
+  }
+  if ((trimmedName.match(/[a-zA-Z]/g) || []).length < 3) {
+    throw new Error('Product name must contain at least 3 alphabetic characters.');
   }
   if (!trimmedDesc || trimmedDesc.length < 10) {
     throw new Error('Description must be at least 10 characters long.');
+  }
+  if ((trimmedDesc.match(/[a-zA-Z]/g) || []).length < 3) {
+    throw new Error('Product description must contain at least 3 alphabetic characters.');
   }
 
   const category = await Category.findOne({ _id: data.category, isDeleted: false });
@@ -313,8 +325,8 @@ export const updateProduct = async (id, data, files) => {
   const uploadedImageIds = [];
   if (files && files.length > 0) {
     for (const file of files) {
-      const imagePath = file.path && file.path.startsWith('http') 
-        ? file.path 
+      const imagePath = file.path && file.path.startsWith('http')
+        ? file.path
         : `/uploads/product-images/${file.filename}`;
       uploadedImages.push(imagePath);
       uploadedImageIds.push(file.filename || file.public_id || '');
@@ -384,7 +396,7 @@ export const updateProduct = async (id, data, files) => {
       throw new Error('Price must be a positive whole number.');
     }
     if (isNaN(s) || s < 0 || !Number.isInteger(s)) throw new Error('Variant stock must be a valid non-negative integer.');
-    
+
     // Ensure variant's color exists in colorOptions
     const colorExists = processedColorOptions.some(co => co.name.toLowerCase() === v.color.trim().toLowerCase());
     if (!colorExists) {

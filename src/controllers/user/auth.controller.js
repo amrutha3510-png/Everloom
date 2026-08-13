@@ -1,9 +1,9 @@
-import { 
-    registerUser as registerUserService, 
-    validateUserLogin, 
+import {
+    registerUser as registerUserService,
+    validateUserLogin,
     verifyRegistration,
     requestPasswordReset,
-    resetPassword 
+    resetPassword
 } from '../../services/user/auth.service.js';
 import { getRemainingSeconds, resendOtp, sendOtp, verifyOtp } from '../../services/general/otp.service.js';
 
@@ -14,7 +14,7 @@ export const getHomePage = async (req, res) => {
         const categories = await getActiveCategories();
         const result = await getListedProducts({ sort: 'newest' }, 1, 4);
         const latestProducts = result.products;
-        
+
         res.render("user/auth/home", {
             title: "Home | Everloom",
             categories,
@@ -38,7 +38,7 @@ export const logoutUser = (req, res) => {
             req.session.passport = null;
         }
     }
-    
+
     req.session.toast = { type: 'success', message: 'You have been logged out successfully.' };
 
     // 2. Save the session (retains req.session.admin if admin is logged in)
@@ -60,7 +60,7 @@ export const getLoginPage = (req, res) => {
         if (req.session && req.session.user) {
             return res.redirect('/');
         }
-        
+
         res.render("user/auth/login", {
             title: "Login"
         });
@@ -91,7 +91,7 @@ export const loginUser = async (req, res) => {
         }
         // Use AuthService to validate
         const result = await validateUserLogin(email, password);
-        
+
         if (result.success) {
             // Set session namespace
             if (!req.session) {
@@ -166,7 +166,7 @@ export const registerUser = async (req, res) => {
         }
 
         // Use AuthService to register
-        await registerUserService({ fullName, email, password, referralCode }); 
+        await registerUserService({ fullName, email, password, referralCode });
 
         // Store email temporarily to use in OTP page
         if (req.session) {
@@ -179,10 +179,10 @@ export const registerUser = async (req, res) => {
     } catch (error) {
         console.error("Register Error:", error);
         req.session.toast = { type: 'error', message: error.message || 'An error occurred during registration. Please try again.' };
-        req.session.oldData = { 
-            fullName: req.body.fullName, 
-            email: req.body.email, 
-            referralCode: req.body.referralCode 
+        req.session.oldData = {
+            fullName: req.body.fullName,
+            email: req.body.email,
+            referralCode: req.body.referralCode
         };
         return res.redirect('/register');
     }
@@ -201,7 +201,7 @@ export const getOtpVerifyPage = async (req, res) => {
 export const verifyOtpUser = async (req, res) => {
     try {
         const { email, otp } = req.body;
-        
+
         if (!email || !otp) {
             req.session.toast = { type: 'error', message: 'Email and OTP are required.' };
             req.session.tempEmail = email || (req.session && req.session.tempEmail);
@@ -254,7 +254,7 @@ export const resendOtpUser = async (req, res) => {
 };
 
 // ==================== PASSWORD RESET FLOW ====================
-  
+
 export const getForgotPasswordPage = (req, res) => {
     res.render("user/auth/forgot-password", {
         title: "Forgot Password"
@@ -276,7 +276,7 @@ export const forgotPassword = async (req, res) => {
             return res.redirect('/forgot-password');
         }
         const result = await requestPasswordReset(email.trim());
-        
+
         if (!result.success) {
             req.session.toast = { type: 'error', message: result.message };
             return res.redirect('/forgot-password');
@@ -315,7 +315,7 @@ export const verifyResetOtp = async (req, res) => {
             return res.redirect('/verify-reset-otp');
         }
         const result = await verifyOtp({ email, otp, purpose: 'reset-password' });
-       
+
         if (!result.ok) {
             req.session.toast = { type: 'error', message: 'Invalid or expired OTP.' };
             req.session.resetEmail = email;
@@ -417,7 +417,7 @@ export const googleAuthCallback = (req, res) => {
 
     if (req.user.status === 'blocked') {
         req.session.toast = { type: 'error', message: 'Your account has been blocked. Please contact support.' };
-        
+
         // Clear ONLY the user/passport keys so the admin session survives
         if (req.session) {
             req.session.user = null;
@@ -434,7 +434,7 @@ export const googleAuthCallback = (req, res) => {
 
     req.session.user = { id: req.user._id, email: req.user.email };
     req.session.toast = { type: 'success', message: 'Logged in with Google successfully!' };
-    
+
     return req.session.save((err) => {
         if (err) console.error('Session save error:', err);
         return res.redirect("/");

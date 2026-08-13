@@ -819,17 +819,25 @@
     let isValid = true;
     
     const nameVal = nameInput.value.trim();
+    const nameAlphabetCount = (nameVal.match(/[a-zA-Z]/g) || []).length;
     if (!nameVal) {
       setInvalid('name', 'Product name is required.');
       isValid = false;
-    } else if (nameVal.length < 2) {
-      setInvalid('name', 'Product name must be at least 2 characters.');
+    } else if (nameVal.length < 3) {
+      setInvalid('name', 'Product name must be at least 3 characters.');
+      isValid = false;
+    } else if (nameAlphabetCount < 3) {
+      setInvalid('name', 'Product name must contain at least 3 alphabetic characters.');
       isValid = false;
     }
 
     const descVal = descInput.value.trim();
+    const descAlphabetCount = (descVal.match(/[a-zA-Z]/g) || []).length;
     if (!descVal || descVal.length < 10) {
       setInvalid('description', 'Description must be at least 10 characters.');
+      isValid = false;
+    } else if (descAlphabetCount < 3) {
+      setInvalid('description', 'Product description must contain at least 3 alphabetic characters.');
       isValid = false;
     }
 

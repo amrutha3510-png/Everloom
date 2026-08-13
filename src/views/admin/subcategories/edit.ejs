@@ -332,20 +332,25 @@
     }
 
     const nameVal = nameInput.value.trim();
+    const nameAlphabetCount = (nameVal.match(/[a-zA-Z]/g) || []).length;
     if (!nameVal) {
       setInvalid('name', 'Subcategory name cannot be empty.');
       isValid = false;
-    } else if (nameVal.length < 2 || nameVal.length > 50) {
-      setInvalid('name', 'Name must be between 2 and 50 characters.');
+    } else if (nameVal.length < 3 || nameVal.length > 50) {
+      setInvalid('name', 'Name must be between 3 and 50 characters.');
       isValid = false;
-    } else if (!/^[a-zA-Z0-9\s\-_&]+$/.test(nameVal)) {
-      setInvalid('name', 'Name contains invalid characters.');
+    } else if (nameAlphabetCount < 3) {
+      setInvalid('name', 'Subcategory name must contain at least 3 alphabetic characters.');
       isValid = false;
     }
 
     const descVal = descInput.value.trim();
+    const descAlphabetCount = (descVal.match(/[a-zA-Z]/g) || []).length;
     if (!descVal || descVal.length < 10) {
       setInvalid('description', 'Description must be at least 10 characters.');
+      isValid = false;
+    } else if (descAlphabetCount < 3) {
+      setInvalid('description', 'Subcategory description must contain at least 3 alphabetic characters.');
       isValid = false;
     }
 

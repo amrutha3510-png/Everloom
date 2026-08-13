@@ -36,7 +36,7 @@
         class="<%= (typeof formErrors !== 'undefined' && formErrors.name) ? '' : 'hidden' %> text-red-500 text-xs mt-1.5 font-sans pl-1">
         <%= (typeof formErrors !=='undefined' && formErrors.name) ? formErrors.name : '' %>
       </p>
-      <p class="font-sans text-[11px] text-brand-gray-400 mt-1">Must be unique (case-insensitive), 2–50 characters.</p>
+      <p class="font-sans text-[11px] text-brand-gray-400 mt-1">Must be unique (case-insensitive), 3–50 characters.</p>
     </div>
 
     <!-- Category Description -->
@@ -52,7 +52,7 @@
         class="<%= (typeof formErrors !== 'undefined' && formErrors.description) ? '' : 'hidden' %> text-red-500 text-xs mt-1.5 font-sans pl-1">
         <%= (typeof formErrors !=='undefined' && formErrors.description) ? formErrors.description : '' %>
       </p>
-      <p class="font-sans text-[11px] text-brand-gray-400 mt-1">Between 5 and 500 characters.</p>
+      <p class="font-sans text-[11px] text-brand-gray-400 mt-1">Between 3 and 500 characters.</p>
     </div>
 
     <!-- Category Banner Image with Crop -->
@@ -289,7 +289,6 @@
     const categoryForm = document.getElementById('category-form');
     const nameInput = document.getElementById('name');
     const descInput = document.getElementById('description');
-    const nameRegex = /^[A-Za-z0-9\s\-&]+$/;
 
     function setInvalid(id, msg) {
       const el = document.getElementById(id);
@@ -326,23 +325,28 @@
       let isValid = true;
 
       const nameVal = nameInput.value.trim();
+      const nameAlphabetCount = (nameVal.match(/[a-zA-Z]/g) || []).length;
       if (!nameVal) {
         setInvalid('name', 'Category name is required.');
         isValid = false;
       } else if (nameVal.length < 3 || nameVal.length > 50) {
         setInvalid('name', 'Category name must be between 3 and 50 characters.');
         isValid = false;
-      } else if (!nameRegex.test(nameVal)) {
-        setInvalid('name', 'Category name can only contain letters, numbers, spaces, hyphens, and ampersands.');
+      } else if (nameAlphabetCount < 3) {
+        setInvalid('name', 'Category name must contain at least 3 alphabetic characters.');
         isValid = false;
       }
 
       const descVal = descInput.value.trim();
+      const descAlphabetCount = (descVal.match(/[a-zA-Z]/g) || []).length;
       if (!descVal) {
         setInvalid('description', 'Description is required.');
         isValid = false;
       } else if (descVal.length < 5 || descVal.length > 500) {
         setInvalid('description', 'Description must be between 5 and 500 characters.');
+        isValid = false;
+      } else if (descAlphabetCount < 3) {
+        setInvalid('description', 'Category description must contain at least 3 alphabetic characters.');
         isValid = false;
       }
 

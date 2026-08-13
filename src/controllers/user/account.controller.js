@@ -98,8 +98,8 @@ export const updateProfileHandler = async (req, res) => {
       }
     }
 
- const updatedUser = await updateProfile(userId, { fullName, phone, dob });
-   
+    const updatedUser = await updateProfile(userId, { fullName, phone, dob });
+
     return res.json({ success: true, message: 'Profile updated successfully.', user: updatedUser });
   } catch (err) {
     console.error('updateProfileHandler:', err);
@@ -122,7 +122,7 @@ export const updateProfileImageHandler = async (req, res) => {
     }
 
     const updatedUser = await updateProfileImage(userId, imageUrl, imagePublicId);
-   
+
     return res.json({ success: true, message: 'Profile image updated.', imageUrl: updatedUser.profileImage });
   } catch (err) {
     console.error('updateProfileImageHandler:', err);
@@ -215,7 +215,7 @@ export const createAddressHandler = async (req, res) => {
     if (!city?.trim()) return res.status(400).json({ success: false, field: 'city', message: 'City is required.' });
     if (!locality?.trim()) return res.status(400).json({ success: false, field: 'locality', message: 'Locality is required.' });
     if (!state?.trim()) return res.status(400).json({ success: false, field: 'state', message: 'State is required.' });
- 
+
     const address = await addAddress(userId, {
       fullName: fullName.trim(),
       phone: phone.trim(),
@@ -250,7 +250,7 @@ export const updateAddressHandler = async (req, res) => {
     if (!city?.trim()) return res.status(400).json({ success: false, field: 'city', message: 'City is required.' });
     if (!locality?.trim()) return res.status(400).json({ success: false, field: 'locality', message: 'Locality is required.' });
     if (!state?.trim()) return res.status(400).json({ success: false, field: 'state', message: 'State is required.' });
-    
+
     const address = await updateAddress(addressId, userId, {
       fullName: fullName.trim(),
       phone: phone.trim(),

@@ -126,14 +126,17 @@ export const createSubcategory = async (data, file) => {
   const trimmedName = (data.name || '').trim();
   const trimmedDesc = (data.description || '').trim();
 
-  if (!trimmedName || trimmedName.length < 2 || trimmedName.length > 50) {
-    throw new Error('Subcategory name must be between 2 and 50 characters.');
+  if (!trimmedName || trimmedName.length < 3 || trimmedName.length > 50) {
+    throw new Error('Subcategory name must be between 3 and 50 characters.');
   }
-  if (!/^[a-zA-Z0-9\s\-_&]+$/.test(trimmedName)) {
-    throw new Error('Name contains invalid characters.');
+  if ((trimmedName.match(/[a-zA-Z]/g) || []).length < 3) {
+    throw new Error('Subcategory name must contain at least 3 alphabetic characters.');
   }
   if (!trimmedDesc || trimmedDesc.length < 10) {
     throw new Error('Description must be at least 10 characters long.');
+  }
+  if ((trimmedDesc.match(/[a-zA-Z]/g) || []).length < 3) {
+    throw new Error('Subcategory description must contain at least 3 alphabetic characters.');
   }
 
   const category = await Category.findOne({ _id: data.category, isDeleted: false });
@@ -155,8 +158,8 @@ export const createSubcategory = async (data, file) => {
     throw new Error('Subcategory image is required.');
   }
 
-  const imagePath = file.path && file.path.startsWith('http') 
-    ? file.path 
+  const imagePath = file.path && file.path.startsWith('http')
+    ? file.path
     : `/uploads/subcategory-images/${file.filename}`;
 
   const status = (data.status === 'Active') ? 'Active' : 'Inactive';
@@ -180,14 +183,17 @@ export const updateSubcategory = async (id, data, file) => {
   const trimmedName = (data.name || '').trim();
   const trimmedDesc = (data.description || '').trim();
 
-  if (!trimmedName || trimmedName.length < 2 || trimmedName.length > 50) {
-    throw new Error('Subcategory name must be between 2 and 50 characters.');
+  if (!trimmedName || trimmedName.length < 3 || trimmedName.length > 50) {
+    throw new Error('Subcategory name must be between 3 and 50 characters.');
   }
-  if (!/^[a-zA-Z0-9\s\-_&]+$/.test(trimmedName)) {
-    throw new Error('Name contains invalid characters.');
+  if ((trimmedName.match(/[a-zA-Z]/g) || []).length < 3) {
+    throw new Error('Subcategory name must contain at least 3 alphabetic characters.');
   }
   if (!trimmedDesc || trimmedDesc.length < 10) {
     throw new Error('Description must be at least 10 characters long.');
+  }
+  if ((trimmedDesc.match(/[a-zA-Z]/g) || []).length < 3) {
+    throw new Error('Subcategory description must contain at least 3 alphabetic characters.');
   }
 
   const category = await Category.findOne({ _id: data.category, isDeleted: false });
@@ -211,8 +217,8 @@ export const updateSubcategory = async (id, data, file) => {
   subcategory.status = (data.status === 'Active') ? 'Active' : 'Inactive';
 
   if (file) {
-    const imagePath = file.path && file.path.startsWith('http') 
-      ? file.path 
+    const imagePath = file.path && file.path.startsWith('http')
+      ? file.path
       : `/uploads/subcategory-images/${file.filename}`;
     subcategory.image = imagePath;
     subcategory.imageId = file.filename || file.public_id || '';

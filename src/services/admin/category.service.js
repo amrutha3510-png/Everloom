@@ -74,8 +74,11 @@ export const createCategory = async (data, file) => {
   if (!trimmedName) {
     throw new Error('Category name is required.');
   }
-  if (trimmedName.length < 2) {
-    throw new Error('Category name must be at least 2 characters long.');
+  if (trimmedName.length < 3) {
+    throw new Error('Category name must be at least 3 characters long.');
+  }
+  if ((trimmedName.match(/[a-zA-Z]/g) || []).length < 3) {
+    throw new Error('Category name must contain at least 3 alphabetic characters.');
   }
   if (trimmedName.length > 50) {
     throw new Error('Category name cannot exceed 50 characters.');
@@ -88,6 +91,9 @@ export const createCategory = async (data, file) => {
   if (trimmedDesc.length < 5) {
     throw new Error('Category description must be at least 5 characters long.');
   }
+  if ((trimmedDesc.match(/[a-zA-Z]/g) || []).length < 3) {
+    throw new Error('Category description must contain at least 3 alphabetic characters.');
+  }
   if (trimmedDesc.length > 500) {
     throw new Error('Category description cannot exceed 500 characters.');
   }
@@ -97,8 +103,8 @@ export const createCategory = async (data, file) => {
     throw new Error('Category banner image is required.');
   }
 
-  const imagePath = file.path && file.path.startsWith('http') 
-    ? file.path 
+  const imagePath = file.path && file.path.startsWith('http')
+    ? file.path
     : `/uploads/category-banners/${file.filename}`;
 
   // Duplicate Check (Case-Insensitive)
@@ -137,8 +143,11 @@ export const updateCategory = async (id, data, file) => {
   if (!trimmedName) {
     throw new Error('Category name is required.');
   }
-  if (trimmedName.length < 2) {
-    throw new Error('Category name must be at least 2 characters long.');
+  if (trimmedName.length < 3) {
+    throw new Error('Category name must be at least 3 characters long.');
+  }
+  if ((trimmedName.match(/[a-zA-Z]/g) || []).length < 3) {
+    throw new Error('Category name must contain at least 3 alphabetic characters.');
   }
   if (trimmedName.length > 50) {
     throw new Error('Category name cannot exceed 50 characters.');
@@ -150,6 +159,9 @@ export const updateCategory = async (id, data, file) => {
   }
   if (trimmedDesc.length < 5) {
     throw new Error('Category description must be at least 5 characters long.');
+  }
+  if ((trimmedDesc.match(/[a-zA-Z]/g) || []).length < 3) {
+    throw new Error('Category description must contain at least 3 alphabetic characters.');
   }
   if (trimmedDesc.length > 500) {
     throw new Error('Category description cannot exceed 500 characters.');
@@ -173,8 +185,8 @@ export const updateCategory = async (id, data, file) => {
 
   // Replace Banner Image if new file is uploaded
   if (file) {
-    const imagePath = file.path && file.path.startsWith('http') 
-      ? file.path 
+    const imagePath = file.path && file.path.startsWith('http')
+      ? file.path
       : `/uploads/category-banners/${file.filename}`;
     category.image = imagePath;
     category.imageId = file.filename || file.public_id || '';
