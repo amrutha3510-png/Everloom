@@ -88,8 +88,8 @@ export const createCategory = async (data, file) => {
   if (!trimmedDesc) {
     throw new Error('Category description is required.');
   }
-  if (trimmedDesc.length < 5) {
-    throw new Error('Category description must be at least 5 characters long.');
+  if (trimmedDesc.length < 3) {
+    throw new Error('Category description must be at least 3 characters long.');
   }
   if ((trimmedDesc.match(/[a-zA-Z]/g) || []).length < 3) {
     throw new Error('Category description must contain at least 3 alphabetic characters.');

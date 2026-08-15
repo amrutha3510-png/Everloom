@@ -2,15 +2,16 @@ import * as categoryService from '../../services/admin/category.service.js';
 
 export const getCategoriesPage = async (req, res) => {
   try {
-    const page = parseInt(req.query.page, 10) || 1;
+    const queryParams = req.query;
+    const currentPage = parseInt(queryParams.page, 10) || 1;
     const limit = 10;
     const query = {
-      status: req.query.status || 'All Status',
-      search: req.query.search || '',
-      sort: req.query.sort || 'newest'
+      status: queryParams.status || 'All Status',
+      search: queryParams.search || '',
+      sort: queryParams.sort || 'newest'
     };
 
-    const result = await categoryService.getAllCategories(query, page, limit);
+    const result = await categoryService.getAllCategories(query, currentPage, limit);
 
     res.render('admin/categories/index', {
       title: 'Category Management',
@@ -42,7 +43,8 @@ export const getAddCategoryPage = (req, res) => {
 
 export const createCategoryHandler = async (req, res) => {
   try {
-    await categoryService.createCategory(req.body, req.file);
+    const categoryData = req.body;
+    await categoryService.createCategory(categoryData, req.file);
     req.session.toast = { type: 'success', message: 'Category created successfully.' };
     return res.redirect('/admin/categories');
   } catch (error) {
@@ -60,7 +62,8 @@ export const createCategoryHandler = async (req, res) => {
 
 export const getEditCategoryPage = async (req, res) => {
   try {
-    const category = await categoryService.getCategoryById(req.params.id);
+    const categoryId = req.params.id;
+    const category = await categoryService.getCategoryById(categoryId);
     res.render('admin/categories/edit', {
       title: 'Edit Category',
       category,
@@ -75,8 +78,10 @@ export const getEditCategoryPage = async (req, res) => {
 };
 
 export const updateCategoryHandler = async (req, res) => {
+  const categoryId = req.params.id;
   try {
-    await categoryService.updateCategory(req.params.id, req.body, req.file);
+    const categoryData = req.body;
+    await categoryService.updateCategory(categoryId, categoryData, req.file);
     req.session.toast = { type: 'success', message: 'Category updated successfully.' };
     return res.redirect('/admin/categories');
   } catch (error) {
@@ -88,13 +93,14 @@ export const updateCategoryHandler = async (req, res) => {
 
     req.session.formErrors = { [field]: error.message || 'Failed to update category.' };
     req.session.oldData = req.body;
-    return res.redirect(`/admin/categories/edit/${req.params.id}`);
+    return res.redirect(`/admin/categories/edit/${categoryId}`);
   }
 };
 
 export const toggleCategoryStatusHandler = async (req, res) => {
   try {
-    const newStatus = await categoryService.toggleCategoryStatus(req.params.id);
+    const categoryId = req.params.id;
+    const newStatus = await categoryService.toggleCategoryStatus(categoryId);
     return res.json({ success: true, newStatus, message: `Category status updated to ${newStatus}.` });
   } catch (error) {
     console.error('Error toggling category status:', error);
@@ -104,14 +110,15 @@ export const toggleCategoryStatusHandler = async (req, res) => {
 
 export const getDeletedCategoriesPage = async (req, res) => {
   try {
-    const page = parseInt(req.query.page, 10) || 1;
+    const queryParams = req.query;
+    const currentPage = parseInt(queryParams.page, 10) || 1;
     const limit = 10;
     const query = {
-      search: req.query.search || '',
-      sort: req.query.sort || 'newest'
+      search: queryParams.search || '',
+      sort: queryParams.sort || 'newest'
     };
 
-    const result = await categoryService.getDeletedCategories(query, page, limit);
+    const result = await categoryService.getDeletedCategories(query, currentPage, limit);
 
     res.render('admin/categories/deleted', {
       title: 'Deleted Categories',
@@ -133,7 +140,8 @@ export const getDeletedCategoriesPage = async (req, res) => {
 
 export const softDeleteCategoryHandler = async (req, res) => {
   try {
-    await categoryService.softDeleteCategory(req.params.id);
+    const categoryId = req.params.id;
+    await categoryService.softDeleteCategory(categoryId);
     return res.json({ success: true, message: 'Category deleted successfully.' });
   } catch (error) {
     console.error('Error soft deleting category:', error);
@@ -143,7 +151,8 @@ export const softDeleteCategoryHandler = async (req, res) => {
 
 export const restoreCategoryHandler = async (req, res) => {
   try {
-    await categoryService.restoreCategory(req.params.id);
+    const categoryId = req.params.id;
+    await categoryService.restoreCategory(categoryId);
     return res.json({ success: true, message: 'Category restored successfully.' });
   } catch (error) {
     console.error('Error restoring category:', error);

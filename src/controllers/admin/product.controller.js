@@ -4,17 +4,18 @@ import Subcategory from '../../models/subcategoryModel.js';
 
 export const getProductsPage = async (req, res) => {
   try {
-    const page = parseInt(req.query.page, 10) || 1;
+    const queryParams = req.query;
+    const currentPage = parseInt(queryParams.page, 10) || 1;
     const limit = 10;
     const query = {
-      status: req.query.status || 'All Status',
-      category: req.query.category || 'All Categories',
-      subcategory: req.query.subcategory || 'All Subcategories',
-      search: req.query.search || '',
-      sort: req.query.sort || 'newest'
+      status: queryParams.status || 'All Status',
+      category: queryParams.category || 'All Categories',
+      subcategory: queryParams.subcategory || 'All Subcategories',
+      search: queryParams.search || '',
+      sort: queryParams.sort || 'newest'
     };
 
-    const result = await productService.getAllProducts(query, page, limit);
+    const result = await productService.getAllProducts(query, currentPage, limit);
     const categories = await Category.find({ isDeleted: false }).lean();
     const subcategories = await Subcategory.find({ isDeleted: false }).lean();
 
@@ -45,14 +46,15 @@ export const getProductsPage = async (req, res) => {
 
 export const getDeletedProductsPage = async (req, res) => {
   try {
-    const page = parseInt(req.query.page, 10) || 1;
+    const queryParams = req.query;
+    const currentPage = parseInt(queryParams.page, 10) || 1;
     const limit = 10;
     const query = {
-      search: req.query.search || '',
-      sort: req.query.sort || 'newest'
+      search: queryParams.search || '',
+      sort: queryParams.sort || 'newest'
     };
 
-    const result = await productService.getDeletedProducts(query, page, limit);
+    const result = await productService.getDeletedProducts(query, currentPage, limit);
 
     res.render('admin/products/deleted', {
       title: 'Deleted Products',
@@ -92,7 +94,8 @@ export const getAddProductPage = async (req, res) => {
 
 export const createProductHandler = async (req, res) => {
   try {
-    await productService.createProduct(req.body, req.files);
+    const productData = req.body;
+    await productService.createProduct(productData, req.files);
     req.session.toast = { type: 'success', message: 'Product created successfully.' };
     return res.redirect('/admin/products');
   } catch (error) {
@@ -113,7 +116,8 @@ export const createProductHandler = async (req, res) => {
 
 export const getEditProductPage = async (req, res) => {
   try {
-    const product = await productService.getProductById(req.params.id);
+    const productId = req.params.id;
+    const product = await productService.getProductById(productId);
     const categories = await Category.find({ status: 'Active', isDeleted: false }).lean();
     
     // Ensure current product's category is included even if inactive
@@ -152,8 +156,10 @@ export const getEditProductPage = async (req, res) => {
 };
 
 export const updateProductHandler = async (req, res) => {
+  const productId = req.params.id;
   try {
-    await productService.updateProduct(req.params.id, req.body, req.files);
+    const productData = req.body;
+    await productService.updateProduct(productId, productData, req.files);
     req.session.toast = { type: 'success', message: 'Product updated successfully.' };
     return res.redirect('/admin/products');
   } catch (error) {
@@ -168,13 +174,14 @@ export const updateProductHandler = async (req, res) => {
 
     req.session.formErrors = { [field]: error.message || 'Failed to update product.' };
     req.session.oldData = req.body;
-    return res.redirect(`/admin/products/edit/${req.params.id}`);
+    return res.redirect(`/admin/products/edit/${productId}`);
   }
 };
 
 export const softDeleteProductHandler = async (req, res) => {
   try {
-    await productService.softDeleteProduct(req.params.id);
+    const productId = req.params.id;
+    await productService.softDeleteProduct(productId);
     return res.json({ success: true, message: 'Product deleted successfully.' });
   } catch (error) {
     console.error('Error soft deleting product:', error);
@@ -184,7 +191,8 @@ export const softDeleteProductHandler = async (req, res) => {
 
 export const restoreProductHandler = async (req, res) => {
   try {
-    await productService.restoreProduct(req.params.id);
+    const productId = req.params.id;
+    await productService.restoreProduct(productId);
     return res.json({ success: true, message: 'Product restored successfully.' });
   } catch (error) {
     console.error('Error restoring product:', error);

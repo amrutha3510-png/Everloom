@@ -25,8 +25,11 @@ export const getAllSubcategories = async (query = {}, page = 1, limit = 10) => {
     const matchingCategories = await Category.find({
       name: { $regex: query.search.trim(), $options: 'i' }
     }).select('_id');
-    const categoryIds = matchingCategories.map(c => c._id);
+const categoryIds = [];
 
+for (const c of matchingCategories) {
+  categoryIds.push(c._id);
+}
     filter.$or = [
       { name: { $regex: query.search.trim(), $options: 'i' } },
       { category: { $in: categoryIds } }
@@ -79,8 +82,11 @@ export const getDeletedSubcategories = async (query = {}, page = 1, limit = 10) 
     const matchingCategories = await Category.find({
       name: { $regex: query.search.trim(), $options: 'i' }
     }).select('_id');
-    const categoryIds = matchingCategories.map(c => c._id);
+    const categoryIds = [];
 
+for (const c of matchingCategories) {
+  categoryIds.push(c._id);
+}
     filter.$or = [
       { name: { $regex: query.search.trim(), $options: 'i' } },
       { category: { $in: categoryIds } }

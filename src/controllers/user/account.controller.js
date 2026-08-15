@@ -25,7 +25,8 @@ const NAME_REGEX = /^[a-zA-Z\s]+$/;
 
 export const getProfilePage = async (req, res) => {
   try {
-    const user = await getProfile(req.session.user.id);
+    const userId = req.session.user.id;
+    const user = await getProfile(userId);
     let remainingSeconds = 0;
     if (user.pendingEmail) {
       remainingSeconds = await getRemainingSeconds(user.pendingEmail, 'email-change');
@@ -45,7 +46,8 @@ export const getProfilePage = async (req, res) => {
 
 export const getAddressesPage = async (req, res) => {
   try {
-    const addresses = await getAddresses(req.session.user.id);
+    const userId = req.session.user.id;
+    const addresses = await getAddresses(userId);
     res.render('user/account/addresses', {
       title: 'Saved Addresses',
       layout: 'layouts/user-layout',
@@ -60,7 +62,8 @@ export const getAddressesPage = async (req, res) => {
 
 export const getSecurityPage = async (req, res) => {
   try {
-    const user = await getProfile(req.session.user.id);
+    const userId = req.session.user.id;
+    const user = await getProfile(userId);
     const isGoogleOnly = !!user.googleId && !user.password;
     res.render('user/account/security', {
       title: 'Security Settings',
@@ -132,7 +135,8 @@ export const updateProfileImageHandler = async (req, res) => {
 
 export const deleteProfileImageHandler = async (req, res) => {
   try {
-    await removeProfileImage(req.session.user.id);
+    const userId = req.session.user.id;
+    await removeProfileImage(userId);
     return res.json({ success: true, message: 'Profile image removed.' });
   } catch (err) {
     console.error('deleteProfileImageHandler:', err);
@@ -272,7 +276,9 @@ export const updateAddressHandler = async (req, res) => {
 
 export const deleteAddressHandler = async (req, res) => {
   try {
-    await deleteAddress(req.params.id, req.session.user.id);
+    const addressId = req.params.id;
+    const userId = req.session.user.id;
+    await deleteAddress(addressId, userId);
     return res.json({ success: true, message: 'Address deleted.' });
   } catch (err) {
     console.error('deleteAddressHandler:', err);
@@ -282,7 +288,9 @@ export const deleteAddressHandler = async (req, res) => {
 
 export const setDefaultAddressHandler = async (req, res) => {
   try {
-    await setDefaultAddress(req.params.id, req.session.user.id);
+    const addressId = req.params.id;
+    const userId = req.session.user.id;
+    await setDefaultAddress(addressId, userId);
     return res.json({ success: true, message: 'Default address updated.' });
   } catch (err) {
     console.error('setDefaultAddressHandler:', err);
@@ -305,7 +313,8 @@ export const updatePasswordHandler = async (req, res) => {
     if (newPassword !== confirmNewPassword)
       return res.status(400).json({ success: false, field: 'confirmNewPassword', message: 'Passwords do not match.' });
 
-    await changePassword(req.session.user.id, currentPassword, newPassword);
+    const userId = req.session.user.id;
+    await changePassword(userId, currentPassword, newPassword);
     return res.json({ success: true, message: 'Password updated successfully.' });
   } catch (err) {
     console.error('updatePasswordHandler:', err);

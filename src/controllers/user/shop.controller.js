@@ -5,16 +5,17 @@ import Product from '../../models/productModel.js';
 
 export const getShopPage = async (req, res) => {
   try {
-    const page = parseInt(req.query.page, 10) || 1;
+    const queryParams = req.query;
+    const currentPage = parseInt(queryParams.page, 10) || 1;
     const limit = 12; // 3x4 or 4x3 grid
     const query = {
-      search: req.query.search || '',
-      category: req.query.category || 'All Categories',
-      subcategory: req.query.subcategory || '',
-      minPrice: req.query.minPrice || '',
-      maxPrice: req.query.maxPrice || '',
-      size: req.query.size || '',
-      sort: req.query.sort || 'newest'
+      search: queryParams.search || '',
+      category: queryParams.category || 'All Categories',
+      subcategory: queryParams.subcategory || '',
+      minPrice: queryParams.minPrice || '',
+      maxPrice: queryParams.maxPrice || '',
+      size: queryParams.size || '',
+      sort: queryParams.sort || 'newest'
     };
 
     const buildQueryString = (params) => {
@@ -44,7 +45,7 @@ export const getShopPage = async (req, res) => {
     const categories = await Category.find({ isDeleted: false, status: 'Active' }).lean();
     const subcategories = await Subcategory.find({ isDeleted: false, status: 'Active' }).lean();
     const sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
-    const result = await shopService.getListedProducts(query, page, limit);
+    const result = await shopService.getListedProducts(query, currentPage, limit);
 
     res.render('user/shop/index', {
       title: 'Shop',

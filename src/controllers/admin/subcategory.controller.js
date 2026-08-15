@@ -3,18 +3,19 @@ import Category from '../../models/categoryModel.js';
 
 export const getSubcategoriesPage = async (req, res) => {
   try {
-    const page = parseInt(req.query.page, 10) || 1;
+    const queryParams = req.query;
+    const currentPage = parseInt(queryParams.page, 10) || 1;
     const limit = 10;
     const query = {
-      status: req.query.status || 'All Status',
-      category: req.query.category || 'All Categories',
-      search: req.query.search || '',
-      sort: req.query.sort || 'newest'
+      status: queryParams.status || 'All Status',
+      category: queryParams.category || 'All Categories',
+      search: queryParams.search || '',
+      sort: queryParams.sort || 'newest'
     };
 
     const categories = await Category.find({ isDeleted: false }).lean();
 
-    const result = await subcategoryService.getAllSubcategories(query, page, limit);
+    const result = await subcategoryService.getAllSubcategories(query, currentPage, limit);
 
     res.render('admin/subcategories/index', {
       title: 'Subcategory Management',
@@ -40,14 +41,15 @@ export const getSubcategoriesPage = async (req, res) => {
 
 export const getDeletedSubcategoriesPage = async (req, res) => {
   try {
-    const page = parseInt(req.query.page, 10) || 1;
+    const queryParams = req.query;
+    const currentPage = parseInt(queryParams.page, 10) || 1;
     const limit = 10;
     const query = {
-      search: req.query.search || '',
-      sort: req.query.sort || 'newest'
+      search: queryParams.search || '',
+      sort: queryParams.sort || 'newest'
     };
 
-    const result = await subcategoryService.getDeletedSubcategories(query, page, limit);
+    const result = await subcategoryService.getDeletedSubcategories(query, currentPage, limit);
 
     res.render('admin/subcategories/deleted', {
       title: 'Deleted Subcategories',
@@ -85,7 +87,8 @@ export const getAddSubcategoryPage = async (req, res) => {
 
 export const createSubcategoryHandler = async (req, res) => {
   try {
-    await subcategoryService.createSubcategory(req.body, req.file);
+    const subcategoryData = req.body;
+    await subcategoryService.createSubcategory(subcategoryData, req.file);
     req.session.toast = { type: 'success', message: 'Subcategory created successfully.' };
     return res.redirect('/admin/subcategories');
   } catch (error) {
@@ -105,7 +108,8 @@ export const createSubcategoryHandler = async (req, res) => {
 
 export const getEditSubcategoryPage = async (req, res) => {
   try {
-    const subcategory = await subcategoryService.getSubcategoryById(req.params.id);
+    const subcategoryId = req.params.id;
+    const subcategory = await subcategoryService.getSubcategoryById(subcategoryId);
     const categories = await Category.find({ status: 'Active', isDeleted: false }).lean();
     
     // Ensure current subcategory's category is included even if inactive
@@ -131,8 +135,10 @@ export const getEditSubcategoryPage = async (req, res) => {
 };
 
 export const updateSubcategoryHandler = async (req, res) => {
+  const subcategoryId = req.params.id;
   try {
-    await subcategoryService.updateSubcategory(req.params.id, req.body, req.file);
+    const subcategoryData = req.body;
+    await subcategoryService.updateSubcategory(subcategoryId, subcategoryData, req.file);
     req.session.toast = { type: 'success', message: 'Subcategory updated successfully.' };
     return res.redirect('/admin/subcategories');
   } catch (error) {
@@ -146,13 +152,14 @@ export const updateSubcategoryHandler = async (req, res) => {
 
     req.session.formErrors = { [field]: error.message || 'Failed to update subcategory.' };
     req.session.oldData = req.body;
-    return res.redirect(`/admin/subcategories/edit/${req.params.id}`);
+    return res.redirect(`/admin/subcategories/edit/${subcategoryId}`);
   }
 };
 
 export const softDeleteSubcategoryHandler = async (req, res) => {
   try {
-    await subcategoryService.softDeleteSubcategory(req.params.id);
+    const subcategoryId = req.params.id;
+    await subcategoryService.softDeleteSubcategory(subcategoryId);
     return res.json({ success: true, message: 'Subcategory deleted successfully.' });
   } catch (error) {
     console.error('Error soft deleting subcategory:', error);
@@ -162,7 +169,8 @@ export const softDeleteSubcategoryHandler = async (req, res) => {
 
 export const restoreSubcategoryHandler = async (req, res) => {
   try {
-    await subcategoryService.restoreSubcategory(req.params.id);
+    const subcategoryId = req.params.id;
+    await subcategoryService.restoreSubcategory(subcategoryId);
     return res.json({ success: true, message: 'Subcategory restored successfully.' });
   } catch (error) {
     console.error('Error restoring subcategory:', error);

@@ -48,7 +48,8 @@ export const checkBlocked = async (req, res, next) => {
   }
 
   try {
-    const user = await User.findById(req.session.user.id).select('status');
+    const userId = req.session.user.id;
+    const user = await User.findById(userId).select('status');
     if (!user || user.status === 'blocked') {
       // RULE 3: Clear ONLY user session data to prevent clearing admin sessions
       req.session.user = null;

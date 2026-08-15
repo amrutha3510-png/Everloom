@@ -2,14 +2,15 @@ import * as customerService from '../../services/admin/customer.service.js';
 
 export const getCustomersPage = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
+    const queryParams = req.query;
+    const currentPage = parseInt(queryParams.page) || 1;
     const limit = 10;
     const query = {
-      status: req.query.status || 'All Status',
-      search: req.query.search || ''
+      status: queryParams.status || 'All Status',
+      search: queryParams.search || ''
     };
 
-    const result = await customerService.getAllCustomers(query, page, limit);
+    const result = await customerService.getAllCustomers(query, currentPage, limit);
 
     res.render('admin/customers/customers', {
       title: 'Customer Management',
