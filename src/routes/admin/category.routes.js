@@ -1,5 +1,4 @@
 import express from 'express';
-import multer from 'multer';
 import {
   getCategoriesPage,
   getAddCategoryPage,
@@ -12,32 +11,11 @@ import {
   restoreCategoryHandler
 } from '../../controllers/admin/category.controller.js';
 import { isAdmin } from '../../middlewares/auth.middleware.js';
-import { uploadCategoryBanner } from '../../configs/categoryUpload.config.js';
+import { handleBannerUpload } from '../../middlewares/upload.middleware.js';
 
 const router = express.Router();
 
 router.use(isAdmin);
-
-// Multer error handling wrapper for banner uploads
-const handleBannerUpload = (req, res, next) => {
-  uploadCategoryBanner.single('image')(req, res, (err) => {
-    if (err instanceof multer.MulterError) {
-      const messages = {
-        LIMIT_FILE_SIZE: 'Banner image size must be under 5 MB.',
-        LIMIT_UNEXPECTED_FILE: err.field || 'Only JPG, JPEG, PNG, and WEBP images are allowed.'
-      };
-      req.session.formErrors = { image: messages[err.code] || err.message };
-      req.session.oldData = req.body;
-      return res.redirect(req.originalUrl);
-    }
-    if (err) {
-      req.session.formErrors = { image: err.message || 'Image upload failed.' };
-      req.session.oldData = req.body;
-      return res.redirect(req.originalUrl);
-    }
-    next();
-  });
-};
 
 router.get('/', getCategoriesPage);
 router.get('/deleted', getDeletedCategoriesPage);
