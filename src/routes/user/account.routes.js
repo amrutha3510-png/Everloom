@@ -65,6 +65,19 @@ router.delete('/addresses/delete/:id',   isUser, deleteAddressHandler);
 // ── Security API ──
 router.post('/security/change-password', isUser, updatePasswordHandler);
 
+// ── User Orders API & Page Renders ──
+import {
+  getOrdersPage,
+  getOrderDetailPage,
+  cancelOrder,
+  returnOrder,
+  downloadInvoice
+} from '../../controllers/user/order.controller.js';
 
+router.get('/orders', isUserPage, getOrdersPage);
+router.get('/orders/:orderId', isUserPage, getOrderDetailPage);
+router.post('/orders/:orderId/cancel', isUser, cancelOrder);
+router.post('/orders/:orderId/return', isUser, returnOrder);
+router.get('/orders/:orderId/invoice', isUser, downloadInvoice);
 
 export default router;

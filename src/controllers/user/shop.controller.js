@@ -47,6 +47,15 @@ export const getShopPage = async (req, res) => {
     const sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
     const result = await shopService.getListedProducts(query, currentPage, limit);
 
+    let userWishlistItems = [];
+    if (req.session.user) {
+      const Wishlist = (await import('../../models/wishlistModel.js')).default;
+      const wishlist = await Wishlist.findOne({ user: req.session.user.id }).lean();
+      if (wishlist) {
+        userWishlistItems = wishlist.items || [];
+      }
+    }
+
     res.render('user/shop/index', {
       title: 'Shop',
       products: result.products,
@@ -64,6 +73,7 @@ export const getShopPage = async (req, res) => {
       sizeFilter: query.size,
       sortOption: result.sortOption,
       paginationQueryString,
+      userWishlistItems,
       layout: 'layouts/user-layout',
       user: req.session.user || null
     });
@@ -86,10 +96,20 @@ export const getProductDetails = async (req, res) => {
 
     const relatedProducts = await shopService.getRelatedProducts(product.category._id, product.subcategory._id, product._id);
 
+    let isInWishlist = false;
+    if (req.session.user) {
+      const Wishlist = (await import('../../models/wishlistModel.js')).default;
+      const wishlist = await Wishlist.findOne({ user: req.session.user.id }).lean();
+      if (wishlist) {
+        isInWishlist = (wishlist.items || []).some(item => item.product.toString() === product._id.toString());
+      }
+    }
+
     res.render('user/shop/product-details', {
       title: product.name,
       product,
       relatedProducts,
+      isInWishlist,
       layout: 'layouts/user-layout',
       user: req.session.user || null
     });

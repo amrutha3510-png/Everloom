@@ -92,26 +92,38 @@ export const addToCart = async (userId, productId, variantSize, variantColor, qu
     cart = new Cart({ user: userId, items: [] });
   }
 
-  const existingItemIndex = cart.items.findIndex(item => 
-    item.product.toString() === productId && 
-    item.variant.size === variantSize && 
-    item.variant.color === variantColor
-  );
+  const existingItemIndex = cart.items.findIndex(item => {
+    const itemProdId = item.product._id ? item.product._id.toString() : item.product.toString();
+    const targetProdId = productId._id ? productId._id.toString() : productId.toString();
+    return itemProdId === targetProdId && 
+           item.variant.size === variantSize && 
+           item.variant.color === variantColor;
+  });
+
+  const existingQuantity = existingItemIndex > -1 ? cart.items[existingItemIndex].quantity : 0;
+  
+  let newQuantity;
+  if (quantity === 1) {
+    newQuantity = existingQuantity + 1;
+  } else {
+    newQuantity = quantity;
+  }
+
+  if (newQuantity > MAX_QTY) {
+    throw new Error(`Maximum ${MAX_QTY} quantity allowed per item`);
+  }
+
+  if (newQuantity > variant.stock) {
+    throw new Error('Not enough stock available');
+  }
 
   if (existingItemIndex > -1) {
-    const newQty = cart.items[existingItemIndex].quantity + quantity;
-    if (newQty > MAX_QTY) {
-      throw new Error(`Maximum ${MAX_QTY} quantity allowed per item`);
-    }
-    if (newQty > variant.stock) {
-      throw new Error('Not enough stock available for the combined quantity');
-    }
-    cart.items[existingItemIndex].quantity = newQty;
+    cart.items[existingItemIndex].quantity = newQuantity;
   } else {
     cart.items.push({
       product: productId,
       variant: { size: variantSize, color: variantColor },
-      quantity
+      quantity: newQuantity
     });
   }
 

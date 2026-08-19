@@ -15,17 +15,28 @@ export const getHomePage = async (req, res) => {
         const result = await getListedProducts({ sort: 'newest' }, 1, 4);
         const latestProducts = result.products;
 
+        let userWishlistItems = [];
+        if (req.session.user) {
+            const Wishlist = (await import('../../models/wishlistModel.js')).default;
+            const wishlist = await Wishlist.findOne({ user: req.session.user.id }).lean();
+            if (wishlist) {
+                userWishlistItems = wishlist.items || [];
+            }
+        }
+
         res.render("user/auth/home", {
             title: "Home | Everloom",
             categories,
-            latestProducts
+            latestProducts,
+            userWishlistItems
         });
     } catch (error) {
         console.error("Error loading home page:", error);
         res.render("user/auth/home", {
             title: "Home | Everloom",
             categories: [],
-            latestProducts: []
+            latestProducts: [],
+            userWishlistItems: []
         });
     }
 };

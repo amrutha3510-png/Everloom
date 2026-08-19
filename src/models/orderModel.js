@@ -23,6 +23,10 @@ const orderItemSchema = new mongoose.Schema({
 });
 
 const orderSchema = new mongoose.Schema({
+  orderId: {
+    type: String,
+    unique: true
+  },
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -33,6 +37,17 @@ const orderSchema = new mongoose.Schema({
     type: Number,
     required: true,
     min: 0
+  },
+  discountAmount: {
+    type: Number,
+    default: 0
+  },
+  couponCode: {
+    type: String
+  },
+  shippingCharge: {
+    type: Number,
+    default: 0
   },
   shippingAddress: {
     fullName: { type: String, required: true },
@@ -47,15 +62,30 @@ const orderSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['Pending', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled'],
+    enum: ['Pending', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled', 'Return Requested', 'Returned'],
     default: 'Pending',
     index: true
   },
   paymentMethod: {
     type: String,
     default: 'COD'
+  },
+  cancellationReason: {
+    type: String
+  },
+  returnReason: {
+    type: String
   }
 }, { timestamps: true });
+
+// Pre-save hook to generate unique readable Order ID
+orderSchema.pre('save', function () {
+  if (!this.orderId) {
+    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, ''); // YYYYMMDD
+    const randomDigits = Math.floor(1000 + Math.random() * 9000); // 4-digit random number
+    this.orderId = `EVL-${dateStr}-${randomDigits}`;
+  }
+});
 
 const Order = mongoose.model('Order', orderSchema);
 export default Order;

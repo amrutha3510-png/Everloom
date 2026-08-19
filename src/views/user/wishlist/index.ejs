@@ -1,0 +1,163 @@
+<%- include('../partials/navbar') %>
+
+<main class="min-h-screen bg-brand-gray-50 pb-20">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    <h1 class="font-serif text-3xl sm:text-4xl font-bold text-brand-black mb-8">My Wishlist</h1>
+
+    <% if (wishlist && wishlist.items && wishlist.items.length > 0) { %>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <% wishlist.items.forEach(item => { %>
+          <div class="group relative flex flex-col bg-white border border-brand-gray-200 overflow-hidden hover:shadow-md transition-all duration-300" id="item-<%= item.product._id %>-<%= item.variant.size %>-<%= item.variant.color %>">
+            
+            <!-- Remove Button (Top Right) -->
+            <button type="button" 
+                    onclick="removeFromWishlist('<%= item.product._id %>', '<%= item.variant.size %>', '<%= item.variant.color %>')" 
+                    class="absolute top-3 right-3 bg-white/90 hover:bg-white text-brand-gray-400 hover:text-red-500 p-1.5 rounded-full shadow-sm z-10 transition-colors"
+                    title="Remove from Wishlist">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            <!-- Product Image -->
+            <a href="/shop/product/<%= item.product._id %>" class="relative w-full aspect-[3/4] overflow-hidden bg-brand-gray-50 block">
+              <% if (item.product.images && item.product.images.length > 0) { %>
+                <img src="<%= item.product.images[0] %>" alt="<%= item.product.name %>" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+              <% } else { %>
+                <div class="w-full h-full flex items-center justify-center text-brand-gray-400 font-serif text-xl">
+                  <%= item.product.name.charAt(0).toUpperCase() %>
+                </div>
+              <% } %>
+            </a>
+
+            <!-- Product Details -->
+            <div class="p-4 flex flex-col flex-1">
+              <% if (item.product.category) { %>
+                <span class="text-[10px] text-brand-gray-500 font-sans uppercase tracking-widest2 mb-1"><%= item.product.category.name %></span>
+              <% } %>
+              
+              <a href="/shop/product/<%= item.product._id %>" class="font-serif font-bold text-brand-black text-base hover:text-brand-gray-600 transition-colors line-clamp-1 mb-2">
+                <%= item.product.name %>
+              </a>
+
+              <!-- Variant Details -->
+              <div class="font-sans text-xs text-brand-gray-600 flex items-center gap-2 mb-3">
+                <span class="px-2 py-0.5 bg-brand-gray-50 border border-brand-gray-200">Size: <%= item.variant.size %></span>
+                <span class="px-2 py-0.5 bg-brand-gray-50 border border-brand-gray-200">Color: <%= item.variant.color %></span>
+              </div>
+
+              <div class="mt-auto flex items-center justify-between pt-3 border-t border-brand-gray-50">
+                <span class="font-sans font-semibold text-brand-black">₹<%= item.price %></span>
+                
+                <% if (item.stock <= 0) { %>
+                  <span class="text-xs font-sans text-red-500 font-medium bg-red-50 px-2 py-0.5 border border-red-100">Out of Stock</span>
+                <% } %>
+              </div>
+            </div>
+
+            <!-- Move to Cart Button -->
+            <div class="px-4 pb-4">
+              <% if (item.stock > 0) { %>
+                <button type="button" 
+                        onclick="moveToCart('<%= item.product._id %>', '<%= item.variant.size %>', '<%= item.variant.color %>')" 
+                        class="w-full py-2 bg-brand-black text-white hover:bg-brand-gray-600 font-sans text-xs font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-1">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                  </svg>
+                  Move to Cart
+                </button>
+              <% } else { %>
+                <button type="button" 
+                        disabled 
+                        class="w-full py-2 bg-brand-gray-100 text-brand-gray-400 font-sans text-xs font-bold uppercase tracking-wider cursor-not-allowed">
+                  Out of Stock
+                </button>
+              <% } %>
+            </div>
+
+          </div>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <!-- Empty Wishlist -->
+      <div class="flex flex-col items-center justify-center py-16 sm:py-24 bg-white border border-brand-gray-200 shadow-sm">
+        <div class="w-20 h-20 bg-brand-gray-50 rounded-full flex items-center justify-center mb-6">
+          <svg class="w-10 h-10 text-brand-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+          </svg>
+        </div>
+        <h2 class="font-serif text-2xl font-bold text-brand-black mb-3">Your wishlist is empty</h2>
+        <p class="font-sans text-brand-gray-500 mb-8 max-w-md text-center px-4">Save items you love here and make them yours whenever you are ready.</p>
+        <a href="/shop" class="px-8 py-3 bg-brand-black text-white font-sans text-sm font-medium hover:bg-brand-gray-600 transition-colors">
+          Explore Collection
+        </a>
+      </div>
+    <% } %>
+  </div>
+</main>
+
+<script>
+  async function removeFromWishlist(productId, size, color) {
+    try {
+      const res = await fetch('/wishlist/remove', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId, size, color })
+      });
+      
+      const data = await res.json();
+      
+      if (res.ok && data.success) {
+        if (typeof showFlash === 'function') {
+          showFlash('success', data.message);
+        }
+        setTimeout(() => window.location.reload(), 1000);
+      } else {
+        if (typeof showFlash === 'function') {
+          showFlash('error', data.message || 'Failed to remove item');
+        }
+      }
+    } catch (error) {
+      console.error(error);
+      if (typeof showFlash === 'function') {
+        showFlash('error', 'Network error occurred');
+      }
+    }
+  }
+
+  async function moveToCart(productId, size, color) {
+    try {
+      const res = await fetch('/wishlist/move-to-cart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId, size, color })
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        // Update nav cart count if element exists
+        const countBadge = document.getElementById('nav-cart-count');
+        if (countBadge) {
+          countBadge.textContent = data.cartCount;
+          countBadge.classList.remove('hidden');
+        }
+
+        if (typeof showFlash === 'function') {
+          showFlash('success', data.message);
+        }
+        setTimeout(() => window.location.reload(), 1000);
+      } else {
+        if (typeof showFlash === 'function') {
+          showFlash('error', data.message || 'Failed to move item to cart');
+        }
+      }
+    } catch (error) {
+      console.error(error);
+      if (typeof showFlash === 'function') {
+        showFlash('error', 'Network error occurred');
+      }
+    }
+  }
+</script>
+<%- include('../partials/footer') %>

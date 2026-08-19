@@ -28,7 +28,8 @@ export const getAllOrders = async (queryParams, page = 1, limit = 10) => {
     const userIds = users.map(u => u._id);
 
     const orClauses = [
-      { user: { $in: userIds } }
+      { user: { $in: userIds } },
+      { orderId: { $regex: searchRegex } }
     ];
 
     // If search is a valid ObjectId, search by Order ID
@@ -115,7 +116,7 @@ export const getOrderById = async (orderId) => {
  * Update order status.
  */
 export const updateOrderStatus = async (orderId, newStatus) => {
-  const allowedStatuses = ['Pending', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled'];
+  const allowedStatuses = ['Pending', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled', 'Return Requested', 'Returned'];
   if (!allowedStatuses.includes(newStatus)) {
     throw new Error('Invalid status value.');
   }

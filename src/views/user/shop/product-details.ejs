@@ -217,6 +217,15 @@
                 class="flex-1 h-12 bg-brand-black text-white font-sans text-sm font-bold uppercase tracking-wider hover:bg-brand-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                 Add to Cart
               </button>
+
+              <!-- Wishlist Button -->
+              <button type="button" id="wishlist-btn" onclick="toggleWishlistDetails()"
+                class="w-12 h-12 flex items-center justify-center border border-brand-gray-200 text-brand-gray-500 hover:text-red-500 transition-colors focus:outline-none"
+                title="Add to Wishlist">
+                <svg class="w-5 h-5 <%= isInWishlist ? 'text-red-500 fill-current' : 'text-brand-gray-400' %>" fill="<%= isInWishlist ? 'currentColor' : 'none' %>" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" id="wishlist-heart-icon">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+              </button>
             </div>
 
             <div class="mt-8 border-t border-brand-gray-200">
@@ -610,6 +619,51 @@
         const addBtn = document.getElementById('add-to-cart-btn');
         addBtn.disabled = false;
         addBtn.innerHTML = 'Add to Cart';
+      }
+    }
+
+    async function toggleWishlistDetails() {
+      if (!selectedColor || !selectedSize) {
+        if (typeof showFlash === 'function') showFlash('warning', 'Please select color and size first');
+        return;
+      }
+
+      try {
+        const res = await fetch('/wishlist/toggle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            productId: '<%= product._id %>',
+            color: selectedColor,
+            size: selectedSize
+          })
+        });
+
+        if (res.status === 401) {
+          window.location.href = '/login';
+          return;
+        }
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          const heartIcon = document.getElementById('wishlist-heart-icon');
+          if (data.action === 'added') {
+            heartIcon.classList.remove('text-brand-gray-400');
+            heartIcon.classList.add('text-red-500', 'fill-current');
+            heartIcon.setAttribute('fill', 'currentColor');
+            if (typeof showFlash === 'function') showFlash('success', 'Added to wishlist');
+          } else {
+            heartIcon.classList.remove('text-red-500', 'fill-current');
+            heartIcon.classList.add('text-brand-gray-400');
+            heartIcon.setAttribute('fill', 'none');
+            if (typeof showFlash === 'function') showFlash('success', 'Removed from wishlist');
+          }
+        } else {
+          if (typeof showFlash === 'function') showFlash('error', data.message || 'Failed to update wishlist');
+        }
+      } catch (error) {
+        console.error(error);
+        if (typeof showFlash === 'function') showFlash('error', 'Network error occurred');
       }
     }
   </script>
