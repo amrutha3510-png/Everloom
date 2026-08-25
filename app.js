@@ -20,8 +20,9 @@ const app = express();
 // 1. Serve static files first (browser is allowed to cache these)
 app.use(express.static("public"));
 
-// 2. Disable caching for all subsequent dynamic routes (EJS HTML views)
-app.use(nocache());
+// Body Parser
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 // User Session Middleware
 const userSession = session({
@@ -53,10 +54,6 @@ app.use((req, res, next) => {
 // Passport initialization
 app.use(passport.initialize());
 app.use(passport.session());
-
-// Body Parser
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
 
 // Toast flash and oldData parser
 app.use(toastFlash);

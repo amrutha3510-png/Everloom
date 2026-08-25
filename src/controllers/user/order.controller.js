@@ -76,6 +76,39 @@ export const getOrderDetailPage = async (req, res) => {
 };
 
 /**
+ * Render Order Tracking page.
+ */
+export const trackOrder = async (req, res) => {
+  try {
+    const userId = req.session.user?.id;
+    if (!userId) {
+      req.session.toast = { type: 'error', message: 'Please login to track your order' };
+      return res.redirect('/login');
+    }
+
+    const { orderId } = req.params;
+    const order = await orderService.getUserOrderById(userId, orderId);
+
+    if (!order) {
+      req.session.toast = { type: 'error', message: 'Order not found.' };
+      return res.redirect('/account/orders');
+    }
+
+    res.render('user/account/track', {
+      title: `Track Order - #${order.orderId}`,
+      order,
+      layout: 'layouts/user-layout',
+      accountPage: 'orders',
+      user: req.session.user
+    });
+  } catch (error) {
+    console.error('Error loading order tracking page:', error);
+    req.session.toast = { type: 'error', message: 'Failed to load tracking details' };
+    res.redirect('/account/orders');
+  }
+};
+
+/**
  * Handle Order Cancellation.
  */
 export const cancelOrder = async (req, res) => {
@@ -87,6 +120,10 @@ export const cancelOrder = async (req, res) => {
 
     const { orderId } = req.params;
     const { cancellationReason } = req.body;
+
+    if (!cancellationReason || cancellationReason.trim() === '') {
+      return res.status(400).json({ success: false, message: 'Cancellation reason is required.' });
+    }
 
     await orderService.cancelUserOrder(userId, orderId, cancellationReason);
     res.status(200).json({ success: true, message: 'Order cancelled successfully.' });

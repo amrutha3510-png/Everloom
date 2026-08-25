@@ -140,6 +140,9 @@
       
       const data = await res.json();
       if (res.ok && data.success) {
+        if (typeof window.updateNavCounts === 'function') {
+          window.updateNavCounts(undefined, data.wishlistCount);
+        }
         const svg = btnElement.querySelector('svg');
         if (data.action === 'added') {
           svg.classList.remove('text-brand-gray-400');

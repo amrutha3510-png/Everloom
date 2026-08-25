@@ -14,6 +14,7 @@ import {
   changePassword,
 } from '../../services/user/account.service.js';
 import { getRemainingSeconds } from '../../services/general/otp.service.js';
+import { getWalletData } from '../../services/user/wallet.service.js';
 
 const PHONE_REGEX = /^[6-9]\d{9}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -74,6 +75,24 @@ export const getSecurityPage = async (req, res) => {
     });
   } catch (err) {
     console.error('getSecurityPage:', err);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
+export const getWalletPage = async (req, res) => {
+  try {
+    const userId = req.session.user.id;
+    const walletData = await getWalletData(userId);
+    res.render('user/account/wallet', {
+      title: 'EverLoom Wallet',
+      layout: 'layouts/user-layout',
+      walletBalance: walletData.walletBalance,
+      transactions: walletData.transactions,
+      accountPage: 'wallet',
+      user: req.session.user
+    });
+  } catch (err) {
+    console.error('getWalletPage:', err);
     res.status(500).send('Internal Server Error');
   }
 };
@@ -215,7 +234,7 @@ export const createAddressHandler = async (req, res) => {
     if (!NAME_REGEX.test(fullName.trim())) return res.status(400).json({ success: false, field: 'fullName', message: 'Full name can only contain alphabets and spaces.' });
     if (!phone || !PHONE_REGEX.test(phone.trim())) return res.status(400).json({ success: false, field: 'phone', message: 'Valid 10-digit phone is required.' });
     if (!addressLine1?.trim()) return res.status(400).json({ success: false, field: 'addressLine1', message: 'Address line 1 is required.' });
-    if (!pincode || !PINCODE_REGEX.test(pincode)) return res.status(400).json({ success: false, field: 'pincode', message: 'Valid 6-digit pincode is required.' });
+    if (!pincode || !PINCODE_REGEX.test(pincode.trim())) return res.status(400).json({ success: false, field: 'pincode', message: 'Valid 6-digit pincode is required.' });
     if (!city?.trim()) return res.status(400).json({ success: false, field: 'city', message: 'City is required.' });
     if (!locality?.trim()) return res.status(400).json({ success: false, field: 'locality', message: 'Locality is required.' });
     if (!state?.trim()) return res.status(400).json({ success: false, field: 'state', message: 'State is required.' });
@@ -250,7 +269,7 @@ export const updateAddressHandler = async (req, res) => {
     if (!NAME_REGEX.test(fullName.trim())) return res.status(400).json({ success: false, field: 'fullName', message: 'Full name can only contain alphabets and spaces.' });
     if (!phone || !PHONE_REGEX.test(phone.trim())) return res.status(400).json({ success: false, field: 'phone', message: 'Valid 10-digit phone is required.' });
     if (!addressLine1?.trim()) return res.status(400).json({ success: false, field: 'addressLine1', message: 'Address line 1 is required.' });
-    if (!pincode || !PINCODE_REGEX.test(pincode)) return res.status(400).json({ success: false, field: 'pincode', message: 'Valid 6-digit pincode is required.' });
+    if (!pincode || !PINCODE_REGEX.test(pincode.trim())) return res.status(400).json({ success: false, field: 'pincode', message: 'Valid 6-digit pincode is required.' });
     if (!city?.trim()) return res.status(400).json({ success: false, field: 'city', message: 'City is required.' });
     if (!locality?.trim()) return res.status(400).json({ success: false, field: 'locality', message: 'Locality is required.' });
     if (!state?.trim()) return res.status(400).json({ success: false, field: 'state', message: 'State is required.' });

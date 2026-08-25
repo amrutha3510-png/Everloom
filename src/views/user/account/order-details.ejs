@@ -203,10 +203,11 @@
         </button>
       </div>
 
-      <form id="cancel-form" class="mt-6 font-sans text-sm space-y-4">
+      <form id="cancel-form" class="mt-6 font-sans text-sm space-y-4" novalidate>
         <div>
-          <label class="block text-xs font-semibold uppercase tracking-widest text-brand-gray-500 mb-2">Reason for cancellation (Optional)</label>
-          <textarea id="cancellationReason" rows="3" class="w-full px-3 py-2 border border-brand-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-black bg-white placeholder-brand-gray-400" placeholder="Please let us know why you are cancelling..."></textarea>
+          <label class="block text-xs font-semibold uppercase tracking-widest text-brand-gray-500 mb-2">Reason for cancellation (Mandatory)</label>
+          <textarea id="cancellationReason" rows="3" class="w-full px-3 py-2 border border-brand-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-black bg-white placeholder-brand-gray-400 transition-colors" placeholder="Please let us know why you are cancelling..."></textarea>
+          <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="cancellationReasonError">Cancellation reason is required.</p>
         </div>
 
         <div class="pt-4 flex gap-3">
@@ -260,6 +261,26 @@
   function closeCancelModal() {
     document.getElementById('cancel-modal').classList.add('hidden');
     document.body.style.overflow = '';
+    const errorEl = document.getElementById('cancellationReasonError');
+    if (errorEl) errorEl.classList.add('hidden');
+    const textarea = document.getElementById('cancellationReason');
+    if (textarea) {
+      textarea.classList.remove('border-red-500', 'focus:border-red-500');
+      textarea.classList.add('border-brand-gray-200', 'focus:border-brand-black');
+    }
+  }
+
+  // Clear validation styling when user inputs text
+  const cancelTextarea = document.getElementById('cancellationReason');
+  if (cancelTextarea) {
+    cancelTextarea.addEventListener('input', function() {
+      if (this.value.trim()) {
+        this.classList.remove('border-red-500', 'focus:border-red-500');
+        this.classList.add('border-brand-gray-200', 'focus:border-brand-black');
+        const errorEl = document.getElementById('cancellationReasonError');
+        if (errorEl) errorEl.classList.add('hidden');
+      }
+    });
   }
 
   // Return Modal functions
@@ -276,8 +297,23 @@
   // Cancel order submission
   document.getElementById('cancel-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const reason = document.getElementById('cancellationReason').value;
+    const textarea = document.getElementById('cancellationReason');
+    const errorEl = document.getElementById('cancellationReasonError');
+    const reason = textarea ? textarea.value.trim() : '';
     
+    if (!reason) {
+      if (errorEl) {
+        errorEl.textContent = 'Cancellation reason is required.';
+        errorEl.classList.remove('hidden');
+      }
+      if (textarea) {
+        textarea.classList.remove('border-brand-gray-200', 'focus:border-brand-black');
+        textarea.classList.add('border-red-500', 'focus:border-red-500');
+        textarea.focus();
+      }
+      return;
+    }
+
     try {
       const res = await fetch(`/account/orders/<%= order.orderId %>/cancel`, {
         method: 'POST',

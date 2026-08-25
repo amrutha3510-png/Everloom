@@ -1,5 +1,6 @@
 import * as cartService from '../../services/user/cart.service.js';
 import { getAddresses } from '../../services/user/account.service.js';
+import { getAvailableCoupons, calculateCouponDiscount } from '../../services/user/coupon.service.js';
 import Address from '../../models/addressModel.js';
 import Order from '../../models/orderModel.js';
 import Cart from '../../models/cartModel.js';
@@ -33,12 +34,14 @@ export const getCheckoutPage = async (req, res) => {
 
     const addresses = await getAddresses(userId);
     const defaultAddress = addresses.find(addr => addr.isDefault) || addresses[0] || null;
+    const availableCoupons = await getAvailableCoupons();
 
     res.render('user/checkout/index', {
       title: 'Checkout',
       cart,
       addresses,
       defaultAddress,
+      availableCoupons,
       layout: 'layouts/user-layout',
       user: req.session.user
     });
@@ -120,8 +123,15 @@ export const placeOrder = async (req, res) => {
 
     // 3. Pricing calculations
     let discount = 0;
-    if (couponCode === 'EXTRA10') {
-      discount = Math.round(subtotal * 0.1);
+    let appliedCouponCode = '';
+    if (couponCode && couponCode.trim()) {
+      try {
+        const couponResult = calculateCouponDiscount(couponCode, subtotal);
+        discount = couponResult.discount;
+        appliedCouponCode = couponResult.coupon ? couponResult.coupon.code : couponCode.trim().toUpperCase();
+      } catch (err) {
+        return res.status(400).json({ success: false, message: err.message });
+      }
     }
 
     const shippingCharge = subtotal > 1999 ? 0 : 100;

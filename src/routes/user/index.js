@@ -8,12 +8,14 @@ import wishlistRoutes from "./wishlist.routes.js";
 import checkoutRoutes from "./checkout.routes.js";
 import { checkBlocked } from "../../middlewares/auth.middleware.js";
 import { fetchCartCount } from "../../middlewares/cart.middleware.js";
+import { fetchWishlistCount } from "../../middlewares/wishlist.middleware.js";
 
 const router = express.Router();
 
 // Intercept blocked users for all user routes
 router.use(checkBlocked);
 router.use(fetchCartCount);
+router.use(fetchWishlistCount);
 
 router.use("/", authRoutes);
 router.use("/account", accountRoutes);

@@ -108,9 +108,14 @@
                       </td>
                       <td class="px-4 py-4 font-semibold text-xs">₹<%= order.totalAmount %></td>
                       <td class="px-4 py-4 text-right">
-                        <a href="/account/orders/<%= order.orderId %>" class="inline-flex px-3 py-1.5 border border-brand-gray-200 text-brand-black hover:bg-brand-gray-50 text-xs font-semibold uppercase tracking-wider transition-colors">
-                          View Details
-                        </a>
+                        <div class="inline-flex items-center justify-end gap-2">
+                          <a href="/account/orders/<%= order.orderId %>" class="inline-flex px-3 py-1.5 border border-brand-gray-200 text-brand-black hover:bg-brand-gray-50 text-xs font-semibold uppercase tracking-wider transition-colors">
+                            View
+                          </a>
+                          <a href="/account/orders/<%= order.orderId %>/track" class="inline-flex px-3 py-1.5 border border-brand-gray-200 text-brand-black hover:bg-brand-gray-50 text-xs font-semibold uppercase tracking-wider transition-colors">
+                            Track
+                          </a>
+                        </div>
                       </td>
                     </tr>
                   <% }) %>
@@ -152,9 +157,12 @@
                     </div>
                   </div>
 
-                  <div class="pt-2 flex justify-end">
-                    <a href="/account/orders/<%= order.orderId %>" class="w-full text-center py-2 border border-brand-gray-200 text-brand-black hover:bg-brand-gray-50 text-xs font-semibold uppercase tracking-wider transition-colors">
-                      View Details
+                  <div class="pt-2 flex gap-2">
+                    <a href="/account/orders/<%= order.orderId %>" class="flex-1 text-center py-2 border border-brand-gray-200 text-brand-black hover:bg-brand-gray-50 text-xs font-semibold uppercase tracking-wider transition-colors">
+                      View
+                    </a>
+                    <a href="/account/orders/<%= order.orderId %>/track" class="flex-1 text-center py-2 border border-brand-gray-200 text-brand-black hover:bg-brand-gray-50 text-xs font-semibold uppercase tracking-wider transition-colors">
+                      Track
                     </a>
                   </div>
                 </div>

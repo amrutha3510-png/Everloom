@@ -123,7 +123,7 @@ export const loginUser = async (req, res) => {
     } catch (error) {
         console.error("Login Error:", error);
         req.session.toast = { type: 'error', message: 'An error occurred during login. Please try again.' };
-        req.session.oldData = { email: req.body.email };
+        req.session.oldData = { email: req.body?.email };
         return res.redirect('/login');
     }
 };
@@ -191,9 +191,9 @@ export const registerUser = async (req, res) => {
         console.error("Register Error:", error);
         req.session.toast = { type: 'error', message: error.message || 'An error occurred during registration. Please try again.' };
         req.session.oldData = {
-            fullName: req.body.fullName,
-            email: req.body.email,
-            referralCode: req.body.referralCode
+            fullName: req.body?.fullName,
+            email: req.body?.email,
+            referralCode: req.body?.referralCode
         };
         return res.redirect('/register');
     }
@@ -241,7 +241,7 @@ export const verifyOtpUser = async (req, res) => {
     } catch (error) {
         console.error("OTP Verify Error:", error);
         req.session.toast = { type: 'error', message: 'An error occurred during OTP verification.' };
-        req.session.tempEmail = req.body.email || (req.session && req.session.tempEmail);
+        req.session.tempEmail = req.body?.email || (req.session && req.session.tempEmail);
         return res.redirect('/verify');
     }
 };

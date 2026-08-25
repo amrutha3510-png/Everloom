@@ -37,7 +37,8 @@ export const addToWishlist = async (req, res) => {
     }
 
     await wishlistService.addToWishlist(userId, productId, size, color);
-    res.status(200).json({ success: true, message: 'Item added to wishlist successfully' });
+    const wishlistCount = await wishlistService.getWishlistCount(userId);
+    res.status(200).json({ success: true, message: 'Item added to wishlist successfully', wishlistCount });
   } catch (error) {
     console.error('Add to wishlist error:', error);
     res.status(400).json({ success: false, message: error.message || 'Failed to add item to wishlist' });
@@ -57,7 +58,8 @@ export const removeFromWishlist = async (req, res) => {
     }
 
     await wishlistService.removeFromWishlist(userId, productId, size, color);
-    res.status(200).json({ success: true, message: 'Item removed from wishlist' });
+    const wishlistCount = await wishlistService.getWishlistCount(userId);
+    res.status(200).json({ success: true, message: 'Item removed from wishlist', wishlistCount });
   } catch (error) {
     console.error('Remove from wishlist error:', error);
     res.status(400).json({ success: false, message: 'Failed to remove item' });
@@ -85,10 +87,12 @@ export const toggleWishlist = async (req, res) => {
 
     if (exists) {
       await wishlistService.removeFromWishlist(userId, productId, size, color);
-      res.status(200).json({ success: true, action: 'removed', message: 'Item removed from wishlist' });
+      const wishlistCount = await wishlistService.getWishlistCount(userId);
+      res.status(200).json({ success: true, action: 'removed', message: 'Item removed from wishlist', wishlistCount });
     } else {
       await wishlistService.addToWishlist(userId, productId, size, color);
-      res.status(200).json({ success: true, action: 'added', message: 'Item added to wishlist' });
+      const wishlistCount = await wishlistService.getWishlistCount(userId);
+      res.status(200).json({ success: true, action: 'added', message: 'Item added to wishlist', wishlistCount });
     }
   } catch (error) {
     console.error('Toggle wishlist error:', error);
@@ -111,8 +115,9 @@ export const moveToCart = async (req, res) => {
     // Call cart service to add to cart (which automatically pulls from wishlist)
     await cartService.addToCart(userId, productId, size, color, 1);
     const cartCount = await cartService.getCartCount(userId);
+    const wishlistCount = await wishlistService.getWishlistCount(userId);
 
-    res.status(200).json({ success: true, message: 'Item moved to cart successfully', cartCount });
+    res.status(200).json({ success: true, message: 'Item moved to cart successfully', cartCount, wishlistCount });
   } catch (error) {
     console.error('Move to cart error:', error);
     res.status(400).json({ success: false, message: error.message || 'Failed to move item to cart' });

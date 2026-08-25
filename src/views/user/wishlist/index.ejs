@@ -108,6 +108,9 @@
       const data = await res.json();
       
       if (res.ok && data.success) {
+        if (typeof window.updateNavCounts === 'function') {
+          window.updateNavCounts(undefined, data.wishlistCount);
+        }
         if (typeof showFlash === 'function') {
           showFlash('success', data.message);
         }
@@ -136,11 +139,8 @@
       const data = await res.json();
 
       if (res.ok && data.success) {
-        // Update nav cart count if element exists
-        const countBadge = document.getElementById('nav-cart-count');
-        if (countBadge) {
-          countBadge.textContent = data.cartCount;
-          countBadge.classList.remove('hidden');
+        if (typeof window.updateNavCounts === 'function') {
+          window.updateNavCounts(data.cartCount, data.wishlistCount);
         }
 
         if (typeof showFlash === 'function') {

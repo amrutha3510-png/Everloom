@@ -111,3 +111,12 @@ export const removeFromWishlist = async (userId, productId, size, color) => {
   await wishlist.save();
   return wishlist;
 };
+
+/**
+ * Get total wishlist items count for a user.
+ */
+export const getWishlistCount = async (userId) => {
+  const wishlist = await getWishlist(userId);
+  if (!wishlist || !wishlist.items) return 0;
+  return wishlist.items.length;
+};

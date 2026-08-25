@@ -5,6 +5,7 @@ import {
   getProfilePage,
   getAddressesPage,
   getSecurityPage,
+  getWalletPage,
   updateProfileHandler,
   updateProfileImageHandler,
   deleteProfileImageHandler,
@@ -47,6 +48,7 @@ const handleUpload = (req, res, next) => {
 router.get('/profile',   isUserPage, getProfilePage);
 router.get('/addresses', isUserPage, getAddressesPage);
 router.get('/security',  isUserPage, getSecurityPage);
+router.get('/wallet',    isUserPage, getWalletPage);
 
 // ── Profile API (JSON responses) ──
 router.post('/profile/update',               isUser, updateProfileHandler);
@@ -69,6 +71,7 @@ router.post('/security/change-password', isUser, updatePasswordHandler);
 import {
   getOrdersPage,
   getOrderDetailPage,
+  trackOrder,
   cancelOrder,
   returnOrder,
   downloadInvoice
@@ -76,6 +79,7 @@ import {
 
 router.get('/orders', isUserPage, getOrdersPage);
 router.get('/orders/:orderId', isUserPage, getOrderDetailPage);
+router.get('/orders/:orderId/track', isUserPage, trackOrder);
 router.post('/orders/:orderId/cancel', isUser, cancelOrder);
 router.post('/orders/:orderId/return', isUser, returnOrder);
 router.get('/orders/:orderId/invoice', isUser, downloadInvoice);

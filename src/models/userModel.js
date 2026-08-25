@@ -59,6 +59,11 @@ const userSchema = new mongoose.Schema({
     trim: true,
     lowercase: true,
   },
+  walletBalance: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
 }, { timestamps: true });
 
 const User = mongoose.model('User', userSchema);

@@ -66,6 +66,10 @@ export const getUserOrderById = async (userId, orderIdOrDbId) => {
  * Cancel order by the user.
  */
 export const cancelUserOrder = async (userId, orderId, cancellationReason) => {
+  if (!cancellationReason || cancellationReason.trim() === '') {
+    throw new Error('Cancellation reason is required.');
+  }
+
   const query = { user: userId };
   if (mongoose.Types.ObjectId.isValid(orderId)) {
     query.$or = [{ _id: orderId }, { orderId: orderId }];
@@ -93,9 +97,7 @@ export const cancelUserOrder = async (userId, orderId, cancellationReason) => {
   }
 
   order.status = 'Cancelled';
-  if (cancellationReason && cancellationReason.trim() !== '') {
-    order.cancellationReason = cancellationReason.trim();
-  }
+  order.cancellationReason = cancellationReason.trim();
 
   await order.save();
   return order;
