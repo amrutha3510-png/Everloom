@@ -134,6 +134,31 @@ export const cancelOrder = async (req, res) => {
 };
 
 /**
+ * Handle Single Product Item Cancellation.
+ */
+export const cancelOrderItem = async (req, res) => {
+  try {
+    const userId = req.session.user?.id;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+
+    const { orderId, itemId } = req.params;
+    const { cancellationReason } = req.body;
+
+    if (!cancellationReason || cancellationReason.trim() === '') {
+      return res.status(400).json({ success: false, message: 'Cancellation reason is required.' });
+    }
+
+    await orderService.cancelUserOrderItem(userId, orderId, itemId, cancellationReason);
+    res.status(200).json({ success: true, message: 'Product item cancelled successfully.' });
+  } catch (error) {
+    console.error('Cancel order item controller error:', error);
+    res.status(400).json({ success: false, message: error.message || 'Failed to cancel product item.' });
+  }
+};
+
+/**
  * Handle Order Return.
  */
 export const returnOrder = async (req, res) => {

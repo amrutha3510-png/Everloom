@@ -19,6 +19,18 @@ const orderItemSchema = new mongoose.Schema({
     type: Number,
     required: true,
     min: 0
+  },
+  status: {
+    type: String,
+    enum: ['Pending', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled', 'Return Requested', 'Returned'],
+    default: 'Pending'
+  },
+  cancellationReason: {
+    type: String
+  },
+  isStockRestored: {
+    type: Boolean,
+    default: false
   }
 });
 
@@ -75,6 +87,19 @@ const orderSchema = new mongoose.Schema({
   },
   returnReason: {
     type: String
+  },
+  declineReason: {
+    type: String
+  },
+  returnStatus: {
+    type: String,
+    enum: ['None', 'Pending', 'Approved', 'Declined'],
+    default: 'None',
+    index: true
+  },
+  isStockRestored: {
+    type: Boolean,
+    default: false
   }
 }, { timestamps: true });
 

@@ -1,698 +1,657 @@
 <%- include('../partials/navbar') %>
 
-<main class="min-h-screen bg-brand-gray-50 pb-20">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-    <h1 class="font-serif text-3xl sm:text-4xl font-bold text-brand-black mb-8">Checkout</h1>
+  <main class="min-h-screen bg-brand-gray-50 pb-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <h1 class="font-serif text-3xl sm:text-4xl font-bold text-brand-black mb-8">Checkout</h1>
 
-    <div class="flex flex-col lg:flex-row gap-8 lg:gap-12">
-      
-      <!-- Left Column: Address Selection & Payment -->
-      <div class="w-full lg:w-2/3 flex flex-col gap-8">
-        
-        <!-- Address Selection Card -->
-        <div class="bg-white border border-brand-gray-200 shadow-sm p-6 sm:p-8">
-          <div class="flex items-center justify-between border-b border-brand-gray-100 pb-4 mb-6">
-            <h2 class="font-serif text-xl font-bold text-brand-black">1. Shipping Address</h2>
-            <button type="button" onclick="openAddressModal()" class="text-xs sm:text-sm font-sans font-semibold text-brand-black hover:text-brand-gray-600 underline focus:outline-none">
-              + Add New Address
-            </button>
-          </div>
+      <div class="flex flex-col lg:flex-row gap-8 lg:gap-12">
 
-          <% if (addresses && addresses.length > 0) { %>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="address-list">
-              <% addresses.forEach(addr => { %>
-                <label class="relative flex flex-col p-4 border rounded-md cursor-pointer transition-all hover:bg-brand-gray-50/50 <%= addr.isDefault ? 'border-brand-black bg-white ring-1 ring-brand-black' : 'border-brand-gray-200 bg-white' %>" id="label-addr-<%= addr._id %>">
-                  <div class="flex items-start gap-3 mb-2">
-                    <input type="radio" name="selectedAddress" value="<%= addr._id %>" class="mt-1 accent-brand-black" <%= addr.isDefault ? 'checked' : '' %> onchange="selectAddress('<%= addr._id %>')">
-                    <div class="font-sans text-sm font-semibold text-brand-black flex-1 min-w-0">
-                      <span class="block truncate"><%= addr.fullName %></span>
-                      <span class="block text-xs font-normal text-brand-gray-500 mt-0.5"><%= addr.phone %></span>
-                    </div>
-                  </div>
+        <!-- Left Column: Address Selection & Payment -->
+        <div class="w-full lg:w-2/3 flex flex-col gap-8">
 
-                  <p class="font-sans text-xs text-brand-gray-600 pl-6 leading-relaxed flex-1">
-                    <%= addr.addressLine1 %><br>
-                    <% if (addr.addressLine2) { %><%= addr.addressLine2 %><br><% } %>
-                    <%= addr.locality %>, <%= addr.city %>, <%= addr.state %> - <span class="font-semibold"><%= addr.pincode %></span>
-                  </p>
-
-                  <div class="pl-6 pt-3 flex items-center justify-between border-t border-brand-gray-100 mt-3 text-[10px] font-sans font-semibold uppercase tracking-wider">
-                    <button type="button" onclick="openAddressModal('<%= JSON.stringify(addr) %>')" class="text-brand-gray-600 hover:text-brand-black underline focus:outline-none">Edit</button>
-                    <% if (addr.isDefault) { %>
-                      <span class="text-brand-black bg-brand-gray-100 px-2 py-0.5 font-bold">Default</span>
-                    <% } else { %>
-                      <button type="button" onclick="setDefaultAddress('<%= addr._id %>')" class="text-brand-gray-400 hover:text-brand-black focus:outline-none">Set Default</button>
-                    <% } %>
-                  </div>
-                </label>
-              <% }) %>
-            </div>
-          <% } else { %>
-            <!-- Address Empty State -->
-            <div class="flex flex-col items-center justify-center py-10 bg-brand-gray-50 border border-dashed border-brand-gray-200">
-              <svg class="w-8 h-8 text-brand-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-              <p class="font-sans text-xs text-brand-gray-500 mb-4">No shipping addresses found.</p>
-              <button type="button" onclick="openAddressModal()" class="px-5 py-2 bg-brand-black text-white font-sans text-xs font-semibold uppercase tracking-wider hover:bg-brand-gray-600 transition-colors">
-                Add Address
+          <!-- Address Selection Card -->
+          <div class="bg-white border border-brand-gray-200 shadow-sm p-6 sm:p-8">
+            <div class="flex items-center justify-between border-b border-brand-gray-100 pb-4 mb-6">
+              <h2 class="font-serif text-xl font-bold text-brand-black">1. Shipping Address</h2>
+              <button type="button" onclick="openAddressModal()"
+                class="text-xs sm:text-sm font-sans font-semibold text-brand-black hover:text-brand-gray-600 underline focus:outline-none">
+                + Add New Address
               </button>
             </div>
-          <% } %>
+
+            <% if (addresses && addresses.length> 0) { %>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="address-list">
+                <% addresses.forEach(addr=> { %>
+                  <label
+                    class="relative flex flex-col p-4 border rounded-md cursor-pointer transition-all hover:bg-brand-gray-50/50 <%= addr.isDefault ? 'border-brand-black bg-white ring-1 ring-brand-black' : 'border-brand-gray-200 bg-white' %>"
+                    id="label-addr-<%= addr._id %>">
+                    <div class="flex items-start gap-3 mb-2">
+                      <input type="radio" name="selectedAddress" value="<%= addr._id %>" class="mt-1 accent-brand-black"
+                        <%=addr.isDefault ? 'checked' : '' %> onchange="selectAddress('<%= addr._id %>')">
+                        <div class="font-sans text-sm font-semibold text-brand-black flex-1 min-w-0">
+                          <span class="block truncate">
+                            <%= addr.fullName %>
+                          </span>
+                          <span class="block text-xs font-normal text-brand-gray-500 mt-0.5">
+                            <%= addr.phone %>
+                          </span>
+                        </div>
+                    </div>
+
+                    <p class="font-sans text-xs text-brand-gray-600 pl-6 leading-relaxed flex-1">
+                      <%= addr.addressLine1 %><br>
+                        <% if (addr.addressLine2) { %>
+                          <%= addr.addressLine2 %><br>
+                            <% } %>
+                              <%= addr.locality %>, <%= addr.city %>, <%= addr.state %> - <span class="font-semibold">
+                                      <%= addr.pincode %>
+                                    </span>
+                    </p>
+
+                    <div
+                      class="pl-6 pt-3 flex items-center justify-between border-t border-brand-gray-100 mt-3 text-[10px] font-sans font-semibold uppercase tracking-wider">
+                      <button type="button" onclick="openAddressModal('<%= JSON.stringify(addr) %>')"
+                        class="text-brand-gray-600 hover:text-brand-black underline focus:outline-none">Edit</button>
+                      <% if (addr.isDefault) { %>
+                        <span class="text-brand-black bg-brand-gray-100 px-2 py-0.5 font-bold">Default</span>
+                        <% } else { %>
+                          <button type="button" onclick="setDefaultAddress('<%= addr._id %>')"
+                            class="text-brand-gray-400 hover:text-brand-black focus:outline-none">Set Default</button>
+                          <% } %>
+                    </div>
+                  </label>
+                  <% }) %>
+              </div>
+              <% } else { %>
+                <!-- Address Empty State -->
+                <div
+                  class="flex flex-col items-center justify-center py-10 bg-brand-gray-50 border border-dashed border-brand-gray-200">
+                  <svg class="w-8 h-8 text-brand-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                  <p class="font-sans text-xs text-brand-gray-500 mb-4">No shipping addresses found.</p>
+                  <button type="button" onclick="openAddressModal()"
+                    class="px-5 py-2 bg-brand-black text-white font-sans text-xs font-semibold uppercase tracking-wider hover:bg-brand-gray-600 transition-colors">
+                    Add Address
+                  </button>
+                </div>
+                <% } %>
+          </div>
+
+          <!-- Payment Method Card -->
+          <div class="bg-white border border-brand-gray-200 shadow-sm p-6 sm:p-8">
+            <h2 class="font-serif text-xl font-bold text-brand-black border-b border-brand-gray-100 pb-4 mb-6">2.
+              Payment Method</h2>
+
+            <div class="flex flex-col gap-3">
+              <!-- Cash on Delivery (Functional) -->
+              <label
+                class="flex items-start gap-3 p-4 border border-brand-black bg-brand-gray-50/50 rounded-md cursor-pointer">
+                <input type="radio" name="paymentMethod" value="COD" checked class="mt-1 accent-brand-black">
+                <div>
+                  <span class="font-sans text-sm font-bold text-brand-black block">Cash on Delivery (COD)</span>
+                  <span class="font-sans text-xs text-brand-gray-500 block mt-0.5">Pay in cash or digital wallet upon
+                    receiving your package.</span>
+                </div>
+              </label>
+
+              <!-- Razorpay (Card/UPI/Net Banking) (Static Display Option Only) -->
+              <label
+                class="flex items-start gap-3 p-4 border border-brand-gray-200 bg-white rounded-md cursor-pointer transition-all hover:bg-brand-gray-50/50">
+                <input type="radio" name="paymentMethod" value="RAZORPAY" disabled
+                  class="mt-1 accent-brand-black cursor-pointer">
+                <div>
+                  <span class="font-sans text-sm font-bold text-brand-black block">Razorpay (Card/UPI/Net
+                    Banking)</span>
+                  <span class="font-sans text-xs text-brand-gray-500 block mt-0.5">Pay securely using Credit/Debit Card,
+                    UPI, or Net Banking.</span>
+                </div>
+              </label>
+
+              <!-- EverLoom Wallet (Static Display Option Only) -->
+              <label
+                class="flex items-start gap-3 p-4 border border-brand-gray-200 bg-white rounded-md cursor-pointer transition-all hover:bg-brand-gray-50/50">
+                <input type="radio" name="paymentMethod" value="WALLET" disabled
+                  class="mt-1 accent-brand-black cursor-pointer">
+                <div>
+                  <span class="font-sans text-sm font-bold text-brand-black block">EverLoom Wallet</span>
+                  <span class="font-sans text-xs text-brand-gray-500 block mt-0.5">Use your EverLoom wallet balance for
+                    instant checkout.</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
         </div>
 
-        <!-- Payment Method Card -->
-        <div class="bg-white border border-brand-gray-200 shadow-sm p-6 sm:p-8">
-          <h2 class="font-serif text-xl font-bold text-brand-black border-b border-brand-gray-100 pb-4 mb-6">2. Payment Method</h2>
-          
-          <div class="flex flex-col gap-3">
-            <!-- Cash on Delivery (Functional) -->
-            <label class="flex items-start gap-3 p-4 border border-brand-black bg-brand-gray-50/50 rounded-md cursor-pointer">
-              <input type="radio" name="paymentMethod" value="COD" checked class="mt-1 accent-brand-black">
-              <div>
-                <span class="font-sans text-sm font-bold text-brand-black block">Cash on Delivery (COD)</span>
-                <span class="font-sans text-xs text-brand-gray-500 block mt-0.5">Pay in cash or digital wallet upon receiving your package.</span>
-              </div>
-            </label>
+        <!-- Right Column: Order Summary & Place Order -->
+        <div class="w-full lg:w-1/3">
+          <div class="bg-white border border-brand-gray-200 shadow-sm p-6 sticky top-24">
+            <h2 class="font-serif text-xl font-bold text-brand-black border-b border-brand-gray-100 pb-4 mb-6">Order
+              Summary</h2>
 
-            <!-- Razorpay (Card/UPI/Net Banking) (Static Display Option Only) -->
-            <label class="flex items-start gap-3 p-4 border border-brand-gray-200 bg-white rounded-md cursor-pointer transition-all hover:bg-brand-gray-50/50">
-              <input type="radio" name="paymentMethod" value="RAZORPAY" disabled class="mt-1 accent-brand-black cursor-pointer">
-              <div>
-                <span class="font-sans text-sm font-bold text-brand-black block">Razorpay (Card/UPI/Net Banking)</span>
-                <span class="font-sans text-xs text-brand-gray-500 block mt-0.5">Pay securely using Credit/Debit Card, UPI, or Net Banking.</span>
-              </div>
-            </label>
+            <!-- Products List -->
+            <div class="divide-y divide-brand-gray-100 max-h-60 overflow-y-auto mb-6 pr-2">
+              <% cart.items.forEach(item=> { %>
+                <div class="flex gap-3 py-3 first:pt-0 last:pb-0">
+                  <div class="w-12 h-16 bg-brand-gray-50 border border-brand-gray-150 overflow-hidden flex-shrink-0">
+                    <% if (item.product.images && item.product.images.length> 0) { %>
+                      <img src="<%= item.product.images[0] %>" alt="<%= item.product.name %>"
+                        class="w-full h-full object-cover">
+                      <% } %>
+                  </div>
+                  <div class="flex-1 min-w-0 flex flex-col justify-center">
+                    <h3 class="font-serif font-bold text-xs text-brand-black truncate">
+                      <%= item.product.name %>
+                    </h3>
+                    <span class="text-[10px] text-brand-gray-500 font-sans uppercase tracking-widest2 mt-0.5">
+                      <%= item.variant.size %> / <%= item.variant.color %>
+                    </span>
+                    <span class="text-xs text-brand-gray-600 font-sans mt-0.5">Qty: <%= item.quantity %></span>
+                  </div>
+                  <div class="font-sans text-xs font-semibold text-brand-black self-center">
+                    ₹<%= item.price * item.quantity %>
+                  </div>
+                </div>
+                <% }) %>
+            </div>
 
-            <!-- EverLoom Wallet (Static Display Option Only) -->
-            <label class="flex items-start gap-3 p-4 border border-brand-gray-200 bg-white rounded-md cursor-pointer transition-all hover:bg-brand-gray-50/50">
-              <input type="radio" name="paymentMethod" value="WALLET" disabled class="mt-1 accent-brand-black cursor-pointer">
-              <div>
-                <span class="font-sans text-sm font-bold text-brand-black block">EverLoom Wallet</span>
-                <span class="font-sans text-xs text-brand-gray-500 block mt-0.5">Use your EverLoom wallet balance for instant checkout.</span>
+            <!-- Available Coupons Section (Static Display) -->
+            <div class="mb-6 pt-4 border-t border-brand-gray-100">
+              <label class="font-sans text-xs font-semibold text-brand-gray-500 uppercase tracking-widest2 block mb-3">Available Coupons</label>
+              <div class="space-y-2.5">
+                <div class="p-3 border border-brand-gray-200 bg-brand-gray-50/50 rounded-md font-sans">
+                  <div class="flex items-center gap-2">
+                    <span class="font-mono font-bold text-xs text-brand-black bg-white px-2 py-0.5 border border-brand-gray-200 uppercase">EXTRA10</span>
+                    <span class="text-xs font-bold text-green-600">10% OFF</span>
+                  </div>
+                  <p class="text-[11px] text-brand-gray-500 mt-1 leading-tight">10% OFF on orders above ₹500</p>
+                </div>
+
+                <div class="p-3 border border-brand-gray-200 bg-brand-gray-50/50 rounded-md font-sans">
+                  <div class="flex items-center gap-2">
+                    <span class="font-mono font-bold text-xs text-brand-black bg-white px-2 py-0.5 border border-brand-gray-200 uppercase">EVERLOOM200</span>
+                    <span class="text-xs font-bold text-green-600">₹200 OFF</span>
+                  </div>
+                  <p class="text-[11px] text-brand-gray-500 mt-1 leading-tight">Flat ₹200 OFF on orders above ₹1,500</p>
+                </div>
+
+                <div class="p-3 border border-brand-gray-200 bg-brand-gray-50/50 rounded-md font-sans">
+                  <div class="flex items-center gap-2">
+                    <span class="font-mono font-bold text-xs text-brand-black bg-white px-2 py-0.5 border border-brand-gray-200 uppercase">WELCOME15</span>
+                    <span class="text-xs font-bold text-green-600">15% OFF</span>
+                  </div>
+                  <p class="text-[11px] text-brand-gray-500 mt-1 leading-tight">15% OFF on orders above ₹2,000</p>
+                </div>
+
+                <div class="p-3 border border-brand-gray-200 bg-brand-gray-50/50 rounded-md font-sans">
+                  <div class="flex items-center gap-2">
+                    <span class="font-mono font-bold text-xs text-brand-black bg-white px-2 py-0.5 border border-brand-gray-200 uppercase">SAVEMORE</span>
+                    <span class="text-xs font-bold text-green-600">₹500 OFF</span>
+                  </div>
+                  <p class="text-[11px] text-brand-gray-500 mt-1 leading-tight">Flat ₹500 OFF on orders above ₹3,500</p>
+                </div>
               </div>
-            </label>
+            </div>
+
+            <!-- Summary Pricing Details -->
+            <div class="border-t border-brand-gray-100 pt-4 mb-6 font-sans text-sm space-y-3">
+              <div class="flex justify-between items-center text-brand-gray-600">
+                <span>Subtotal</span>
+                <span class="font-semibold text-brand-black">₹<%= cart.cartTotal %></span>
+              </div>
+
+              <div class="flex justify-between items-center text-brand-gray-600 hidden" id="discount-row">
+                <span>Discount (<span id="promo-label"></span>)</span>
+                <span class="font-semibold text-green-600">-₹<span id="discount-val">0</span></span>
+              </div>
+
+              <div class="flex justify-between items-center text-brand-gray-600">
+                <span>Shipping</span>
+                <span class="font-semibold text-brand-black" id="shipping-val">₹<%= cart.cartTotal> 1999 ? 0 : 100
+                    %></span>
+              </div>
+            </div>
+
+            <div class="border-t border-brand-gray-100 pt-4 mb-8 flex justify-between items-center">
+              <span class="font-sans font-bold text-brand-black text-base">Total</span>
+              <span class="font-sans font-bold text-brand-black text-xl" id="final-total">₹<%= cart.cartTotal> 1999 ?
+                  cart.cartTotal : cart.cartTotal + 100 %></span>
+            </div>
+
+            <button type="button" onclick="placeOrderCOD()" id="place-order-btn"
+              class="w-full h-12 bg-brand-black text-white font-sans text-sm font-bold uppercase tracking-wider hover:bg-brand-gray-600 transition-colors flex items-center justify-center">
+              Place Order (COD)
+            </button>
           </div>
         </div>
 
       </div>
+    </div>
+  </main>
 
-      <!-- Right Column: Order Summary & Place Order -->
-      <div class="w-full lg:w-1/3">
-        <div class="bg-white border border-brand-gray-200 shadow-sm p-6 sticky top-24">
-          <h2 class="font-serif text-xl font-bold text-brand-black border-b border-brand-gray-100 pb-4 mb-6">Order Summary</h2>
+  <!-- Address Creation / Editing Modal -->
+  <div id="address-modal" class="fixed inset-0 z-50 hidden overflow-y-auto" role="dialog" aria-modal="true">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+      <div class="fixed inset-0 bg-brand-black/40 backdrop-blur-sm transition-opacity" onclick="closeAddressModal()">
+      </div>
 
-          <!-- Products List -->
-          <div class="divide-y divide-brand-gray-100 max-h-60 overflow-y-auto mb-6 pr-2">
-            <% cart.items.forEach(item => { %>
-              <div class="flex gap-3 py-3 first:pt-0 last:pb-0">
-                <div class="w-12 h-16 bg-brand-gray-50 border border-brand-gray-150 overflow-hidden flex-shrink-0">
-                  <% if (item.product.images && item.product.images.length > 0) { %>
-                    <img src="<%= item.product.images[0] %>" alt="<%= item.product.name %>" class="w-full h-full object-cover">
-                  <% } %>
-                </div>
-                <div class="flex-1 min-w-0 flex flex-col justify-center">
-                  <h3 class="font-serif font-bold text-xs text-brand-black truncate"><%= item.product.name %></h3>
-                  <span class="text-[10px] text-brand-gray-500 font-sans uppercase tracking-widest2 mt-0.5"><%= item.variant.size %> / <%= item.variant.color %></span>
-                  <span class="text-xs text-brand-gray-600 font-sans mt-0.5">Qty: <%= item.quantity %></span>
-                </div>
-                <div class="font-sans text-xs font-semibold text-brand-black self-center">
-                  ₹<%= item.price * item.quantity %>
-                </div>
-              </div>
-            <% }) %>
-          </div>
+      <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-          <!-- Promo Code Form -->
-          <div class="mb-6 pt-4 border-t border-brand-gray-100">
-            <label class="font-sans text-xs font-semibold text-brand-gray-500 uppercase tracking-widest2 block mb-2">Have a promo code?</label>
-            <div class="flex gap-2">
-              <input type="text" id="promo-input" placeholder="Enter code (e.g. EXTRA10)" class="flex-1 px-3 py-2 bg-white border border-brand-gray-200 rounded-md font-sans text-xs focus:outline-none focus:ring-1 focus:ring-brand-black uppercase">
-              <button type="button" onclick="applyPromo()" class="px-4 py-2 bg-brand-black text-white hover:bg-brand-gray-600 font-sans text-xs font-bold uppercase tracking-wider transition-colors">Apply</button>
-            </div>
-            <div id="promo-message" class="text-xs font-sans mt-2 hidden"></div>
-          </div>
-
-          <!-- Available Coupons Section -->
-          <div class="mb-6 pt-4 border-t border-brand-gray-100">
-            <label class="font-sans text-xs font-semibold text-brand-gray-500 uppercase tracking-widest2 block mb-3">Available Coupons</label>
-            <div class="space-y-2.5">
-              <% if (typeof availableCoupons !== 'undefined' && availableCoupons.length > 0) { %>
-                <% availableCoupons.forEach(c => { %>
-                  <div class="p-3 border border-brand-gray-200 bg-brand-gray-50/50 rounded-md flex items-center justify-between gap-3 font-sans" id="coupon-card-<%= c.code %>">
-                    <div>
-                      <div class="flex items-center gap-2">
-                        <span class="font-mono font-bold text-xs text-brand-black bg-white px-2 py-0.5 border border-brand-gray-200 uppercase"><%= c.code %></span>
-                        <span class="text-xs font-bold text-green-600"><%= c.type === 'PERCENTAGE' ? c.discountValue + '% OFF' : '₹' + c.discountValue + ' OFF' %></span>
-                      </div>
-                      <p class="text-[11px] text-brand-gray-500 mt-1 leading-tight"><%= c.description %></p>
-                    </div>
-                    <button type="button" id="btn-coupon-<%= c.code %>" onclick="applyPromo('<%= c.code %>')" class="px-3 py-1.5 bg-brand-black text-white hover:bg-brand-gray-600 text-[10px] font-bold uppercase tracking-wider transition-colors flex-shrink-0">
-                      Apply
-                    </button>
-                  </div>
-                <% }) %>
-              <% } %>
-            </div>
-          </div>
-
-          <!-- Summary Pricing Details -->
-          <div class="border-t border-brand-gray-100 pt-4 mb-6 font-sans text-sm space-y-3">
-            <div class="flex justify-between items-center text-brand-gray-600">
-              <span>Subtotal</span>
-              <span class="font-semibold text-brand-black">₹<%= cart.cartTotal %></span>
-            </div>
-            
-            <div class="flex justify-between items-center text-brand-gray-600 hidden" id="discount-row">
-              <span>Discount (<span id="promo-label"></span>)</span>
-              <span class="font-semibold text-green-600">-₹<span id="discount-val">0</span></span>
-            </div>
-
-            <div class="flex justify-between items-center text-brand-gray-600">
-              <span>Shipping</span>
-              <span class="font-semibold text-brand-black" id="shipping-val">₹<%= cart.cartTotal > 1999 ? 0 : 100 %></span>
-            </div>
-          </div>
-
-          <div class="border-t border-brand-gray-100 pt-4 mb-8 flex justify-between items-center">
-            <span class="font-sans font-bold text-brand-black text-base">Total</span>
-            <span class="font-sans font-bold text-brand-black text-xl" id="final-total">₹<%= cart.cartTotal > 1999 ? cart.cartTotal : cart.cartTotal + 100 %></span>
-          </div>
-
-          <button type="button" onclick="placeOrderCOD()" id="place-order-btn" class="w-full h-12 bg-brand-black text-white font-sans text-sm font-bold uppercase tracking-wider hover:bg-brand-gray-600 transition-colors flex items-center justify-center">
-            Place Order (COD)
+      <div
+        class="inline-block align-middle bg-white border border-brand-gray-200 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full p-6 sm:p-8">
+        <div class="flex justify-between items-center pb-4 border-b border-brand-gray-100">
+          <h3 class="font-serif text-xl font-bold text-brand-black" id="modal-title">Add New Address</h3>
+          <button type="button" onclick="closeAddressModal()"
+            class="text-brand-gray-400 hover:text-brand-black transition-colors focus:outline-none">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </button>
         </div>
-      </div>
 
+        <form id="address-form" novalidate class="mt-6 font-sans text-sm space-y-4">
+          <input type="hidden" id="addr-id">
+
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-widest text-brand-gray-500 mb-1">Full Name
+              <span class="text-red-500">*</span></label>
+            <input type="text" id="addr-fullName"
+              class="w-full px-3 py-2 border border-brand-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-black bg-white transition-colors">
+            <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="addr-fullName-err"></p>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-widest text-brand-gray-500 mb-1">Phone Number
+              (10 digit) <span class="text-red-500">*</span></label>
+            <input type="tel" id="addr-phone"
+              class="w-full px-3 py-2 border border-brand-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-black bg-white transition-colors">
+            <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="addr-phone-err"></p>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-widest text-brand-gray-500 mb-1">Flat/House No,
+              Building, Apartment <span class="text-red-500">*</span></label>
+            <input type="text" id="addr-line1"
+              class="w-full px-3 py-2 border border-brand-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-black bg-white transition-colors">
+            <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="addr-line1-err"></p>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-widest text-brand-gray-500 mb-1">Area, Street,
+              Sector (Optional)</label>
+            <input type="text" id="addr-line2"
+              class="w-full px-3 py-2 border border-brand-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-black bg-white transition-colors">
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-widest text-brand-gray-500 mb-1">Locality <span
+                class="text-red-500">*</span></label>
+            <input type="text" id="addr-locality"
+              class="w-full px-3 py-2 border border-brand-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-black bg-white transition-colors">
+            <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="addr-locality-err"></p>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-widest text-brand-gray-500 mb-1">Pincode (6
+              digits) <span class="text-red-500">*</span></label>
+            <div class="relative">
+              <input type="text" id="addr-pincode" maxlength="6" inputmode="numeric" placeholder="e.g. 680001"
+                class="w-full px-3 py-2 border border-brand-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-black bg-white transition-colors">
+              <svg id="pincode-spinner"
+                class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-gray-400 animate-spin hidden"
+                fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+              </svg>
+            </div>
+            <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="addr-pincode-err"></p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-widest text-brand-gray-500 mb-1">City <span
+                  class="text-red-500">*</span></label>
+              <input type="text" id="addr-city"
+                class="w-full px-3 py-2 border border-brand-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-black bg-white transition-colors">
+              <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="addr-city-err"></p>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-widest text-brand-gray-500 mb-1">State <span
+                  class="text-red-500">*</span></label>
+              <input type="text" id="addr-state"
+                class="w-full px-3 py-2 border border-brand-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-black bg-white transition-colors">
+              <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="addr-state-err"></p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 pt-2">
+            <input type="checkbox" id="addr-isDefault" class="accent-brand-black">
+            <label for="addr-isDefault" class="text-xs font-medium text-brand-gray-600 cursor-pointer">Set as default
+              address</label>
+          </div>
+
+          <div class="pt-4 flex gap-3">
+            <button type="button" onclick="closeAddressModal()"
+              class="flex-1 py-2.5 border border-brand-gray-200 text-brand-gray-600 hover:bg-brand-gray-50 font-sans font-bold uppercase tracking-wider text-xs transition-colors">Cancel</button>
+            <button type="submit"
+              class="flex-1 py-2.5 bg-brand-black text-white hover:bg-brand-gray-600 font-sans font-bold uppercase tracking-wider text-xs transition-colors">Save
+              Address</button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
-</main>
 
-<!-- Address Creation / Editing Modal -->
-<div id="address-modal" class="fixed inset-0 z-50 hidden overflow-y-auto" role="dialog" aria-modal="true">
-  <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-    <div class="fixed inset-0 bg-brand-black/40 backdrop-blur-sm transition-opacity" onclick="closeAddressModal()"></div>
-
-    <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-
-    <div class="inline-block align-middle bg-white border border-brand-gray-200 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full p-6 sm:p-8">
-      <div class="flex justify-between items-center pb-4 border-b border-brand-gray-100">
-        <h3 class="font-serif text-xl font-bold text-brand-black" id="modal-title">Add New Address</h3>
-        <button type="button" onclick="closeAddressModal()" class="text-brand-gray-400 hover:text-brand-black transition-colors focus:outline-none">
-          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-
-      <form id="address-form" novalidate class="mt-6 font-sans text-sm space-y-4">
-        <input type="hidden" id="addr-id">
-        
-        <div>
-          <label class="block text-xs font-semibold uppercase tracking-widest text-brand-gray-500 mb-1">Full Name <span class="text-red-500">*</span></label>
-          <input type="text" id="addr-fullName" class="w-full px-3 py-2 border border-brand-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-black bg-white transition-colors">
-          <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="addr-fullName-err"></p>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold uppercase tracking-widest text-brand-gray-500 mb-1">Phone Number (10 digit) <span class="text-red-500">*</span></label>
-          <input type="tel" id="addr-phone" class="w-full px-3 py-2 border border-brand-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-black bg-white transition-colors">
-          <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="addr-phone-err"></p>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold uppercase tracking-widest text-brand-gray-500 mb-1">Flat/House No, Building, Apartment <span class="text-red-500">*</span></label>
-          <input type="text" id="addr-line1" class="w-full px-3 py-2 border border-brand-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-black bg-white transition-colors">
-          <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="addr-line1-err"></p>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold uppercase tracking-widest text-brand-gray-500 mb-1">Area, Street, Sector (Optional)</label>
-          <input type="text" id="addr-line2" class="w-full px-3 py-2 border border-brand-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-black bg-white transition-colors">
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold uppercase tracking-widest text-brand-gray-500 mb-1">Locality <span class="text-red-500">*</span></label>
-          <input type="text" id="addr-locality" class="w-full px-3 py-2 border border-brand-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-black bg-white transition-colors">
-          <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="addr-locality-err"></p>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold uppercase tracking-widest text-brand-gray-500 mb-1">Pincode (6 digits) <span class="text-red-500">*</span></label>
-          <div class="relative">
-            <input type="text" id="addr-pincode" maxlength="6" inputmode="numeric" placeholder="e.g. 680001" class="w-full px-3 py-2 border border-brand-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-black bg-white transition-colors">
-            <svg id="pincode-spinner" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-gray-400 animate-spin hidden" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-            </svg>
-          </div>
-          <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="addr-pincode-err"></p>
-        </div>
-
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-semibold uppercase tracking-widest text-brand-gray-500 mb-1">City <span class="text-red-500">*</span></label>
-            <input type="text" id="addr-city" class="w-full px-3 py-2 border border-brand-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-black bg-white transition-colors">
-            <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="addr-city-err"></p>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold uppercase tracking-widest text-brand-gray-500 mb-1">State <span class="text-red-500">*</span></label>
-            <input type="text" id="addr-state" class="w-full px-3 py-2 border border-brand-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-black bg-white transition-colors">
-            <p class="hidden text-red-500 text-xs mt-1.5 font-sans pl-1" id="addr-state-err"></p>
-          </div>
-        </div>
-
-        <div class="flex items-center gap-2 pt-2">
-          <input type="checkbox" id="addr-isDefault" class="accent-brand-black">
-          <label for="addr-isDefault" class="text-xs font-medium text-brand-gray-600 cursor-pointer">Set as default address</label>
-        </div>
-
-        <div class="pt-4 flex gap-3">
-          <button type="button" onclick="closeAddressModal()" class="flex-1 py-2.5 border border-brand-gray-200 text-brand-gray-600 hover:bg-brand-gray-50 font-sans font-bold uppercase tracking-wider text-xs transition-colors">Cancel</button>
-          <button type="submit" class="flex-1 py-2.5 bg-brand-black text-white hover:bg-brand-gray-600 font-sans font-bold uppercase tracking-wider text-xs transition-colors">Save Address</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<script>
-  let subtotal = <%= cart.cartTotal %>;
-  let shipping = <%= cart.cartTotal > 1999 ? 0 : 100 %>;
-  let discount = 0;
-  let appliedCoupon = '';
-
-  const availableCouponsList = <%- JSON.stringify(typeof availableCoupons !== 'undefined' ? availableCoupons : []) %>;
-
-  // Apply Coupon Logic
-  function applyPromo(codeToApply = null) {
-    const inputVal = codeToApply || document.getElementById('promo-input').value;
-    const inputCode = (inputVal || '').trim().toUpperCase();
-    const msg = document.getElementById('promo-message');
-    const discountRow = document.getElementById('discount-row');
-    const discountVal = document.getElementById('discount-val');
-    const promoLabel = document.getElementById('promo-label');
-    const finalTotal = document.getElementById('final-total');
-    const promoInput = document.getElementById('promo-input');
-
-    if (!inputCode) {
-      msg.className = "text-xs font-sans mt-2 text-red-500 font-medium";
-      msg.textContent = "Please enter or select a promo code.";
-      msg.classList.remove('hidden');
-      return;
-    }
-
-    const coupon = availableCouponsList.find(c => c.code.toUpperCase() === inputCode);
-    if (!coupon) {
-      removePromo(false);
-      msg.className = "text-xs font-sans mt-2 text-red-500 font-medium";
-      msg.textContent = "Invalid promo code.";
-      msg.classList.remove('hidden');
-      return;
-    }
-
-    if (subtotal < coupon.minPurchase) {
-      removePromo(false);
-      msg.className = "text-xs font-sans mt-2 text-red-500 font-medium";
-      msg.textContent = `Minimum purchase of ₹${coupon.minPurchase} required for code ${coupon.code}.`;
-      msg.classList.remove('hidden');
-      return;
-    }
-
-    // Calculate discount
-    if (coupon.type === 'PERCENTAGE') {
-      discount = Math.round(subtotal * (coupon.discountValue / 100));
-    } else {
-      discount = Math.min(coupon.discountValue, subtotal);
-    }
-    appliedCoupon = coupon.code;
-    promoInput.value = coupon.code;
-
-    msg.className = "text-xs font-sans mt-2 text-green-600 font-medium flex items-center justify-between";
-    msg.innerHTML = `<span>Coupon ${coupon.code} applied! Saved ₹${discount}</span> <button type="button" onclick="removePromo()" class="text-red-500 hover:underline font-bold text-[10px] uppercase ml-2">Remove</button>`;
-    msg.classList.remove('hidden');
-
-    promoLabel.textContent = coupon.code;
-    discountVal.textContent = discount;
-    discountRow.classList.remove('hidden');
-
-    finalTotal.textContent = '₹' + (subtotal + shipping - discount);
-
-    // Update coupon apply buttons UI
-    availableCouponsList.forEach(c => {
-      const btn = document.getElementById('btn-coupon-' + c.code);
-      if (btn) {
-        if (c.code === coupon.code) {
-          btn.textContent = 'Applied';
-          btn.className = 'px-3 py-1.5 bg-green-600 text-white text-[10px] font-bold uppercase tracking-wider flex-shrink-0 cursor-default';
-          btn.onclick = null;
-        } else {
-          btn.textContent = 'Apply';
-          btn.className = 'px-3 py-1.5 bg-brand-black text-white hover:bg-brand-gray-600 text-[10px] font-bold uppercase tracking-wider transition-colors flex-shrink-0';
-          btn.onclick = () => applyPromo(c.code);
-        }
-      }
-    });
-  }
-
-  function removePromo(showMessage = true) {
-    discount = 0;
-    appliedCoupon = '';
-    const msg = document.getElementById('promo-message');
-    const discountRow = document.getElementById('discount-row');
-    const finalTotal = document.getElementById('final-total');
-    const promoInput = document.getElementById('promo-input');
-
-    promoInput.value = '';
-    discountRow.classList.add('hidden');
-    finalTotal.textContent = '₹' + (subtotal + shipping);
-
-    if (showMessage) {
-      msg.className = "text-xs font-sans mt-2 text-brand-gray-500 font-medium";
-      msg.textContent = "Coupon removed.";
-      msg.classList.remove('hidden');
-    } else {
-      msg.classList.add('hidden');
-    }
-
-    availableCouponsList.forEach(c => {
-      const btn = document.getElementById('btn-coupon-' + c.code);
-      if (btn) {
-        btn.textContent = 'Apply';
-        btn.className = 'px-3 py-1.5 bg-brand-black text-white hover:bg-brand-gray-600 text-[10px] font-bold uppercase tracking-wider transition-colors flex-shrink-0';
-        btn.onclick = () => applyPromo(c.code);
-      }
-    });
-  }
-
-  // Set Default Address via AJAX
-  async function setDefaultAddress(addressId) {
-    try {
-      const res = await fetch(`/account/addresses/set-default/${addressId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        window.location.reload();
-      } else {
-        if (typeof showFlash === 'function') showFlash('error', data.message || 'Failed to update default address');
-      }
-    } catch (error) {
-      console.error(error);
-      if (typeof showFlash === 'function') showFlash('error', 'Network error occurred');
-    }
-  }
-
-  // Handle address select styling
-  function selectAddress(addressId) {
-    // Remove active styles from all labels
-    document.querySelectorAll('[id^="label-addr-"]').forEach(label => {
-      label.className = "relative flex flex-col p-4 border border-brand-gray-200 bg-white rounded-md cursor-pointer transition-all hover:bg-brand-gray-50/50";
-    });
-    // Add active styles to selected label
-    const selectedLabel = document.getElementById(`label-addr-${addressId}`);
-    if (selectedLabel) {
-      selectedLabel.className = "relative flex flex-col p-4 border border-brand-black bg-white ring-1 ring-brand-black rounded-md cursor-pointer transition-all hover:bg-brand-gray-50/50";
-    }
-  }
-
-  // Address Validation Helpers
-  function setInvalid(fieldKey, msg) {
-    let id = fieldKey;
-    if (fieldKey === 'addressLine1') id = 'line1';
-    if (fieldKey === 'addressLine2') id = 'line2';
-
-    const el = document.getElementById('addr-' + id);
-    const err = document.getElementById('addr-' + id + '-err');
-    if (el) {
-      el.classList.remove('border-brand-gray-200', 'focus:ring-brand-black');
-      el.classList.add('border-red-500', 'focus:border-red-500');
-    }
-    if (err) {
-      err.textContent = msg;
-      err.classList.remove('hidden');
-    }
-  }
-
-  function setValid(fieldKey) {
-    let id = fieldKey;
-    if (fieldKey === 'addressLine1') id = 'line1';
-    if (fieldKey === 'addressLine2') id = 'line2';
-
-    const el = document.getElementById('addr-' + id);
-    const err = document.getElementById('addr-' + id + '-err');
-    if (el) {
-      el.classList.remove('border-red-500', 'focus:border-red-500');
-      el.classList.add('border-brand-gray-200', 'focus:ring-brand-black');
-    }
-    if (err) {
-      err.textContent = '';
-      err.classList.add('hidden');
-    }
-  }
-
-  function clearAddressErrors() {
-    ['fullName', 'phone', 'line1', 'pincode', 'state', 'city', 'locality'].forEach(setValid);
-  }
-
-  ['fullName', 'phone', 'line1', 'pincode', 'locality', 'state', 'city'].forEach(id => {
-    const el = document.getElementById('addr-' + id);
-    if (!el) return;
-    el.addEventListener('input', () => setValid(id));
-  });
-
-  // Pincode Auto City & State Detection
-  function toTitleCase(str) {
-    if (!str) return '';
-    return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-  }
-
-  async function fetchLocationDetails(pincode) {
-    let state = '';
-    let city = '';
-    let success = false;
-
-    // 1. Try Primary API
-    try {
-      const res = await fetch('https://aniket-thapa.github.io/india-pincode-api/pincodes/' + pincode + '.json');
-      if (res.ok) {
-        const data = await res.json();
-        if (data && data.state && data.district) {
-          state = toTitleCase(data.state);
-          city = toTitleCase(data.district);
-          success = true;
-        }
-      }
-    } catch (err) {
-      console.warn('Primary pincode API failed, trying fallback...', err);
-    }
-
-    // 2. Try Fallback API
-    if (!success) {
+  <script>
+    // Set Default Address via AJAX
+    async function setDefaultAddress(addressId) {
       try {
-        const res = await fetch('https://api.postalpincode.in/pincode/' + pincode);
+        const res = await fetch(`/account/addresses/set-default/${addressId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          window.location.reload();
+        } else {
+          if (typeof showFlash === 'function') showFlash('error', data.message || 'Failed to update default address');
+        }
+      } catch (error) {
+        console.error(error);
+        if (typeof showFlash === 'function') showFlash('error', 'Network error occurred');
+      }
+    }
+
+    // Handle address select styling
+    function selectAddress(addressId) {
+      // Remove active styles from all labels
+      document.querySelectorAll('[id^="label-addr-"]').forEach(label => {
+        label.className = "relative flex flex-col p-4 border border-brand-gray-200 bg-white rounded-md cursor-pointer transition-all hover:bg-brand-gray-50/50";
+      });
+      // Add active styles to selected label
+      const selectedLabel = document.getElementById(`label-addr-${addressId}`);
+      if (selectedLabel) {
+        selectedLabel.className = "relative flex flex-col p-4 border border-brand-black bg-white ring-1 ring-brand-black rounded-md cursor-pointer transition-all hover:bg-brand-gray-50/50";
+      }
+    }
+
+    // Address Validation Helpers
+    function setInvalid(fieldKey, msg) {
+      let id = fieldKey;
+      if (fieldKey === 'addressLine1') id = 'line1';
+      if (fieldKey === 'addressLine2') id = 'line2';
+
+      const el = document.getElementById('addr-' + id);
+      const err = document.getElementById('addr-' + id + '-err');
+      if (el) {
+        el.classList.remove('border-brand-gray-200', 'focus:ring-brand-black');
+        el.classList.add('border-red-500', 'focus:border-red-500');
+      }
+      if (err) {
+        err.textContent = msg;
+        err.classList.remove('hidden');
+      }
+    }
+
+    function setValid(fieldKey) {
+      let id = fieldKey;
+      if (fieldKey === 'addressLine1') id = 'line1';
+      if (fieldKey === 'addressLine2') id = 'line2';
+
+      const el = document.getElementById('addr-' + id);
+      const err = document.getElementById('addr-' + id + '-err');
+      if (el) {
+        el.classList.remove('border-red-500', 'focus:border-red-500');
+        el.classList.add('border-brand-gray-200', 'focus:ring-brand-black');
+      }
+      if (err) {
+        err.textContent = '';
+        err.classList.add('hidden');
+      }
+    }
+
+    function clearAddressErrors() {
+      ['fullName', 'phone', 'line1', 'pincode', 'state', 'city', 'locality'].forEach(setValid);
+    }
+
+    ['fullName', 'phone', 'line1', 'pincode', 'locality', 'state', 'city'].forEach(id => {
+      const el = document.getElementById('addr-' + id);
+      if (!el) return;
+      el.addEventListener('input', () => setValid(id));
+    });
+
+    // Pincode Auto City & State Detection
+    function toTitleCase(str) {
+      if (!str) return '';
+      return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    }
+
+    async function fetchLocationDetails(pincode) {
+      let state = '';
+      let city = '';
+      let success = false;
+
+      // 1. Try Primary API
+      try {
+        const res = await fetch('https://aniket-thapa.github.io/india-pincode-api/pincodes/' + pincode + '.json');
         if (res.ok) {
           const data = await res.json();
-          const postOffice = data?.[0]?.PostOffice?.[0];
-          if (data?.[0]?.Status === 'Success' && postOffice) {
-            state = postOffice.State || '';
-            city = postOffice.District || postOffice.Block || postOffice.Name || '';
+          if (data && data.state && data.district) {
+            state = toTitleCase(data.state);
+            city = toTitleCase(data.district);
             success = true;
           }
         }
       } catch (err) {
-        console.error('All pincode APIs failed', err);
+        console.warn('Primary pincode API failed, trying fallback...', err);
       }
+
+      // 2. Try Fallback API
+      if (!success) {
+        try {
+          const res = await fetch('https://api.postalpincode.in/pincode/' + pincode);
+          if (res.ok) {
+            const data = await res.json();
+            const postOffice = data?.[0]?.PostOffice?.[0];
+            if (data?.[0]?.Status === 'Success' && postOffice) {
+              state = postOffice.State || '';
+              city = postOffice.District || postOffice.Block || postOffice.Name || '';
+              success = true;
+            }
+          }
+        } catch (err) {
+          console.error('All pincode APIs failed', err);
+        }
+      }
+
+      return success ? { state, city } : null;
     }
 
-    return success ? { state, city } : null;
-  }
+    const pincodeInput = document.getElementById('addr-pincode');
+    let pincodeTimeout;
+    if (pincodeInput) {
+      pincodeInput.addEventListener('input', (e) => {
+        const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+        e.target.value = val;
 
-  const pincodeInput = document.getElementById('addr-pincode');
-  let pincodeTimeout;
-  if (pincodeInput) {
-    pincodeInput.addEventListener('input', (e) => {
-      const val = e.target.value.replace(/\D/g, '').slice(0, 6);
-      e.target.value = val;
+        const cityInput = document.getElementById('addr-city');
+        const stateInput = document.getElementById('addr-state');
+        const spinner = document.getElementById('pincode-spinner');
 
-      const cityInput = document.getElementById('addr-city');
-      const stateInput = document.getElementById('addr-state');
-      const spinner = document.getElementById('pincode-spinner');
+        // Clear City and State when Pincode changes
+        cityInput.value = '';
+        stateInput.value = '';
 
-      // Clear City and State when Pincode changes
-      cityInput.value = '';
-      stateInput.value = '';
+        if (val.length === 6) {
+          clearTimeout(pincodeTimeout);
+          if (spinner) spinner.classList.remove('hidden');
+          setValid('pincode');
 
-      if (val.length === 6) {
-        clearTimeout(pincodeTimeout);
-        if (spinner) spinner.classList.remove('hidden');
-        setValid('pincode');
+          pincodeTimeout = setTimeout(async () => {
+            const details = await fetchLocationDetails(val);
+            if (spinner) spinner.classList.add('hidden');
 
-        pincodeTimeout = setTimeout(async () => {
-          const details = await fetchLocationDetails(val);
+            if (details) {
+              cityInput.value = details.city;
+              stateInput.value = details.state;
+              setValid('pincode');
+              setValid('city');
+              setValid('state');
+            } else {
+              setInvalid('pincode', 'Invalid pincode or location not found.');
+            }
+          }, 400);
+        } else {
           if (spinner) spinner.classList.add('hidden');
+        }
+      });
+    }
 
-          if (details) {
-            cityInput.value = details.city;
-            stateInput.value = details.state;
-            setValid('pincode');
-            setValid('city');
-            setValid('state');
-          } else {
-            setInvalid('pincode', 'Invalid pincode or location not found.');
-          }
-        }, 400);
+    // Modal actions
+    function openAddressModal(addrJsonStr = null) {
+      const modal = document.getElementById('address-modal');
+      const title = document.getElementById('modal-title');
+      const form = document.getElementById('address-form');
+
+      // Reset Form & Errors
+      form.reset();
+      clearAddressErrors();
+      document.getElementById('addr-id').value = '';
+
+      if (addrJsonStr) {
+        const addr = JSON.parse(addrJsonStr);
+        title.textContent = 'Edit Address';
+        document.getElementById('addr-id').value = addr._id;
+        document.getElementById('addr-fullName').value = addr.fullName;
+        document.getElementById('addr-phone').value = addr.phone;
+        document.getElementById('addr-line1').value = addr.addressLine1;
+        document.getElementById('addr-line2').value = addr.addressLine2 || '';
+        document.getElementById('addr-locality').value = addr.locality;
+        document.getElementById('addr-city').value = addr.city;
+        document.getElementById('addr-state').value = addr.state;
+        document.getElementById('addr-pincode').value = addr.pincode;
+        document.getElementById('addr-isDefault').checked = addr.isDefault;
       } else {
-        if (spinner) spinner.classList.add('hidden');
+        title.textContent = 'Add New Address';
+      }
+
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeAddressModal() {
+      const modal = document.getElementById('address-modal');
+      clearAddressErrors();
+      modal.classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+
+    // Address Form Submission
+    document.getElementById('address-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearAddressErrors();
+
+      const id = document.getElementById('addr-id').value;
+      const body = {
+        fullName: document.getElementById('addr-fullName').value.trim(),
+        phone: document.getElementById('addr-phone').value.trim(),
+        addressLine1: document.getElementById('addr-line1').value.trim(),
+        addressLine2: document.getElementById('addr-line2').value.trim(),
+        locality: document.getElementById('addr-locality').value.trim(),
+        city: document.getElementById('addr-city').value.trim(),
+        state: document.getElementById('addr-state').value.trim(),
+        pincode: document.getElementById('addr-pincode').value.trim(),
+        isDefault: document.getElementById('addr-isDefault').checked
+      };
+
+      let valid = true;
+      const nameRegex = /^[a-zA-Z\s]+$/;
+      if (!body.fullName) { setInvalid('fullName', 'Full name is required.'); valid = false; }
+      else if (body.fullName.length < 3) { setInvalid('fullName', 'Full name must be at least 3 characters.'); valid = false; }
+      else if (!nameRegex.test(body.fullName)) { setInvalid('fullName', 'Full name can only contain alphabets and spaces.'); valid = false; }
+
+      if (!body.phone) { setInvalid('phone', 'Phone number is required.'); valid = false; }
+      else if (!/^[6-9]\d{9}$/.test(body.phone)) { setInvalid('phone', 'Enter a valid 10-digit number.'); valid = false; }
+
+      if (!body.addressLine1) { setInvalid('line1', 'Address line 1 is required.'); valid = false; }
+      if (!body.locality) { setInvalid('locality', 'Locality is required.'); valid = false; }
+      if (!body.city) { setInvalid('city', 'City is required.'); valid = false; }
+      if (!body.state) { setInvalid('state', 'State is required.'); valid = false; }
+      if (!body.pincode) { setInvalid('pincode', 'Valid 6-digit pincode is required.'); valid = false; }
+      else if (!/^\d{6}$/.test(body.pincode)) { setInvalid('pincode', 'Valid 6-digit pincode is required.'); valid = false; }
+
+      if (!valid) return;
+
+      const url = id ? `/account/addresses/edit/${id}` : '/account/addresses/add';
+
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          closeAddressModal();
+          if (typeof showFlash === 'function') {
+            showFlash('success', data.message);
+          }
+          setTimeout(() => window.location.reload(), 1000);
+        } else {
+          if (data.field) {
+            setInvalid(data.field, data.message);
+          } else if (typeof showFlash === 'function') {
+            showFlash('error', data.message || 'Failed to save address');
+          }
+        }
+      } catch (error) {
+        console.error(error);
+        if (typeof showFlash === 'function') {
+          showFlash('error', 'Network error occurred');
+        }
       }
     });
-  }
 
-  // Modal actions
-  function openAddressModal(addrJsonStr = null) {
-    const modal = document.getElementById('address-modal');
-    const title = document.getElementById('modal-title');
-    const form = document.getElementById('address-form');
-
-    // Reset Form & Errors
-    form.reset();
-    clearAddressErrors();
-    document.getElementById('addr-id').value = '';
-    
-    if (addrJsonStr) {
-      const addr = JSON.parse(addrJsonStr);
-      title.textContent = 'Edit Address';
-      document.getElementById('addr-id').value = addr._id;
-      document.getElementById('addr-fullName').value = addr.fullName;
-      document.getElementById('addr-phone').value = addr.phone;
-      document.getElementById('addr-line1').value = addr.addressLine1;
-      document.getElementById('addr-line2').value = addr.addressLine2 || '';
-      document.getElementById('addr-locality').value = addr.locality;
-      document.getElementById('addr-city').value = addr.city;
-      document.getElementById('addr-state').value = addr.state;
-      document.getElementById('addr-pincode').value = addr.pincode;
-      document.getElementById('addr-isDefault').checked = addr.isDefault;
-    } else {
-      title.textContent = 'Add New Address';
-    }
-
-    modal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-  }
-
-  function closeAddressModal() {
-    const modal = document.getElementById('address-modal');
-    clearAddressErrors();
-    modal.classList.add('hidden');
-    document.body.style.overflow = '';
-  }
-
-  // Address Form Submission
-  document.getElementById('address-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    clearAddressErrors();
-    
-    const id = document.getElementById('addr-id').value;
-    const body = {
-      fullName: document.getElementById('addr-fullName').value.trim(),
-      phone: document.getElementById('addr-phone').value.trim(),
-      addressLine1: document.getElementById('addr-line1').value.trim(),
-      addressLine2: document.getElementById('addr-line2').value.trim(),
-      locality: document.getElementById('addr-locality').value.trim(),
-      city: document.getElementById('addr-city').value.trim(),
-      state: document.getElementById('addr-state').value.trim(),
-      pincode: document.getElementById('addr-pincode').value.trim(),
-      isDefault: document.getElementById('addr-isDefault').checked
-    };
-
-    let valid = true;
-    const nameRegex = /^[a-zA-Z\s]+$/;
-    if (!body.fullName) { setInvalid('fullName', 'Full name is required.'); valid = false; }
-    else if (body.fullName.length < 3) { setInvalid('fullName', 'Full name must be at least 3 characters.'); valid = false; }
-    else if (!nameRegex.test(body.fullName)) { setInvalid('fullName', 'Full name can only contain alphabets and spaces.'); valid = false; }
-
-    if (!body.phone) { setInvalid('phone', 'Phone number is required.'); valid = false; }
-    else if (!/^[6-9]\d{9}$/.test(body.phone)) { setInvalid('phone', 'Enter a valid 10-digit number.'); valid = false; }
-
-    if (!body.addressLine1) { setInvalid('line1', 'Address line 1 is required.'); valid = false; }
-    if (!body.locality) { setInvalid('locality', 'Locality is required.'); valid = false; }
-    if (!body.city) { setInvalid('city', 'City is required.'); valid = false; }
-    if (!body.state) { setInvalid('state', 'State is required.'); valid = false; }
-    if (!body.pincode) { setInvalid('pincode', 'Valid 6-digit pincode is required.'); valid = false; }
-    else if (!/^\d{6}$/.test(body.pincode)) { setInvalid('pincode', 'Valid 6-digit pincode is required.'); valid = false; }
-
-    if (!valid) return;
-
-    const url = id ? `/account/addresses/edit/${id}` : '/account/addresses/add';
-    
-    try {
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-
-      const data = await res.json();
-      if (res.ok && data.success) {
-        closeAddressModal();
-        if (typeof showFlash === 'function') {
-          showFlash('success', data.message);
-        }
-        setTimeout(() => window.location.reload(), 1000);
-      } else {
-        if (data.field) {
-          setInvalid(data.field, data.message);
-        } else if (typeof showFlash === 'function') {
-          showFlash('error', data.message || 'Failed to save address');
-        }
+    // Place Order COD via AJAX
+    async function placeOrderCOD() {
+      const selectedRadio = document.querySelector('input[name="selectedAddress"]:checked');
+      if (!selectedRadio) {
+        if (typeof showFlash === 'function') showFlash('warning', 'Please select a delivery address');
+        return;
       }
-    } catch (error) {
-      console.error(error);
-      if (typeof showFlash === 'function') {
-        showFlash('error', 'Network error occurred');
-      }
-    }
-  });
 
-  // Place Order COD via AJAX
-  async function placeOrderCOD() {
-    const selectedRadio = document.querySelector('input[name="selectedAddress"]:checked');
-    if (!selectedRadio) {
-      if (typeof showFlash === 'function') showFlash('warning', 'Please select a delivery address');
-      return;
-    }
+      const btn = document.getElementById('place-order-btn');
+      btn.disabled = true;
+      btn.textContent = 'Placing Order...';
 
-    const btn = document.getElementById('place-order-btn');
-    btn.disabled = true;
-    btn.textContent = 'Placing Order...';
+      try {
+        const res = await fetch('/checkout/place-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            addressId: selectedRadio.value,
+            couponCode: ''
+          })
+        });
 
-    try {
-      const res = await fetch('/checkout/place-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          addressId: selectedRadio.value,
-          couponCode: appliedCoupon
-        })
-      });
+        const data = await res.json();
 
-      const data = await res.json();
-
-      if (res.ok && data.success) {
-        window.location.href = `/checkout/success?orderId=${data.orderId}`;
-      } else {
-        if (typeof showFlash === 'function') showFlash('error', data.message || 'Failed to place order');
+        if (res.ok && data.success) {
+          window.location.href = `/checkout/success?orderId=${data.orderId}`;
+        } else {
+          if (typeof showFlash === 'function') showFlash('error', data.message || 'Failed to place order');
+          btn.disabled = false;
+          btn.textContent = 'Place Order (COD)';
+        }
+      } catch (error) {
+        console.error(error);
+        if (typeof showFlash === 'function') showFlash('error', 'Network error occurred');
         btn.disabled = false;
         btn.textContent = 'Place Order (COD)';
       }
-    } catch (error) {
-      console.error(error);
-      if (typeof showFlash === 'function') showFlash('error', 'Network error occurred');
-      btn.disabled = false;
-      btn.textContent = 'Place Order (COD)';
     }
-  }
-</script>
-<%- include('../partials/footer') %>
+  </script>
+  <%- include('../partials/footer') %>

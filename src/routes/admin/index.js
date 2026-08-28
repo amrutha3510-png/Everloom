@@ -5,6 +5,7 @@ import categoryRoutes from './category.routes.js';
 import subcategoryRoutes from './subcategory.routes.js';
 import productRoutes from './product.routes.js';
 import orderRoutes from './order.routes.js';
+import returnRoutes from './return.routes.js';
 import inventoryRoutes from './inventory.routes.js';
 import { getAdminDashboard } from '../../controllers/admin/dashboard.controller.js';
 import { isAdmin } from '../../middlewares/auth.middleware.js';
@@ -31,6 +32,9 @@ router.use('/products', productRoutes);
 
 // Mount order routes
 router.use('/orders', orderRoutes);
+
+// Mount return routes
+router.use('/returns', returnRoutes);
 
 // Mount inventory routes
 router.use('/inventory', inventoryRoutes);

@@ -73,6 +73,7 @@ import {
   getOrderDetailPage,
   trackOrder,
   cancelOrder,
+  cancelOrderItem,
   returnOrder,
   downloadInvoice
 } from '../../controllers/user/order.controller.js';
@@ -81,6 +82,7 @@ router.get('/orders', isUserPage, getOrdersPage);
 router.get('/orders/:orderId', isUserPage, getOrderDetailPage);
 router.get('/orders/:orderId/track', isUserPage, trackOrder);
 router.post('/orders/:orderId/cancel', isUser, cancelOrder);
+router.post('/orders/:orderId/items/:itemId/cancel', isUser, cancelOrderItem);
 router.post('/orders/:orderId/return', isUser, returnOrder);
 router.get('/orders/:orderId/invoice', isUser, downloadInvoice);
 
