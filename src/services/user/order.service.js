@@ -193,9 +193,33 @@ export const cancelUserOrderItem = async (userId, orderId, itemId, cancellationR
 /**
  * Return request by the user.
  */
-export const returnUserOrder = async (userId, orderId, returnReason) => {
-  if (!returnReason || returnReason.trim() === '') {
-    throw new Error('Return reason is mandatory.');
+export const returnUserOrder = async (userId, orderId, returnReason, customReason) => {
+  const ALLOWED_PREDEFINED = [
+    'Product is damaged',
+    'Product is defective',
+    'Wrong product received',
+    'Wrong size received',
+    'Product does not match the description',
+    'Quality issue'
+  ];
+
+  let finalReason = '';
+
+  if (!returnReason || typeof returnReason !== 'string' || returnReason.trim() === '' || returnReason.trim() === 'Select Return Reason') {
+    throw new Error('Please select a valid return reason.');
+  }
+
+  const selectedReason = returnReason.trim();
+
+  if (ALLOWED_PREDEFINED.includes(selectedReason)) {
+    finalReason = selectedReason;
+  } else if (selectedReason === 'Other') {
+    if (!customReason || typeof customReason !== 'string' || customReason.trim() === '') {
+      throw new Error('Custom return reason is required when "Other" is selected.');
+    }
+    finalReason = customReason.trim();
+  } else {
+    throw new Error('Invalid return reason value.');
   }
 
   const query = { user: userId };
@@ -215,7 +239,7 @@ export const returnUserOrder = async (userId, orderId, returnReason) => {
   }
 
   order.status = 'Return Requested';
-  order.returnReason = returnReason.trim();
+  order.returnReason = finalReason;
   order.returnStatus = 'Pending';
 
   await order.save();

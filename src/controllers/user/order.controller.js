@@ -169,9 +169,9 @@ export const returnOrder = async (req, res) => {
     }
 
     const { orderId } = req.params;
-    const { returnReason } = req.body;
+    const { returnReason, customReason } = req.body;
 
-    await orderService.returnUserOrder(userId, orderId, returnReason);
+    await orderService.returnUserOrder(userId, orderId, returnReason, customReason);
     res.status(200).json({ success: true, message: 'Return request submitted successfully.' });
   } catch (error) {
     console.error('Return order controller error:', error);
@@ -196,6 +196,11 @@ export const downloadInvoice = async (req, res) => {
     if (!order) {
       req.session.toast = { type: 'error', message: 'Order not found.' };
       return res.redirect('/account/orders');
+    }
+
+    if (order.status !== 'Delivered') {
+      req.session.toast = { type: 'error', message: 'Invoice download is only available for delivered orders.' };
+      return res.redirect(`/account/orders/${order.orderId}`);
     }
 
     const doc = new PDFDocument({ margin: 50 });
