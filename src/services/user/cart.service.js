@@ -1,6 +1,7 @@
 import Cart from '../../models/cartModel.js';
 import Product from '../../models/productModel.js';
 import Wishlist from '../../models/wishlistModel.js';
+import { calculateBestOffer } from './offer.service.js';
 
 const MAX_QTY = 5;
 
@@ -14,18 +15,22 @@ export const getCart = async (userId) => {
   let cart = await Cart.findOne({ user: userId }).populate({
     path: 'items.product',
     populate: [
-      { path: 'category', select: 'name isDeleted' },
-      { path: 'subcategory', select: 'name isDeleted' }
+      { path: 'category', select: 'name isDeleted status' },
+      { path: 'subcategory', select: 'name isDeleted status' }
     ]
   }).lean();
 
   if (!cart) {
-    return { items: [], cartTotal: 0 };
+    return { items: [], cartTotal: 0, originalTotal: 0, totalOfferDiscount: 0 };
   }
 
-  // Validate items and calculate total
+  // Validate items and calculate total with active product/category offers
   let cartTotal = 0;
-  cart.items = cart.items.map(item => {
+  let originalTotal = 0;
+  let totalOfferDiscount = 0;
+  const processedItems = [];
+
+  for (const item of cart.items) {
     const product = item.product;
     if (product) {
       product.images = (product.colorOptions && product.colorOptions[0] && product.colorOptions[0].images) || [];
@@ -33,10 +38,11 @@ export const getCart = async (userId) => {
     }
     
     // Check if product exists and is available
-    if (!product || product.isDeleted || product.status !== 'Active' || product.category?.isDeleted || product.subcategory?.isDeleted) {
+    if (!product || product.isDeleted || product.status !== 'Active' || product.category?.isDeleted || product.category?.status === 'Inactive' || product.subcategory?.isDeleted || product.subcategory?.status === 'Inactive') {
       item.isUnavailable = true;
       item.message = "Product is currently unavailable";
-      return item;
+      processedItems.push(item);
+      continue;
     }
 
     // Find the variant
@@ -44,10 +50,19 @@ export const getCart = async (userId) => {
     if (!variant) {
       item.isUnavailable = true;
       item.message = "Selected variant is no longer available";
-      return item;
+      processedItems.push(item);
+      continue;
     }
 
-    item.price = variant.price;
+    // Calculate best active offer for this item
+    const categoryId = product.category ? (product.category._id || product.category) : null;
+    const offerData = await calculateBestOffer(product._id, categoryId, variant.price);
+
+    item.originalPrice = variant.price;
+    item.price = offerData.finalPrice;
+    item.offerDiscount = offerData.discountAmount;
+    item.offerPercentage = offerData.offerPercentage;
+    item.offerName = offerData.offerName;
     item.stock = variant.stock;
 
     if (variant.stock <= 0) {
@@ -59,12 +74,17 @@ export const getCart = async (userId) => {
     } else {
       item.itemTotal = item.price * item.quantity;
       cartTotal += item.itemTotal;
+      originalTotal += item.originalPrice * item.quantity;
+      totalOfferDiscount += item.offerDiscount * item.quantity;
     }
 
-    return item;
-  });
+    processedItems.push(item);
+  }
 
+  cart.items = processedItems;
   cart.cartTotal = cartTotal;
+  cart.originalTotal = originalTotal;
+  cart.totalOfferDiscount = totalOfferDiscount;
   return cart;
 };
 

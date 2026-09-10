@@ -31,6 +31,10 @@ const orderItemSchema = new mongoose.Schema({
   isStockRestored: {
     type: Boolean,
     default: false
+  },
+  isRefunded: {
+    type: Boolean,
+    default: false
   }
 });
 
@@ -59,7 +63,7 @@ const orderSchema = new mongoose.Schema({
   },
   shippingCharge: {
     type: Number,
-    default: 0
+    default: 49
   },
   shippingAddress: {
     fullName: { type: String, required: true },
@@ -74,13 +78,34 @@ const orderSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['Pending', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled', 'Return Requested', 'Returned'],
+    enum: ['Pending', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled', 'Return Requested', 'Returned', 'Payment Failed'],
+    default: 'Pending',
+    index: true
+  },
+  paymentStatus: {
+    type: String,
+    enum: ['Pending', 'Paid', 'Failed'],
     default: 'Pending',
     index: true
   },
   paymentMethod: {
     type: String,
     default: 'COD'
+  },
+  razorpayOrderId: {
+    type: String,
+    default: null,
+    index: true
+  },
+  stockReservationStatus: {
+    type: String,
+    enum: ['NONE', 'ACTIVE', 'EXPIRED', 'COMPLETED'],
+    default: 'NONE',
+    index: true
+  },
+  stockReservationExpiresAt: {
+    type: Date,
+    default: null
   },
   cancellationReason: {
     type: String
@@ -98,6 +123,10 @@ const orderSchema = new mongoose.Schema({
     index: true
   },
   isStockRestored: {
+    type: Boolean,
+    default: false
+  },
+  isRefunded: {
     type: Boolean,
     default: false
   }

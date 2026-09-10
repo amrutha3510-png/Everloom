@@ -16,7 +16,11 @@ import {
   updateAddressHandler,
   deleteAddressHandler,
   setDefaultAddressHandler,
-  updatePasswordHandler
+  updatePasswordHandler,
+  createWalletTopupOrder,
+  verifyWalletTopupPayment,
+  logFailedWalletTopup,
+  getReferralsPage
 } from '../../controllers/user/account.controller.js';
 
 import multer from 'multer';
@@ -49,6 +53,8 @@ router.get('/profile',   isUserPage, getProfilePage);
 router.get('/addresses', isUserPage, getAddressesPage);
 router.get('/security',  isUserPage, getSecurityPage);
 router.get('/wallet',    isUserPage, getWalletPage);
+router.get('/referrals', isUserPage, getReferralsPage);
+router.get('/refer',     isUserPage, getReferralsPage);
 
 // ── Profile API (JSON responses) ──
 router.post('/profile/update',               isUser, updateProfileHandler);
@@ -67,6 +73,11 @@ router.delete('/addresses/delete/:id',   isUser, deleteAddressHandler);
 // ── Security API ──
 router.post('/security/change-password', isUser, updatePasswordHandler);
 
+// ── Wallet API ──
+router.post('/wallet/add-money/create-order', isUser, createWalletTopupOrder);
+router.post('/wallet/add-money/verify', isUser, verifyWalletTopupPayment);
+router.post('/wallet/add-money/failed', isUser, logFailedWalletTopup);
+
 // ── User Orders API & Page Renders ──
 import {
   getOrdersPage,
@@ -75,7 +86,10 @@ import {
   cancelOrder,
   cancelOrderItem,
   returnOrder,
-  downloadInvoice
+  downloadInvoice,
+  expireReservationHandler,
+  reorderFailedOrderHandler,
+  retryPaymentHandler
 } from '../../controllers/user/order.controller.js';
 
 router.get('/orders', isUserPage, getOrdersPage);
@@ -85,5 +99,8 @@ router.post('/orders/:orderId/cancel', isUser, cancelOrder);
 router.post('/orders/:orderId/items/:itemId/cancel', isUser, cancelOrderItem);
 router.post('/orders/:orderId/return', isUser, returnOrder);
 router.get('/orders/:orderId/invoice', isUser, downloadInvoice);
+router.post('/orders/:orderId/expire-reservation', isUser, expireReservationHandler);
+router.post('/orders/:orderId/reorder', isUserPage, reorderFailedOrderHandler);
+router.post('/orders/:orderId/retry-payment', isUser, retryPaymentHandler);
 
 export default router;

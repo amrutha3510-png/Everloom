@@ -26,6 +26,23 @@ const walletTransactionSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  status: {
+    type: String,
+    enum: ['Success', 'Failed'],
+    default: 'Success',
+  },
+  orderId: {
+    type: String,
+    trim: true,
+  },
+  razorpayOrderId: {
+    type: String,
+    trim: true,
+  },
+  razorpayPaymentId: {
+    type: String,
+    trim: true,
+  },
 }, { timestamps: true });
 
 const WalletTransaction = mongoose.model('WalletTransaction', walletTransactionSchema);

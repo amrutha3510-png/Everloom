@@ -1,6 +1,56 @@
 import Order from '../../models/orderModel.js';
 import Product from '../../models/productModel.js';
+import Cart from '../../models/cartModel.js';
+import * as walletService from './wallet.service.js';
 import mongoose from 'mongoose';
+
+/**
+ * Automatically check and expire stock reservation if 5 minutes have elapsed.
+ * Atomically updates reservation state and restores variant stock to prevent duplicate restocking.
+ */
+export const processStockReservationExpiry = async (order) => {
+  if (!order) return order;
+
+  if (
+    order.stockReservationStatus === 'ACTIVE' &&
+    order.stockReservationExpiresAt &&
+    new Date() >= new Date(order.stockReservationExpiresAt)
+  ) {
+    const updatedOrder = await Order.findOneAndUpdate(
+      {
+        _id: order._id,
+        stockReservationStatus: 'ACTIVE',
+        stockReservationExpiresAt: { $lte: new Date() }
+      },
+      {
+        $set: {
+          stockReservationStatus: 'EXPIRED',
+          isStockRestored: true
+        }
+      },
+      { returnDocument: 'after' }
+    ).populate('items.product').lean();
+
+    if (updatedOrder) {
+      for (const item of updatedOrder.items) {
+        const productId = item.product ? (item.product._id || item.product) : null;
+        if (productId && item.variant) {
+          await Product.updateOne(
+            {
+              _id: productId,
+              'variants.size': item.variant.size,
+              'variants.color': item.variant.color
+            },
+            { $inc: { 'variants.$.stock': item.quantity } }
+          );
+        }
+      }
+      return updatedOrder;
+    }
+  }
+
+  return order;
+};
 
 /**
  * Fetch orders for the logged-in user with search, filter, and pagination.
@@ -21,12 +71,18 @@ export const getUserOrders = async (userId, queryParams, page = 1, limit = 10) =
 
   const skip = (page - 1) * limit;
 
-  const orders = await Order.find(matchQuery)
+  const rawOrders = await Order.find(matchQuery)
     .populate('items.product')
     .sort({ createdAt: -1 }) // Newest first
     .skip(skip)
     .limit(limit)
     .lean();
+
+  const orders = [];
+  for (let ord of rawOrders) {
+    const processed = await processStockReservationExpiry(ord);
+    orders.push(processed);
+  }
 
   const totalEntries = await Order.countDocuments(matchQuery);
   const totalPages = Math.ceil(totalEntries / limit) || 1;
@@ -54,10 +110,14 @@ export const getUserOrderById = async (userId, orderIdOrDbId) => {
     query.orderId = orderIdOrDbId;
   }
 
-  const order = await Order.findOne(query)
+  let order = await Order.findOne(query)
     .populate('items.product')
     .populate('user', 'fullName email')
     .lean();
+
+  if (order) {
+    order = await processStockReservationExpiry(order);
+  }
 
   if (order && order.items) {
     order.items.forEach(item => {
@@ -123,6 +183,19 @@ export const cancelUserOrder = async (userId, orderId, cancellationReason) => {
     }
   }
 
+  // Process wallet refund ONLY ONCE for prepaid/wallet orders
+  if (!order.isRefunded && (order.paymentMethod === 'Razorpay' || order.paymentMethod === 'WALLET')) {
+    if (order.totalAmount && order.totalAmount > 0) {
+      await walletService.addCredit(
+        userId,
+        order.totalAmount,
+        `Order cancellation refund`,
+        order.orderId
+      );
+      order.isRefunded = true;
+    }
+  }
+
   order.status = 'Cancelled';
   order.cancellationReason = cancellationReason.trim();
   order.isStockRestored = true;
@@ -175,6 +248,20 @@ export const cancelUserOrderItem = async (userId, orderId, itemId, cancellationR
     item.isStockRestored = true;
   }
 
+  // Process item wallet refund ONLY ONCE for prepaid/wallet orders
+  if (!item.isRefunded && (order.paymentMethod === 'Razorpay' || order.paymentMethod === 'WALLET')) {
+    const itemRefund = item.price * item.quantity;
+    if (itemRefund > 0) {
+      await walletService.addCredit(
+        userId,
+        itemRefund,
+        `Order cancellation refund for item`,
+        order.orderId
+      );
+      item.isRefunded = true;
+    }
+  }
+
   item.status = 'Cancelled';
   item.cancellationReason = cancellationReason.trim();
 
@@ -184,6 +271,7 @@ export const cancelUserOrderItem = async (userId, orderId, itemId, cancellationR
     order.status = 'Cancelled';
     order.cancellationReason = cancellationReason.trim();
     order.isStockRestored = true;
+    order.isRefunded = true;
   }
 
   await order.save();
@@ -244,4 +332,108 @@ export const returnUserOrder = async (userId, orderId, returnReason, customReaso
 
   await order.save();
   return order;
+};
+
+/**
+ * Explicitly trigger stock reservation expiry for an order (e.g. from frontend timer).
+ */
+export const expireOrderStockReservation = async (userId, orderId) => {
+  const query = { user: userId };
+  if (mongoose.Types.ObjectId.isValid(orderId)) {
+    query.$or = [{ _id: orderId }, { orderId: orderId }];
+  } else {
+    query.orderId = orderId;
+  }
+
+  let order = await Order.findOne(query).populate('items.product');
+  if (!order) {
+    throw new Error('Order not found or access denied.');
+  }
+
+  // Strictly enforce backend deadline: MUST be ACTIVE, MUST have stockReservationExpiresAt, and MUST be <= current time
+  if (
+    order.stockReservationStatus === 'ACTIVE' &&
+    order.stockReservationExpiresAt &&
+    new Date() >= new Date(order.stockReservationExpiresAt)
+  ) {
+    const updatedOrder = await Order.findOneAndUpdate(
+      {
+        _id: order._id,
+        stockReservationStatus: 'ACTIVE',
+        stockReservationExpiresAt: { $lte: new Date() }
+      },
+      {
+        $set: {
+          stockReservationStatus: 'EXPIRED',
+          isStockRestored: true
+        }
+      },
+      { returnDocument: 'after' }
+    ).populate('items.product').lean();
+
+    if (updatedOrder) {
+      for (const item of updatedOrder.items) {
+        const productId = item.product ? (item.product._id || item.product) : null;
+        if (productId && item.variant) {
+          await Product.updateOne(
+            {
+              _id: productId,
+              'variants.size': item.variant.size,
+              'variants.color': item.variant.color
+            },
+            { $inc: { 'variants.$.stock': item.quantity } }
+          );
+        }
+      }
+      return updatedOrder;
+    }
+  }
+
+  return order;
+};
+
+/**
+ * Re-add items from a failed order back to the user's cart for a new checkout attempt.
+ */
+export const reorderFailedOrder = async (userId, orderId) => {
+  const query = { user: userId };
+  if (mongoose.Types.ObjectId.isValid(orderId)) {
+    query.$or = [{ _id: orderId }, { orderId: orderId }];
+  } else {
+    query.orderId = orderId;
+  }
+
+  const order = await Order.findOne(query);
+  if (!order) {
+    throw new Error('Order not found or access denied.');
+  }
+
+  let cart = await Cart.findOne({ user: userId });
+  if (!cart) {
+    cart = new Cart({ user: userId, items: [] });
+  }
+
+  for (const item of order.items) {
+    const existingIndex = cart.items.findIndex(ci => 
+      ci.product.toString() === item.product.toString() &&
+      ci.variant.size === item.variant.size &&
+      ci.variant.color === item.variant.color
+    );
+
+    if (existingIndex > -1) {
+      cart.items[existingIndex].quantity += item.quantity;
+    } else {
+      cart.items.push({
+        product: item.product,
+        variant: {
+          size: item.variant.size,
+          color: item.variant.color
+        },
+        quantity: item.quantity
+      });
+    }
+  }
+
+  await cart.save();
+  return cart;
 };

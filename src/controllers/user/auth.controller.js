@@ -60,8 +60,10 @@ export const logoutUser = (req, res) => {
 };
 
 export const getRegisterPage = (req, res) => {
+    const refCode = (req.query.ref || req.query.referralCode || '').trim();
     res.render("user/auth/register", {
-        title: "Register"
+        title: "Register",
+        refCode
     });
 };
 

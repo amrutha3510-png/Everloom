@@ -1,6 +1,7 @@
 import Product from '../../models/productModel.js';
 import Category from '../../models/categoryModel.js';
 import Subcategory from '../../models/subcategoryModel.js';
+import { calculateBestOffer } from './offer.service.js';
 import mongoose from 'mongoose';
 
 export const getActiveCategories = async () => {
@@ -97,10 +98,21 @@ export const getListedProducts = async (query = {}, page = 1, limit = 12) => {
     .limit(limit)
     .lean();
 
-  products.forEach(p => {
+  for (const p of products) {
     p.images = (p.colorOptions && p.colorOptions[0] && p.colorOptions[0].images) || [];
     p.imageIds = (p.colorOptions && p.colorOptions[0] && p.colorOptions[0].imageIds) || [];
-  });
+
+    if (p.variants && p.variants.length > 0) {
+      const minVar = p.variants.reduce((min, v) => (v.price < min.price ? v : min), p.variants[0]);
+      const offerData = await calculateBestOffer(p._id, p.category ? (p.category._id || p.category) : null, minVar.price);
+      p.hasOffer = offerData.discountAmount > 0;
+      p.discountedPrice = offerData.finalPrice;
+      p.originalPrice = minVar.price;
+      p.offerPercentage = offerData.offerPercentage;
+      p.offerName = offerData.offerName;
+      p.discountAmount = offerData.discountAmount;
+    }
+  }
 
   const totalProducts = await Product.countDocuments(filter);
 
@@ -128,6 +140,24 @@ export const getProductById = async (id) => {
   }
   product.images = (product.colorOptions && product.colorOptions[0] && product.colorOptions[0].images) || [];
   product.imageIds = (product.colorOptions && product.colorOptions[0] && product.colorOptions[0].imageIds) || [];
+
+  if (product.variants && product.variants.length > 0) {
+    let bestOfferOverall = null;
+    for (const v of product.variants) {
+      const offerData = await calculateBestOffer(product._id, product.category._id, v.price);
+      v.originalPrice = v.price;
+      v.price = offerData.finalPrice;
+      v.discountAmount = offerData.discountAmount;
+      v.offerPercentage = offerData.offerPercentage;
+      v.offerName = offerData.offerName;
+
+      if (offerData.discountAmount > 0 && (!bestOfferOverall || offerData.discountAmount > bestOfferOverall.discountAmount)) {
+        bestOfferOverall = offerData;
+      }
+    }
+    product.bestOffer = bestOfferOverall;
+  }
+
   return product;
 };
 
@@ -167,10 +197,20 @@ export const getRelatedProducts = async (categoryId, subcategoryId, excludeProdu
     related = [...related, ...more];
   }
 
-  related.forEach(p => {
+  for (const p of related) {
     p.images = (p.colorOptions && p.colorOptions[0] && p.colorOptions[0].images) || [];
     p.imageIds = (p.colorOptions && p.colorOptions[0] && p.colorOptions[0].imageIds) || [];
-  });
+
+    if (p.variants && p.variants.length > 0) {
+      const minVar = p.variants.reduce((min, v) => (v.price < min.price ? v : min), p.variants[0]);
+      const offerData = await calculateBestOffer(p._id, p.category ? (p.category._id || p.category) : null, minVar.price);
+      p.hasOffer = offerData.discountAmount > 0;
+      p.discountedPrice = offerData.finalPrice;
+      p.originalPrice = minVar.price;
+      p.offerPercentage = offerData.offerPercentage;
+      p.offerName = offerData.offerName;
+    }
+  }
 
   return related;
 };

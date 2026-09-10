@@ -27,6 +27,7 @@ router.get("/", getHomePage);
 
 // Register Routes
 router.get("/register", isGuest, getRegisterPage);
+router.get("/signup", isGuest, getRegisterPage);
 router.post("/register", isGuest, registerUser);
 
 // Login Routes

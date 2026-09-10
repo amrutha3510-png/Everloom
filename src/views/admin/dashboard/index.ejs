@@ -1,38 +1,475 @@
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <!-- Dashboard Header -->
-<div class="mb-10">
-  <span class="inline-flex items-center gap-1.5 bg-white border border-brand-gray-200 text-brand-gray-600 text-[10px] font-sans font-bold tracking-widest2 uppercase px-4 py-1.5 rounded-full mb-6 shadow-sm">
-    <svg class="w-3.5 h-3.5 text-brand-black" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M11.25 2.08299C11.0043 2.13811 10.7652 2.21958 10.537 2.32599C6.553 4.18799 4 9.39499 4 13.856C4 18.096 7.183 21.58 11.25 21.965V2.08299Z" fill="currentColor"/>
-      <path d="M12.75 21.965C16.817 21.58 20 18.097 20 13.857C20 13.4503 19.979 13.039 19.937 12.623L12.75 19.811V21.965Z" fill="currentColor"/>
-      <path d="M18.26 7.17999C17.8763 6.46064 17.4278 5.77781 16.92 5.13999L12.75 9.30999V12.69L18.26 7.17999Z" fill="currentColor"/>
-      <path d="M15.908 4.02999C15.191 3.33289 14.3652 2.75734 13.463 2.32599C13.2348 2.21958 12.9957 2.13811 12.75 2.08299V7.18899L15.908 4.02999Z" fill="currentColor"/>
-      <path d="M18.936 8.62399L12.75 14.811V17.689L19.5 10.939L19.632 10.807C19.456 10.0626 19.2233 9.33285 18.936 8.62399Z" fill="currentColor"/>
-    </svg>
-    Everloom Admin
-  </span>
-  <div class="flex flex-col md:flex-row items-start md:justify-between gap-6">
+<div class="mb-8">
+  <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
     <div>
-      <h1 class="font-serif text-4xl md:text-5xl font-bold text-brand-black mb-4 leading-tight">
-        Admin Dashboard
-      </h1>
-      <p class="font-sans text-brand-gray-600 text-sm max-w-lg leading-relaxed">
-        Welcome to the Everloom Admin Panel. Use the sidebar menu to navigate through administration areas.
-      </p>
+      <h1 class="font-serif text-3xl font-bold text-brand-black">Admin Dashboard</h1>
+      <p class="font-sans text-brand-gray-500 text-xs mt-1">Real-time sales analytics, visual charts, top selling performance, and ledger book.</p>
+    </div>
+
+    <a href="/admin/sales-report" class="px-4 py-2.5 bg-brand-black text-white hover:bg-brand-gray-600 rounded-md font-sans text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-2 shadow-sm">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+      Full Sales Report
+    </a>
+  </div>
+</div>
+
+<!-- 1. TOP: Existing Summary Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 font-sans">
+  <div class="bg-white p-6 border border-brand-gray-100 rounded-xl shadow-sm">
+    <span class="text-[10px] font-bold text-brand-gray-400 uppercase tracking-widest2 block mb-1">Monthly Net Revenue</span>
+    <h3 class="font-serif text-3xl font-bold text-brand-black">₹<%= summary.finalSalesAmount.toLocaleString('en-IN') %></h3>
+  </div>
+
+  <div class="bg-white p-6 border border-brand-gray-100 rounded-xl shadow-sm">
+    <span class="text-[10px] font-bold text-brand-gray-400 uppercase tracking-widest2 block mb-1">Monthly Sales Count</span>
+    <h3 class="font-serif text-3xl font-bold text-brand-black"><%= summary.totalSalesCount %></h3>
+  </div>
+
+  <div class="bg-white p-6 border border-brand-gray-100 rounded-xl shadow-sm">
+    <span class="text-[10px] font-bold text-brand-gray-400 uppercase tracking-widest2 block mb-1">Coupon Deductions</span>
+    <h3 class="font-serif text-3xl font-bold text-green-600">₹<%= summary.couponDeductions.toLocaleString('en-IN') %></h3>
+  </div>
+
+  <div class="bg-white p-6 border border-brand-gray-100 rounded-xl shadow-sm">
+    <span class="text-[10px] font-bold text-brand-gray-400 uppercase tracking-widest2 block mb-1">Gross Order Amount</span>
+    <h3 class="font-serif text-3xl font-bold text-brand-black">₹<%= summary.totalOrderAmount.toLocaleString('en-IN') %></h3>
+  </div>
+</div>
+
+<!-- 2. MIDDLE: Sales Line Chart -->
+<div class="bg-white border border-brand-gray-100 rounded-xl shadow-sm p-6 mb-8">
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+    <div>
+      <h2 class="font-serif text-xl font-bold text-brand-black">1. Sales Revenue Line Graph</h2>
+      <p class="font-sans text-xs text-brand-gray-500 mt-0.5">Real revenue trends based on MongoDB order data (excluding Cancelled &amp; Returned orders).</p>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="flex flex-wrap items-center gap-3 font-sans text-xs">
+      <div class="flex items-center gap-2">
+        <label for="salesPeriodSelect" class="font-semibold text-brand-gray-500 uppercase tracking-wider">Period:</label>
+        <select id="salesPeriodSelect" onchange="handleSalesPeriodChange()" class="px-3 py-2 border border-brand-gray-200 rounded-md font-medium bg-white focus:outline-none focus:ring-1 focus:ring-brand-black">
+          <option value="daily" <%= salesChart.filter === 'daily' ? 'selected' : '' %>>Daily (Today)</option>
+          <option value="weekly" <%= salesChart.filter === 'weekly' ? 'selected' : '' %>>Weekly (This Week)</option>
+          <option value="monthly" <%= salesChart.filter === 'monthly' ? 'selected' : '' %>>Monthly (This Year)</option>
+          <option value="yearly" <%= salesChart.filter === 'yearly' ? 'selected' : '' %>>Yearly (5 Years)</option>
+          <option value="custom" <%= salesChart.filter === 'custom' ? 'selected' : '' %>>Custom Date Range</option>
+        </select>
+      </div>
+
+      <!-- Custom Date Pickers -->
+      <div id="custom-sales-dates" class="<%= salesChart.filter === 'custom' ? 'flex' : 'hidden' %> items-center gap-2">
+        <input type="date" id="salesStartDate" class="px-2.5 py-1.5 border border-brand-gray-200 rounded-md bg-white">
+        <span class="text-brand-gray-400">to</span>
+        <input type="date" id="salesEndDate" class="px-2.5 py-1.5 border border-brand-gray-200 rounded-md bg-white">
+        <button type="button" onclick="applyCustomSalesFilter()" class="px-3 py-1.5 bg-brand-black text-white rounded-md font-bold uppercase tracking-wider hover:bg-brand-gray-600 transition-colors">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="relative w-full h-80">
+    <canvas id="salesLineChartCanvas"></canvas>
+    <div id="sales-no-data-msg" class="absolute inset-0 flex items-center justify-center bg-white/80 hidden">
+      <p class="font-sans text-xs text-brand-gray-400 font-medium">No sales data available for the selected period.</p>
     </div>
   </div>
 </div>
 
-<!-- Skeleton Grid -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-  <div class="bg-white p-8 rounded-xl border border-brand-gray-100 shadow-sm col-span-3 min-h-[300px] flex flex-col items-center justify-center text-center">
-    <div class="p-4 bg-brand-gray-50 rounded-full mb-4">
-      <svg class="w-8 h-8 text-brand-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-3.75-2.25v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
-      </svg>
+<!-- 3. BELOW: Side-by-Side Charts (Best Selling Bar Chart & Payment Method Pie/Donut Chart) -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+  
+  <!-- Best Selling Products Bar Graph -->
+  <div class="bg-white border border-brand-gray-100 rounded-xl shadow-sm p-6 flex flex-col">
+    <div class="mb-4">
+      <h2 class="font-serif text-xl font-bold text-brand-black">2. Top 10 Best Selling Items (Bar Chart)</h2>
+      <p class="font-sans text-xs text-brand-gray-500 mt-0.5">Quantity of successfully sold products from order data.</p>
     </div>
-    <h3 class="font-serif text-lg font-bold text-brand-black mb-2">Welcome to the Administration Panel</h3>
-    <p class="font-sans text-sm text-brand-gray-400 max-w-sm">
-      This is a skeleton placeholder for store insights and analytics modules. Access customer lists and other controls from the sidebar.
-    </p>
+
+    <div class="relative w-full h-72 flex-1">
+      <canvas id="bestSellingBarCanvas"></canvas>
+      <div id="bar-no-data-msg" class="absolute inset-0 flex items-center justify-center bg-white/80 hidden">
+        <p class="font-sans text-xs text-brand-gray-400 font-medium">No product sales recorded yet.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payment Method Distribution Donut/Pie Chart -->
+  <div class="bg-white border border-brand-gray-100 rounded-xl shadow-sm p-6 flex flex-col">
+    <div class="mb-4">
+      <h2 class="font-serif text-xl font-bold text-brand-black">3. Payment Method Distribution (Donut Chart)</h2>
+      <p class="font-sans text-xs text-brand-gray-500 mt-0.5">Order distribution across Cash on Delivery, Razorpay, and Wallet.</p>
+    </div>
+
+    <div class="relative w-full h-72 flex flex-center items-center justify-center flex-1">
+      <canvas id="paymentPieCanvas"></canvas>
+      <div id="pie-no-data-msg" class="absolute inset-0 flex items-center justify-center bg-white/80 hidden">
+        <p class="font-sans text-xs text-brand-gray-400 font-medium">No valid payment records available.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 4. BOTTOM: Top 10 Categories, Top 10 Brands & Ledger Book -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8 font-sans">
+  
+  <!-- Top 10 Best Selling Categories -->
+  <div class="bg-white border border-brand-gray-100 rounded-xl shadow-sm overflow-hidden flex flex-col">
+    <div class="p-5 border-b border-brand-gray-100 bg-brand-gray-50/50">
+      <h3 class="font-serif text-lg font-bold text-brand-black">Top 10 Best Selling Categories</h3>
+      <p class="text-[11px] text-brand-gray-500 mt-0.5">Ranked by actual product sales volume</p>
+    </div>
+    <div class="divide-y divide-brand-gray-100 overflow-y-auto max-h-80 flex-1">
+      <% if (topCategories && topCategories.length > 0) { %>
+        <% topCategories.forEach((cat, index) => { %>
+          <div class="p-4 flex items-center justify-between gap-3 hover:bg-brand-gray-50/50 transition-colors">
+            <div class="flex items-center gap-3 min-w-0">
+              <span class="w-6 h-6 rounded-full bg-brand-gray-100 font-mono font-bold text-xs flex items-center justify-center text-brand-black flex-shrink-0">
+                <%= index + 1 %>
+              </span>
+              <div class="min-w-0">
+                <h4 class="font-bold text-xs text-brand-black truncate"><%= cat.name %></h4>
+                <span class="text-[10px] text-brand-gray-500 font-medium">₹<%= cat.totalRevenue.toLocaleString('en-IN') %> revenue</span>
+              </div>
+            </div>
+            <span class="px-2.5 py-1 bg-brand-gray-100 text-brand-black font-bold text-xs rounded-full flex-shrink-0">
+              <%= cat.totalQuantitySold %> sold
+            </span>
+          </div>
+        <% }) %>
+      <% } else { %>
+        <div class="p-8 text-center text-brand-gray-400 text-xs">No category sales recorded yet.</div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Top 10 Best Selling Brands -->
+  <div class="bg-white border border-brand-gray-100 rounded-xl shadow-sm overflow-hidden flex flex-col">
+    <div class="p-5 border-b border-brand-gray-100 bg-brand-gray-50/50">
+      <h3 class="font-serif text-lg font-bold text-brand-black">Top 10 Best Selling Brands</h3>
+      <p class="text-[11px] text-brand-gray-500 mt-0.5">Ranked by brand product volume</p>
+    </div>
+    <div class="divide-y divide-brand-gray-100 overflow-y-auto max-h-80 flex-1">
+      <% if (topBrands && topBrands.length > 0) { %>
+        <% topBrands.forEach((brand, index) => { %>
+          <div class="p-4 flex items-center justify-between gap-3 hover:bg-brand-gray-50/50 transition-colors">
+            <div class="flex items-center gap-3 min-w-0">
+              <span class="w-6 h-6 rounded-full bg-brand-gray-100 font-mono font-bold text-xs flex items-center justify-center text-brand-black flex-shrink-0">
+                <%= index + 1 %>
+              </span>
+              <div class="min-w-0">
+                <h4 class="font-bold text-xs text-brand-black truncate"><%= brand.name %></h4>
+                <span class="text-[10px] text-brand-gray-500 font-medium">₹<%= brand.totalRevenue.toLocaleString('en-IN') %> revenue</span>
+              </div>
+            </div>
+            <span class="px-2.5 py-1 bg-brand-gray-100 text-brand-black font-bold text-xs rounded-full flex-shrink-0">
+              <%= brand.totalQuantitySold %> sold
+            </span>
+          </div>
+        <% }) %>
+      <% } else { %>
+        <div class="p-8 text-center text-brand-gray-400 text-xs">No brand sales recorded yet.</div>
+      <% } %>
+    </div>
+  </div>
+
+</div>
+
+<!-- Ledger Book Table -->
+<div class="bg-white border border-brand-gray-100 rounded-xl shadow-sm overflow-hidden mb-12">
+  <div class="p-6 border-b border-brand-gray-100">
+    <h2 class="font-serif text-xl font-bold text-brand-black">Ledger Book (Recent Transactions)</h2>
+    <p class="font-sans text-xs text-brand-gray-500 mt-0.5">Financial debit &amp; credit ledger entries derived from real order and refund records.</p>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse font-sans text-sm">
+      <thead>
+        <tr class="border-b border-brand-gray-100 bg-brand-gray-50 text-[10px] font-bold text-brand-gray-500 uppercase tracking-widest2">
+          <th class="px-6 py-4">Date</th>
+          <th class="px-6 py-4">Ref ID</th>
+          <th class="px-6 py-4">Description</th>
+          <th class="px-6 py-4">Type</th>
+          <th class="px-6 py-4 text-right">Amount</th>
+          <th class="px-6 py-4 text-right">Running Balance</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-brand-gray-100 text-brand-black">
+        <% if (ledgerEntries && ledgerEntries.length > 0) { %>
+          <% ledgerEntries.forEach(entry => { %>
+            <tr class="hover:bg-brand-gray-50/50 transition-colors">
+              <td class="px-6 py-4 text-xs text-brand-gray-500"><%= entry.date %></td>
+              <td class="px-6 py-4 font-mono font-bold text-xs"><%= entry.ref %></td>
+              <td class="px-6 py-4 font-medium"><%= entry.description %></td>
+              <td class="px-6 py-4">
+                <span class="px-2.5 py-0.5 inline-flex text-xs leading-5 font-bold uppercase rounded-md <%= entry.type === 'Credit' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' %>">
+                  <%= entry.type %>
+                </span>
+              </td>
+              <td class="px-6 py-4 text-right font-bold <%= entry.type === 'Credit' ? 'text-green-600' : 'text-red-600' %>">
+                <%= entry.type === 'Credit' ? '+' : '-' %>₹<%= entry.amount.toLocaleString('en-IN') %>
+              </td>
+              <td class="px-6 py-4 text-right font-medium text-brand-gray-600">
+                ₹<%= entry.runningBalance.toLocaleString('en-IN') %>
+              </td>
+            </tr>
+          <% }) %>
+        <% } else { %>
+          <tr>
+            <td colspan="6" class="px-6 py-10 text-center text-brand-gray-400 text-xs">No ledger records found.</td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
   </div>
 </div>
+
+<!-- Chart Initialization Script -->
+<script>
+  let salesLineChartInstance = null;
+  let bestSellingBarChartInstance = null;
+  let paymentPieChartInstance = null;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    initSalesLineChart();
+    initBestSellingBarChart();
+    initPaymentPieChart();
+  });
+
+  // 1. SALES REVENUE LINE CHART
+  function initSalesLineChart() {
+    const canvas = document.getElementById('salesLineChartCanvas');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    const chartLabels = <%- JSON.stringify(salesChart.labels || []) %>;
+    const chartData = <%- JSON.stringify(salesChart.data || []) %>;
+
+    checkSalesNoData(chartData);
+
+    salesLineChartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: chartLabels,
+        datasets: [{
+          label: 'Revenue (₹)',
+          data: chartData,
+          borderColor: '#111111',
+          backgroundColor: 'rgba(17, 17, 17, 0.05)',
+          borderWidth: 2,
+          fill: true,
+          tension: 0.3,
+          pointBackgroundColor: '#111111',
+          pointRadius: 4,
+          pointHoverRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function(ctx) {
+                return ' Sales: ₹' + ctx.parsed.y.toLocaleString('en-IN');
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { font: { family: 'sans-serif', size: 10 } }
+          },
+          y: {
+            beginAtZero: true,
+            grid: { color: '#F3F4F6' },
+            ticks: {
+              font: { family: 'sans-serif', size: 10 },
+              callback: function(val) {
+                return '₹' + val.toLocaleString('en-IN');
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  function checkSalesNoData(dataArr) {
+    const noDataEl = document.getElementById('sales-no-data-msg');
+    const hasValue = dataArr && dataArr.some(v => v > 0);
+    if (!hasValue) {
+      if (noDataEl) noDataEl.classList.remove('hidden');
+    } else {
+      if (noDataEl) noDataEl.classList.add('hidden');
+    }
+  }
+
+  function handleSalesPeriodChange() {
+    const period = document.getElementById('salesPeriodSelect').value;
+    const customContainer = document.getElementById('custom-sales-dates');
+
+    if (period === 'custom') {
+      customContainer.classList.remove('hidden');
+      customContainer.classList.add('flex');
+    } else {
+      customContainer.classList.add('hidden');
+      customContainer.classList.remove('flex');
+      fetchSalesChartData(period);
+    }
+  }
+
+  function applyCustomSalesFilter() {
+    const start = document.getElementById('salesStartDate').value;
+    const end = document.getElementById('salesEndDate').value;
+    if (!start || !end) {
+      alert('Please select both start and end dates.');
+      return;
+    }
+    fetchSalesChartData('custom', start, end);
+  }
+
+  async function fetchSalesChartData(filter, startDate = null, endDate = null) {
+    try {
+      let url = `/admin/dashboard/api/chart-data?filter=${filter}`;
+      if (startDate && endDate) {
+        url += `&startDate=${startDate}&endDate=${endDate}`;
+      }
+
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (res.ok && data.success && salesLineChartInstance) {
+        salesLineChartInstance.data.labels = data.salesChart.labels;
+        salesLineChartInstance.data.datasets[0].data = data.salesChart.data;
+        salesLineChartInstance.update();
+        checkSalesNoData(data.salesChart.data);
+      }
+    } catch (err) {
+      console.error('AJAX chart update error:', err);
+    }
+  }
+
+  // 2. BEST SELLING PRODUCTS BAR GRAPH
+  function initBestSellingBarChart() {
+    const canvas = document.getElementById('bestSellingBarCanvas');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    const barLabels = <%- JSON.stringify(topProductsBar.labels || []) %>;
+    const barData = <%- JSON.stringify(topProductsBar.data || []) %>;
+
+    const noDataEl = document.getElementById('bar-no-data-msg');
+    if (!barData || barData.length === 0 || !barData.some(v => v > 0)) {
+      if (noDataEl) noDataEl.classList.remove('hidden');
+    }
+
+    bestSellingBarChartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: barLabels,
+        datasets: [{
+          label: 'Quantity Sold',
+          data: barData,
+          backgroundColor: '#111111',
+          borderRadius: 4,
+          maxBarThickness: 32
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function(ctx) {
+                return ' Sold: ' + ctx.parsed.y + ' units';
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: {
+              font: { family: 'sans-serif', size: 10 },
+              callback: function(val, index) {
+                const label = this.getLabelForValue(index);
+                return label.length > 12 ? label.substring(0, 12) + '...' : label;
+              }
+            }
+          },
+          y: {
+            beginAtZero: true,
+            grid: { color: '#F3F4F6' },
+            ticks: {
+              stepSize: 1,
+              font: { family: 'sans-serif', size: 10 }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // 3. PAYMENT METHOD DONUT/PIE CHART
+  function initPaymentPieChart() {
+    const canvas = document.getElementById('paymentPieCanvas');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    const pieLabels = <%- JSON.stringify(paymentChart.labels || []) %>;
+    const pieData = <%- JSON.stringify(paymentChart.data || [0,0,0]) %>;
+
+    const noDataEl = document.getElementById('pie-no-data-msg');
+    if (!pieData || !pieData.some(v => v > 0)) {
+      if (noDataEl) noDataEl.classList.remove('hidden');
+    }
+
+    paymentPieChartInstance = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: pieLabels,
+        datasets: [{
+          data: pieData,
+          backgroundColor: ['#111111', '#4B5563', '#9CA3AF'],
+          borderWidth: 2,
+          borderColor: '#FFFFFF'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '65%',
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              font: { family: 'sans-serif', size: 11 },
+              usePointStyle: true,
+              padding: 16
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: function(ctx) {
+                const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                const val = ctx.parsed;
+                const pct = total > 0 ? Math.round((val / total) * 100) : 0;
+                return ` ${ctx.label}: ${val} orders (${pct}%)`;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+</script>

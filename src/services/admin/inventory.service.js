@@ -167,7 +167,7 @@ export const updateVariantStock = async (productId, variantId, newStock) => {
   const product = await Product.findOneAndUpdate(
     { _id: productId, "variants._id": variantId },
     { $set: { "variants.$.stock": stockNum } },
-    { new: true }
+    { returnDocument: 'after' }
   );
 
   if (!product) {

@@ -1,5 +1,5 @@
+import 'dotenv/config';
 import express from "express";
-import dotenv from "dotenv";
 import expressLayouts from "express-ejs-layouts";
 import session from "express-session";
 
@@ -10,8 +10,6 @@ import nocache from "nocache";
 import userRoutes from "./src/routes/user/index.js";
 import adminRoutes from "./src/routes/admin/index.js";
 import { toastFlash } from "./src/middlewares/toast.middleware.js";
-
-dotenv.config();
 
 connectDB();
 

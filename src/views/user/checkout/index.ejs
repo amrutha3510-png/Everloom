@@ -1,4 +1,5 @@
 <%- include('../partials/navbar') %>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
   <main class="min-h-screen bg-brand-gray-50 pb-20">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -87,8 +88,8 @@
             <div class="flex flex-col gap-3">
               <!-- Cash on Delivery (Functional) -->
               <label
-                class="flex items-start gap-3 p-4 border border-brand-black bg-brand-gray-50/50 rounded-md cursor-pointer">
-                <input type="radio" name="paymentMethod" value="COD" checked class="mt-1 accent-brand-black">
+                class="flex items-start gap-3 p-4 border border-brand-black bg-brand-gray-50/50 rounded-md cursor-pointer" id="label-pay-cod">
+                <input type="radio" name="paymentMethod" value="COD" checked class="mt-1 accent-brand-black" onchange="selectPaymentMethod('COD')">
                 <div>
                   <span class="font-sans text-sm font-bold text-brand-black block">Cash on Delivery (COD)</span>
                   <span class="font-sans text-xs text-brand-gray-500 block mt-0.5">Pay in cash or digital wallet upon
@@ -96,11 +97,11 @@
                 </div>
               </label>
 
-              <!-- Razorpay (Card/UPI/Net Banking) (Static Display Option Only) -->
+              <!-- Razorpay (Card/UPI/Net Banking) (Functional) -->
               <label
-                class="flex items-start gap-3 p-4 border border-brand-gray-200 bg-white rounded-md cursor-pointer transition-all hover:bg-brand-gray-50/50">
-                <input type="radio" name="paymentMethod" value="RAZORPAY" disabled
-                  class="mt-1 accent-brand-black cursor-pointer">
+                class="flex items-start gap-3 p-4 border border-brand-gray-200 bg-white rounded-md cursor-pointer transition-all hover:bg-brand-gray-50/50" id="label-pay-razorpay">
+                <input type="radio" name="paymentMethod" value="RAZORPAY"
+                  class="mt-1 accent-brand-black cursor-pointer" onchange="selectPaymentMethod('RAZORPAY')">
                 <div>
                   <span class="font-sans text-sm font-bold text-brand-black block">Razorpay (Card/UPI/Net
                     Banking)</span>
@@ -109,13 +110,18 @@
                 </div>
               </label>
 
-              <!-- EverLoom Wallet (Static Display Option Only) -->
+              <!-- EverLoom Wallet (Functional) -->
               <label
-                class="flex items-start gap-3 p-4 border border-brand-gray-200 bg-white rounded-md cursor-pointer transition-all hover:bg-brand-gray-50/50">
-                <input type="radio" name="paymentMethod" value="WALLET" disabled
-                  class="mt-1 accent-brand-black cursor-pointer">
-                <div>
-                  <span class="font-sans text-sm font-bold text-brand-black block">EverLoom Wallet</span>
+                class="flex items-start gap-3 p-4 border border-brand-gray-200 bg-white rounded-md cursor-pointer transition-all hover:bg-brand-gray-50/50" id="label-pay-wallet">
+                <input type="radio" name="paymentMethod" value="WALLET"
+                  class="mt-1 accent-brand-black cursor-pointer" onchange="selectPaymentMethod('WALLET')">
+                <div class="flex-1">
+                  <div class="flex items-center justify-between">
+                    <span class="font-sans text-sm font-bold text-brand-black block">EverLoom Wallet</span>
+                    <span class="font-sans text-xs font-semibold text-brand-black bg-brand-gray-100 px-2 py-0.5 rounded">
+                      Balance: ₹<%= typeof userWalletBalance !== 'undefined' ? userWalletBalance.toLocaleString('en-IN') : 0 %>
+                    </span>
+                  </div>
                   <span class="font-sans text-xs text-brand-gray-500 block mt-0.5">Use your EverLoom wallet balance for
                     instant checkout.</span>
                 </div>
@@ -157,11 +163,42 @@
                 <% }) %>
             </div>
 
-            <!-- Available Coupons Section (Static Display) -->
+            <!-- Coupon Input & Applied Coupon Section -->
+            <div class="mb-6 pt-4 border-t border-brand-gray-100">
+              <label class="font-sans text-xs font-semibold text-brand-gray-500 uppercase tracking-widest2 block mb-2">Have a Coupon?</label>
+              
+              <!-- Coupon Input field when no active coupon -->
+              <div id="coupon-input-container" class="flex gap-2 <%= appliedCoupon ? 'hidden' : '' %>">
+                <input type="text" id="coupon-code-input" placeholder="Enter coupon code..." class="flex-1 px-3 py-2 border border-brand-gray-200 rounded-md font-sans text-xs uppercase focus:outline-none focus:ring-1 focus:ring-brand-black">
+                <button type="button" onclick="applyCoupon()" class="px-4 py-2 bg-brand-black text-white font-sans text-xs font-bold uppercase tracking-wider hover:bg-brand-gray-600 transition-colors rounded-md">
+                  Apply
+                </button>
+              </div>
+
+              <!-- Applied Coupon Badge when active -->
+              <div id="applied-coupon-badge" class="flex items-center justify-between p-3 border border-green-200 bg-green-50 rounded-md <%= appliedCoupon ? '' : 'hidden' %>">
+                <div class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M7 7h10M7 12h10m-5 5h5" />
+                  </svg>
+                  <span class="font-sans text-xs font-bold text-green-700" id="applied-coupon-text">
+                    <%= appliedCoupon ? appliedCoupon.code : '' %>
+                  </span>
+                  <span class="text-xs text-green-600 font-semibold" id="applied-coupon-amount">
+                    (-₹<%= appliedCoupon ? appliedCoupon.discount : 0 %>)
+                  </span>
+                </div>
+                <button type="button" onclick="removeCoupon()" class="text-xs font-bold text-red-600 hover:text-red-800 underline uppercase tracking-wider">
+                  Remove
+                </button>
+              </div>
+            </div>
+
+            <!-- Available Coupons Section -->
             <div class="mb-6 pt-4 border-t border-brand-gray-100">
               <label class="font-sans text-xs font-semibold text-brand-gray-500 uppercase tracking-widest2 block mb-3">Available Coupons</label>
               <div class="space-y-2.5">
-                <div class="p-3 border border-brand-gray-200 bg-brand-gray-50/50 rounded-md font-sans">
+                <div class="p-3 border border-brand-gray-200 bg-brand-gray-50/50 rounded-md font-sans cursor-pointer hover:border-brand-black transition-colors" onclick="fillCouponCode('EXTRA10')">
                   <div class="flex items-center gap-2">
                     <span class="font-mono font-bold text-xs text-brand-black bg-white px-2 py-0.5 border border-brand-gray-200 uppercase">EXTRA10</span>
                     <span class="text-xs font-bold text-green-600">10% OFF</span>
@@ -169,7 +206,7 @@
                   <p class="text-[11px] text-brand-gray-500 mt-1 leading-tight">10% OFF on orders above ₹500</p>
                 </div>
 
-                <div class="p-3 border border-brand-gray-200 bg-brand-gray-50/50 rounded-md font-sans">
+                <div class="p-3 border border-brand-gray-200 bg-brand-gray-50/50 rounded-md font-sans cursor-pointer hover:border-brand-black transition-colors" onclick="fillCouponCode('EVERLOOM200')">
                   <div class="flex items-center gap-2">
                     <span class="font-mono font-bold text-xs text-brand-black bg-white px-2 py-0.5 border border-brand-gray-200 uppercase">EVERLOOM200</span>
                     <span class="text-xs font-bold text-green-600">₹200 OFF</span>
@@ -177,7 +214,7 @@
                   <p class="text-[11px] text-brand-gray-500 mt-1 leading-tight">Flat ₹200 OFF on orders above ₹1,500</p>
                 </div>
 
-                <div class="p-3 border border-brand-gray-200 bg-brand-gray-50/50 rounded-md font-sans">
+                <div class="p-3 border border-brand-gray-200 bg-brand-gray-50/50 rounded-md font-sans cursor-pointer hover:border-brand-black transition-colors" onclick="fillCouponCode('WELCOME15')">
                   <div class="flex items-center gap-2">
                     <span class="font-mono font-bold text-xs text-brand-black bg-white px-2 py-0.5 border border-brand-gray-200 uppercase">WELCOME15</span>
                     <span class="text-xs font-bold text-green-600">15% OFF</span>
@@ -185,7 +222,7 @@
                   <p class="text-[11px] text-brand-gray-500 mt-1 leading-tight">15% OFF on orders above ₹2,000</p>
                 </div>
 
-                <div class="p-3 border border-brand-gray-200 bg-brand-gray-50/50 rounded-md font-sans">
+                <div class="p-3 border border-brand-gray-200 bg-brand-gray-50/50 rounded-md font-sans cursor-pointer hover:border-brand-black transition-colors" onclick="fillCouponCode('SAVEMORE')">
                   <div class="flex items-center gap-2">
                     <span class="font-mono font-bold text-xs text-brand-black bg-white px-2 py-0.5 border border-brand-gray-200 uppercase">SAVEMORE</span>
                     <span class="text-xs font-bold text-green-600">₹500 OFF</span>
@@ -196,31 +233,35 @@
             </div>
 
             <!-- Summary Pricing Details -->
+            <% 
+              const subtotal = cart.cartTotal;
+              const discount = appliedCoupon ? appliedCoupon.discount : 0;
+              const shipping = 49;
+              const finalTotal = Math.max(0, subtotal - discount) + shipping;
+            %>
             <div class="border-t border-brand-gray-100 pt-4 mb-6 font-sans text-sm space-y-3">
               <div class="flex justify-between items-center text-brand-gray-600">
                 <span>Subtotal</span>
-                <span class="font-semibold text-brand-black">₹<%= cart.cartTotal %></span>
+                <span class="font-semibold text-brand-black">₹<%= subtotal %></span>
               </div>
 
-              <div class="flex justify-between items-center text-brand-gray-600 hidden" id="discount-row">
-                <span>Discount (<span id="promo-label"></span>)</span>
-                <span class="font-semibold text-green-600">-₹<span id="discount-val">0</span></span>
+              <div class="flex justify-between items-center text-brand-gray-600 <%= appliedCoupon ? '' : 'hidden' %>" id="discount-row">
+                <span>Discount (<span id="promo-label"><%= appliedCoupon ? appliedCoupon.code : '' %></span>)</span>
+                <span class="font-semibold text-green-600">-₹<span id="discount-val"><%= discount %></span></span>
               </div>
 
               <div class="flex justify-between items-center text-brand-gray-600">
                 <span>Shipping</span>
-                <span class="font-semibold text-brand-black" id="shipping-val">₹<%= cart.cartTotal> 1999 ? 0 : 100
-                    %></span>
+                <span class="font-semibold text-brand-black" id="shipping-val">₹<%= shipping %></span>
               </div>
             </div>
 
             <div class="border-t border-brand-gray-100 pt-4 mb-8 flex justify-between items-center">
               <span class="font-sans font-bold text-brand-black text-base">Total</span>
-              <span class="font-sans font-bold text-brand-black text-xl" id="final-total">₹<%= cart.cartTotal> 1999 ?
-                  cart.cartTotal : cart.cartTotal + 100 %></span>
+              <span class="font-sans font-bold text-brand-black text-xl" id="final-total">₹<%= finalTotal %></span>
             </div>
 
-            <button type="button" onclick="placeOrderCOD()" id="place-order-btn"
+            <button type="button" onclick="handleCheckout()" id="place-order-btn"
               class="w-full h-12 bg-brand-black text-white font-sans text-sm font-bold uppercase tracking-wider hover:bg-brand-gray-600 transition-colors flex items-center justify-center">
               Place Order (COD)
             </button>
@@ -344,7 +385,230 @@
     </div>
   </div>
 
+  <!-- Payment Failed Modal Popup -->
+  <div id="payment-failed-modal" class="fixed inset-0 z-50 hidden overflow-y-auto" role="dialog" aria-modal="true">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+      <div class="fixed inset-0 bg-brand-black/60 backdrop-blur-sm transition-opacity" onclick="closePaymentFailedModal()"></div>
+
+      <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+      <div class="inline-block align-middle bg-white border border-brand-gray-200 text-center overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-sm sm:w-full p-6 sm:p-8 rounded-lg relative">
+        <!-- Close Button (×) -->
+        <button type="button" onclick="closePaymentFailedModal()" class="absolute top-4 right-4 text-brand-gray-400 hover:text-brand-black transition-colors focus:outline-none" aria-label="Close">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        <!-- Red Warning Icon -->
+        <div class="mx-auto flex items-center justify-center h-14 w-14 rounded-full bg-red-50 border border-red-100 mb-4">
+          <svg class="h-7 w-7 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+
+        <h3 class="font-serif text-2xl font-bold text-brand-black mb-1">Payment Failed</h3>
+        <p class="font-sans text-xs text-brand-gray-500 mb-5 leading-relaxed">Your payment was unsuccessful.</p>
+
+        <div class="bg-red-50/80 border border-red-200 p-4 rounded-md mb-5 text-center">
+          <span class="font-sans text-xs font-semibold text-brand-gray-600 block uppercase tracking-wider mb-1">Payment:</span>
+          <span id="modal-reservation-timer" class="font-mono font-bold text-3xl text-red-700 block tracking-widest my-1">05:00</span>
+          <span class="font-sans text-[11px] text-red-600 block font-medium mt-1"><span id="modal-reservation-remaining-text">05:00 remaining</span></span>
+        </div>
+
+        <p class="font-sans text-xs text-brand-gray-600 mb-6 leading-relaxed">
+          Please complete your payment before the timer expires.
+        </p>
+
+        <button type="button" onclick="closePaymentFailedModal()" class="w-full py-3 bg-brand-black text-white font-sans text-xs font-bold uppercase tracking-wider hover:bg-brand-gray-600 transition-colors rounded shadow-sm">
+          OK
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
+    // Payment Failed Modal Control Functions
+    let activePaymentFailedTimerInterval = null;
+    let currentFailedOrderId = null;
+    let paymentFailureHandled = false;
+
+    function openPaymentFailedModal() {
+      const modal = document.getElementById('payment-failed-modal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+
+    function closePaymentFailedModal() {
+      const modal = document.getElementById('payment-failed-modal');
+      if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+      }
+      if (currentFailedOrderId) {
+        window.location.href = `/account/orders/${currentFailedOrderId}`;
+      }
+    }
+
+    function startPaymentFailedTimer(expiresAtIsoOrMs, orderId = null) {
+      if (!expiresAtIsoOrMs) return;
+      const expiresAtMs = new Date(expiresAtIsoOrMs).getTime();
+      const timerEl = document.getElementById('modal-reservation-timer');
+      const textEl = document.getElementById('modal-reservation-remaining-text');
+
+      if (activePaymentFailedTimerInterval) {
+        clearInterval(activePaymentFailedTimerInterval);
+      }
+
+      function updateModalTimer() {
+        const now = Date.now();
+        const diffMs = expiresAtMs - now;
+
+        if (diffMs <= 0) {
+          if (timerEl) timerEl.textContent = '00:00';
+          if (textEl) textEl.textContent = '00:00 remaining';
+          clearInterval(activePaymentFailedTimerInterval);
+
+          if (orderId) {
+            fetch(`/account/orders/${orderId}/expire-reservation`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' }
+            }).catch(console.error);
+          }
+          return;
+        }
+
+        const totalSeconds = Math.floor(diffMs / 1000);
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        const timeString = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+        if (timerEl) timerEl.textContent = timeString;
+        if (textEl) textEl.textContent = `${timeString} remaining`;
+      }
+
+      updateModalTimer();
+      activePaymentFailedTimerInterval = setInterval(updateModalTimer, 1000);
+    }
+
+    function handlePaymentFailureOnCheckout(orderId, expiresAt) {
+      if (paymentFailureHandled) return;
+      paymentFailureHandled = true;
+
+      currentFailedOrderId = orderId;
+      if (expiresAt) {
+        startPaymentFailedTimer(expiresAt, orderId);
+      }
+      openPaymentFailedModal();
+    }
+
+    // Payment method selection UI handling
+    function selectPaymentMethod(method) {
+      const labelCod = document.getElementById('label-pay-cod');
+      const labelRazorpay = document.getElementById('label-pay-razorpay');
+      const labelWallet = document.getElementById('label-pay-wallet');
+      const btn = document.getElementById('place-order-btn');
+
+      if (labelCod) labelCod.className = "flex items-start gap-3 p-4 border border-brand-gray-200 bg-white rounded-md cursor-pointer transition-all hover:bg-brand-gray-50/50";
+      if (labelRazorpay) labelRazorpay.className = "flex items-start gap-3 p-4 border border-brand-gray-200 bg-white rounded-md cursor-pointer transition-all hover:bg-brand-gray-50/50";
+      if (labelWallet) labelWallet.className = "flex items-start gap-3 p-4 border border-brand-gray-200 bg-white rounded-md cursor-pointer transition-all hover:bg-brand-gray-50/50";
+
+      if (method === 'RAZORPAY') {
+        if (labelRazorpay) labelRazorpay.className = "flex items-start gap-3 p-4 border border-brand-black bg-brand-gray-50/50 rounded-md cursor-pointer";
+        if (btn) btn.textContent = 'Proceed to Pay (Razorpay)';
+      } else if (method === 'WALLET') {
+        if (labelWallet) labelWallet.className = "flex items-start gap-3 p-4 border border-brand-black bg-brand-gray-50/50 rounded-md cursor-pointer";
+        if (btn) btn.textContent = 'Pay with Wallet';
+      } else {
+        if (labelCod) labelCod.className = "flex items-start gap-3 p-4 border border-brand-black bg-brand-gray-50/50 rounded-md cursor-pointer";
+        if (btn) btn.textContent = 'Place Order (COD)';
+      }
+    }
+
+    // Fill coupon code into input field
+    function fillCouponCode(code) {
+      const input = document.getElementById('coupon-code-input');
+      if (input) {
+        input.value = code;
+        input.focus();
+      }
+    }
+
+    // Apply Coupon via AJAX
+    async function applyCoupon() {
+      const input = document.getElementById('coupon-code-input');
+      const code = input ? input.value.trim() : '';
+
+      if (!code) {
+        if (typeof showFlash === 'function') showFlash('warning', 'Please enter a coupon code');
+        return;
+      }
+
+      try {
+        const res = await fetch('/checkout/apply-coupon', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ couponCode: code })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          document.getElementById('discount-val').textContent = data.discount;
+          document.getElementById('promo-label').textContent = data.couponCode;
+          document.getElementById('discount-row').classList.remove('hidden');
+          document.getElementById('shipping-val').textContent = `₹${data.shippingCharge}`;
+          document.getElementById('final-total').textContent = `₹${data.finalTotal}`;
+
+          document.getElementById('applied-coupon-text').textContent = data.couponCode;
+          document.getElementById('applied-coupon-amount').textContent = `(-₹${data.discount})`;
+
+          document.getElementById('coupon-input-container').classList.add('hidden');
+          document.getElementById('applied-coupon-badge').classList.remove('hidden');
+
+          if (typeof showFlash === 'function') showFlash('success', data.message);
+        } else {
+          if (typeof showFlash === 'function') showFlash('error', data.message || 'Failed to apply coupon');
+        }
+      } catch (error) {
+        console.error(error);
+        if (typeof showFlash === 'function') showFlash('error', 'Network error occurred');
+      }
+    }
+
+    // Remove Coupon via AJAX
+    async function removeCoupon() {
+      try {
+        const res = await fetch('/checkout/remove-coupon', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          document.getElementById('discount-row').classList.add('hidden');
+          document.getElementById('discount-val').textContent = '0';
+          document.getElementById('promo-label').textContent = '';
+          document.getElementById('shipping-val').textContent = `₹${data.shippingCharge}`;
+          document.getElementById('final-total').textContent = `₹${data.finalTotal}`;
+
+          const input = document.getElementById('coupon-code-input');
+          if (input) input.value = '';
+
+          document.getElementById('applied-coupon-badge').classList.add('hidden');
+          document.getElementById('coupon-input-container').classList.remove('hidden');
+
+          if (typeof showFlash === 'function') showFlash('success', data.message);
+        } else {
+          if (typeof showFlash === 'function') showFlash('error', data.message || 'Failed to remove coupon');
+        }
+      } catch (error) {
+        console.error(error);
+        if (typeof showFlash === 'function') showFlash('error', 'Network error occurred');
+      }
+    }
+
     // Set Default Address via AJAX
     async function setDefaultAddress(addressId) {
       try {
@@ -366,11 +630,9 @@
 
     // Handle address select styling
     function selectAddress(addressId) {
-      // Remove active styles from all labels
       document.querySelectorAll('[id^="label-addr-"]').forEach(label => {
         label.className = "relative flex flex-col p-4 border border-brand-gray-200 bg-white rounded-md cursor-pointer transition-all hover:bg-brand-gray-50/50";
       });
-      // Add active styles to selected label
       const selectedLabel = document.getElementById(`label-addr-${addressId}`);
       if (selectedLabel) {
         selectedLabel.className = "relative flex flex-col p-4 border border-brand-black bg-white ring-1 ring-brand-black rounded-md cursor-pointer transition-all hover:bg-brand-gray-50/50";
@@ -433,7 +695,6 @@
       let city = '';
       let success = false;
 
-      // 1. Try Primary API
       try {
         const res = await fetch('https://aniket-thapa.github.io/india-pincode-api/pincodes/' + pincode + '.json');
         if (res.ok) {
@@ -448,7 +709,6 @@
         console.warn('Primary pincode API failed, trying fallback...', err);
       }
 
-      // 2. Try Fallback API
       if (!success) {
         try {
           const res = await fetch('https://api.postalpincode.in/pincode/' + pincode);
@@ -480,7 +740,6 @@
         const stateInput = document.getElementById('addr-state');
         const spinner = document.getElementById('pincode-spinner');
 
-        // Clear City and State when Pincode changes
         cityInput.value = '';
         stateInput.value = '';
 
@@ -515,7 +774,6 @@
       const title = document.getElementById('modal-title');
       const form = document.getElementById('address-form');
 
-      // Reset Form & Errors
       form.reset();
       clearAddressErrors();
       document.getElementById('addr-id').value = '';
@@ -615,14 +873,28 @@
       }
     });
 
-    // Place Order COD via AJAX
-    async function placeOrderCOD() {
-      const selectedRadio = document.querySelector('input[name="selectedAddress"]:checked');
-      if (!selectedRadio) {
+    // Central Checkout Handler
+    function handleCheckout() {
+      const selectedAddressRadio = document.querySelector('input[name="selectedAddress"]:checked');
+      if (!selectedAddressRadio) {
         if (typeof showFlash === 'function') showFlash('warning', 'Please select a delivery address');
         return;
       }
 
+      const selectedPaymentRadio = document.querySelector('input[name="paymentMethod"]:checked');
+      const paymentMethod = selectedPaymentRadio ? selectedPaymentRadio.value : 'COD';
+
+      if (paymentMethod === 'RAZORPAY') {
+        payWithRazorpay(selectedAddressRadio.value);
+      } else if (paymentMethod === 'WALLET') {
+        placeOrderWallet(selectedAddressRadio.value);
+      } else {
+        placeOrderCOD(selectedAddressRadio.value);
+      }
+    }
+
+    // Place Order COD via AJAX
+    async function placeOrderCOD(addressId) {
       const btn = document.getElementById('place-order-btn');
       btn.disabled = true;
       btn.textContent = 'Placing Order...';
@@ -632,8 +904,8 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            addressId: selectedRadio.value,
-            couponCode: ''
+            addressId: addressId,
+            paymentMethod: 'COD'
           })
         });
 
@@ -651,6 +923,150 @@
         if (typeof showFlash === 'function') showFlash('error', 'Network error occurred');
         btn.disabled = false;
         btn.textContent = 'Place Order (COD)';
+      }
+    }
+
+    // Place Order via EverLoom Wallet
+    async function placeOrderWallet(addressId) {
+      const btn = document.getElementById('place-order-btn');
+      btn.disabled = true;
+      btn.textContent = 'Processing Payment...';
+
+      try {
+        const res = await fetch('/checkout/place-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            addressId: addressId,
+            paymentMethod: 'WALLET'
+          })
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          window.location.href = `/checkout/success?orderId=${data.orderId}`;
+        } else {
+          if (typeof showFlash === 'function') showFlash('error', data.message || 'Wallet payment failed');
+          btn.disabled = false;
+          btn.textContent = 'Pay with Wallet';
+        }
+      } catch (error) {
+        console.error(error);
+        if (typeof showFlash === 'function') showFlash('error', 'Network error occurred');
+        btn.disabled = false;
+        btn.textContent = 'Pay with Wallet';
+      }
+    }
+
+    function forceCloseRazorpay(rzpInstance) {
+      if (rzpInstance && typeof rzpInstance.close === 'function') {
+        try { rzpInstance.close(); } catch (e) {}
+      }
+      setTimeout(() => {
+        document.querySelectorAll('.razorpay-container, iframe[name^="razorpay"], iframe[src*="razorpay"]').forEach(el => {
+          try { el.remove(); } catch (err) {}
+        });
+        document.body.style.overflow = '';
+      }, 50);
+    }
+
+    // Pay with Razorpay Online Gateway
+    async function payWithRazorpay(addressId) {
+      paymentFailureHandled = false;
+      let paymentSuccessHandled = false;
+      const btn = document.getElementById('place-order-btn');
+      btn.disabled = true;
+      btn.textContent = 'Initializing Payment...';
+
+      try {
+        const res = await fetch('/checkout/create-razorpay-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ addressId })
+        });
+
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          if (typeof showFlash === 'function') showFlash('error', data.message || 'Failed to initiate payment');
+          btn.disabled = false;
+          btn.textContent = 'Proceed to Pay (Razorpay)';
+          return;
+        }
+
+        let rzpInstance = null;
+
+        const options = {
+          key: data.keyId,
+          amount: data.amount,
+          currency: data.currency,
+          name: 'EverLoom',
+          description: 'EverLoom Order Payment',
+          order_id: data.razorpayOrderId,
+          handler: async function (response) {
+            // Automatically close Razorpay UI immediately upon successful payment
+            forceCloseRazorpay(rzpInstance);
+            btn.textContent = 'Verifying Payment...';
+            try {
+              const verifyRes = await fetch('/checkout/verify-razorpay-payment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_signature: response.razorpay_signature,
+                  addressId: data.addressId,
+                  orderId: data.orderId
+                })
+              });
+              const verifyData = await verifyRes.json();
+              if (verifyRes.ok && verifyData.success) {
+                paymentSuccessHandled = true;
+                if (activePaymentFailedTimerInterval) {
+                  clearInterval(activePaymentFailedTimerInterval);
+                }
+                window.location.href = `/checkout/success?orderId=${verifyData.orderId}`;
+              } else {
+                handlePaymentFailureOnCheckout(data.orderId, data.stockReservationExpiresAt);
+              }
+            } catch (err) {
+              console.error(err);
+              handlePaymentFailureOnCheckout(data.orderId, data.stockReservationExpiresAt);
+            } finally {
+              btn.disabled = false;
+              btn.textContent = 'Proceed to Pay (Razorpay)';
+            }
+          },
+          modal: {
+            ondismiss: function () {
+              // Only handle as failure if payment was not successfully handled and failure not yet triggered
+              if (!paymentSuccessHandled && !paymentFailureHandled) {
+                handlePaymentFailureOnCheckout(data.orderId, data.stockReservationExpiresAt);
+              }
+              btn.disabled = false;
+              btn.textContent = 'Proceed to Pay (Razorpay)';
+            }
+          },
+          theme: { color: '#111111' }
+        };
+
+        rzpInstance = new Razorpay(options);
+        rzpInstance.on('payment.failed', function () {
+          // Automatically close Razorpay UI immediately on failure and show failure modal
+          forceCloseRazorpay(rzpInstance);
+          if (!paymentSuccessHandled && !paymentFailureHandled) {
+            handlePaymentFailureOnCheckout(data.orderId, data.stockReservationExpiresAt);
+          }
+          btn.disabled = false;
+          btn.textContent = 'Proceed to Pay (Razorpay)';
+        });
+        rzpInstance.open();
+
+      } catch (error) {
+        console.error(error);
+        if (typeof showFlash === 'function') showFlash('error', 'Network error occurred during payment initialization');
+        btn.disabled = false;
+        btn.textContent = 'Proceed to Pay (Razorpay)';
       }
     }
   </script>

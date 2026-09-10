@@ -14,7 +14,21 @@ import {
   changePassword,
 } from '../../services/user/account.service.js';
 import { getRemainingSeconds } from '../../services/general/otp.service.js';
-import { getWalletData } from '../../services/user/wallet.service.js';
+import { getWalletData, addCredit, addFailedCredit } from '../../services/user/wallet.service.js';
+import { getReferralData } from '../../services/user/referral.service.js';
+import Razorpay from 'razorpay';
+import crypto from 'crypto';
+
+const getRazorpayInstance = () => {
+  const key_id = (process.env.RAZORPAY_KEY_ID || '').trim();
+  const key_secret = (process.env.RAZORPAY_KEY_SECRET || '').trim();
+
+  if (!key_id || !key_secret) {
+    throw new Error('Razorpay credentials (RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET) are missing in environment configuration.');
+  }
+
+  return new Razorpay({ key_id, key_secret });
+};
 
 const PHONE_REGEX = /^[6-9]\d{9}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -93,6 +107,37 @@ export const getWalletPage = async (req, res) => {
     });
   } catch (err) {
     console.error('getWalletPage:', err);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
+export const getReferralsPage = async (req, res) => {
+  try {
+    const userId = req.session.user?.id;
+    if (!userId) {
+      req.session.toast = { type: 'error', message: 'Please login to view referrals' };
+      return res.redirect('/login');
+    }
+
+    const host = req.get('host');
+    const protocol = req.protocol;
+    const baseUrl = `${protocol}://${host}`;
+
+    const referralData = await getReferralData(userId, baseUrl);
+
+    res.render('user/account/referrals', {
+      title: 'Refer & Earn',
+      layout: 'layouts/user-layout',
+      accountPage: 'referrals',
+      referralCode: referralData.referralCode,
+      referralLink: referralData.referralLink,
+      totalReferrals: referralData.totalReferrals,
+      totalEarned: referralData.totalEarned,
+      history: referralData.history,
+      user: req.session.user
+    });
+  } catch (error) {
+    console.error('getReferralsPage error:', error);
     res.status(500).send('Internal Server Error');
   }
 };
@@ -340,5 +385,139 @@ export const updatePasswordHandler = async (req, res) => {
     return res.status(400).json({ success: false, message: err.message || 'An error occurred.' });
   }
 };
+
+// ── Wallet Top-Up API ──────────────────────────
+
+/**
+ * Create Razorpay Order for Wallet Top-up.
+ */
+export const createWalletTopupOrder = async (req, res) => {
+  try {
+    const userId = req.session.user?.id;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'Please login to add money to wallet.' });
+    }
+
+    const { amount } = req.body;
+    const numAmount = parseFloat(amount);
+
+    if (!amount || isNaN(numAmount) || numAmount <= 0) {
+      return res.status(400).json({ success: false, field: 'amount', message: 'Please enter a valid amount greater than 0.' });
+    }
+
+    const amountInPaise = Math.round(numAmount * 100);
+    const options = {
+      amount: amountInPaise,
+      currency: 'INR',
+      receipt: `topup_${Date.now()}_${userId.slice(-4)}`
+    };
+
+    const razorpayInstance = getRazorpayInstance();
+    const razorpayOrder = await razorpayInstance.orders.create(options);
+    const keyId = (process.env.RAZORPAY_KEY_ID || '').trim();
+
+    return res.status(200).json({
+      success: true,
+      keyId,
+      razorpayOrderId: razorpayOrder.id,
+      amount: razorpayOrder.amount,
+      currency: razorpayOrder.currency
+    });
+  } catch (error) {
+    console.error('createWalletTopupOrder error:', error);
+    return res.status(500).json({ success: false, message: error.message || 'Failed to initiate Razorpay top-up.' });
+  }
+};
+
+/**
+ * Verify Razorpay Payment and Credit Money to Wallet.
+ */
+export const verifyWalletTopupPayment = async (req, res) => {
+  try {
+    const userId = req.session.user?.id;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'Please login to add money to wallet.' });
+    }
+
+    const { razorpay_payment_id, razorpay_order_id, razorpay_signature, amount } = req.body;
+
+    if (!razorpay_payment_id || !razorpay_order_id || !razorpay_signature) {
+      return res.status(400).json({ success: false, message: 'Invalid payment response payload.' });
+    }
+
+    const numAmount = parseFloat(amount);
+    if (!amount || isNaN(numAmount) || numAmount <= 0) {
+      return res.status(400).json({ success: false, message: 'Invalid top-up amount.' });
+    }
+
+    // HMAC signature verification
+    const keySecret = (process.env.RAZORPAY_KEY_SECRET || '').trim();
+    const generatedSignature = crypto
+      .createHmac('sha256', keySecret)
+      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+      .digest('hex');
+
+    if (generatedSignature !== razorpay_signature) {
+      // Log failed credit transaction without increasing balance
+      await addFailedCredit(userId, numAmount, 'Wallet Top-up', razorpay_order_id, razorpay_payment_id);
+      return res.status(400).json({ success: false, message: 'Payment verification failed. Invalid signature.' });
+    }
+
+    // Credit money ONLY after successful payment confirmation
+    const result = await addCredit(
+      userId,
+      numAmount,
+      'Wallet Top-up',
+      null,
+      razorpay_order_id,
+      razorpay_payment_id
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: `₹${numAmount.toLocaleString('en-IN')} added to your wallet successfully!`,
+      walletBalance: result.walletBalance
+    });
+  } catch (error) {
+    console.error('verifyWalletTopupPayment error:', error);
+    return res.status(500).json({ success: false, message: error.message || 'Failed to verify wallet top-up payment.' });
+  }
+};
+
+/**
+ * Log Failed Wallet Top-up Transaction.
+ */
+export const logFailedWalletTopup = async (req, res) => {
+  try {
+    const userId = req.session.user?.id;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'Please login to add money to wallet.' });
+    }
+
+    const { razorpay_payment_id, razorpay_order_id, amount } = req.body;
+    const numAmount = parseFloat(amount);
+
+    if (!amount || isNaN(numAmount) || numAmount <= 0) {
+      return res.status(400).json({ success: false, message: 'Invalid top-up amount.' });
+    }
+
+    await addFailedCredit(
+      userId,
+      numAmount,
+      'Wallet Top-up',
+      razorpay_order_id || null,
+      razorpay_payment_id || null
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: 'Failed payment logged to transaction history.'
+    });
+  } catch (error) {
+    console.error('logFailedWalletTopup error:', error);
+    return res.status(500).json({ success: false, message: error.message || 'Failed to log transaction.' });
+  }
+};
+
 
 

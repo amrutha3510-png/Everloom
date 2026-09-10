@@ -149,7 +149,7 @@
           id="referralCode"
           placeholder="Referral Code (Optional)"
           autocomplete="off"
-          value="<%= typeof oldData !== 'undefined' && oldData ? oldData.referralCode : '' %>"
+          value="<%= (typeof oldData !== 'undefined' && oldData && oldData.referralCode) ? oldData.referralCode : (typeof refCode !== 'undefined' ? refCode : '') %>"
           class="
             w-full bg-brand-gray-50 border border-brand-gray-100
             text-brand-black placeholder-brand-gray-400

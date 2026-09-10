@@ -1,6 +1,7 @@
 import User from '../../models/userModel.js';
 import { sendOtp, verifyOtp } from '../general/otp.service.js';
 import bcrypt from 'bcryptjs';
+import { generateUniqueReferralCode, validateReferralCode, processReferralOnRegistration } from './referral.service.js';
 
 /**
  * Saves user to the User collection with isVerified: false,
@@ -8,6 +9,14 @@ import bcrypt from 'bcryptjs';
  */
 export const registerUser = async (userData) => {
   const { fullName, email, password, referralCode } = userData;
+
+  // Validate input referral code if provided
+  if (referralCode && referralCode.trim() !== '') {
+    const valResult = await validateReferralCode(referralCode.trim());
+    if (!valResult.isValid) {
+      throw new Error(valResult.message);
+    }
+  }
   
   // Check if user already exists
   const existingUser = await User.findOne({ email });
@@ -19,13 +28,25 @@ export const registerUser = async (userData) => {
       const salt = await bcrypt.genSalt(10);
       existingUser.password = await bcrypt.hash(password, salt);
       existingUser.fullName = fullName;
-      if (referralCode) existingUser.referralCode = referralCode;
+      if (!existingUser.referralCode) {
+        existingUser.referralCode = await generateUniqueReferralCode();
+      }
+      existingUser.pendingReferralCode = referralCode ? referralCode.trim() : null;
       await existingUser.save();
   } else {
-      // Create new unverified user
+      // Create new unverified user with unique referral code
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
-      await User.create({ fullName, email, password: hashedPassword, referralCode, isVerified: false });
+      const ownReferralCode = await generateUniqueReferralCode();
+
+      await User.create({
+        fullName,
+        email,
+        password: hashedPassword,
+        referralCode: ownReferralCode,
+        pendingReferralCode: referralCode ? referralCode.trim() : null,
+        isVerified: false
+      });
   }
 
   // Trigger OTP sending
@@ -53,6 +74,23 @@ export const verifyRegistration = async (email, otp) => {
 
   if (!user) {
     return { success: false, message: 'User not found' };
+  }
+
+  // Ensure user has a referral code
+  if (!user.referralCode) {
+    user.referralCode = await generateUniqueReferralCode();
+    await user.save();
+  }
+
+  // Process referral reward if user registered with a referral code
+  if (user.pendingReferralCode) {
+    try {
+      await processReferralOnRegistration(user, user.pendingReferralCode);
+      user.pendingReferralCode = null;
+      await user.save();
+    } catch (refError) {
+      console.error('Error processing referral on registration:', refError);
+    }
   }
 
   return { success: true, message: 'Registration verified successfully', user };

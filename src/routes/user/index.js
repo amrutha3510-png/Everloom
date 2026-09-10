@@ -9,6 +9,7 @@ import checkoutRoutes from "./checkout.routes.js";
 import { checkBlocked } from "../../middlewares/auth.middleware.js";
 import { fetchCartCount } from "../../middlewares/cart.middleware.js";
 import { fetchWishlistCount } from "../../middlewares/wishlist.middleware.js";
+import { fetchCategories } from "../../middlewares/category.middleware.js";
 
 const router = express.Router();
 
@@ -16,6 +17,7 @@ const router = express.Router();
 router.use(checkBlocked);
 router.use(fetchCartCount);
 router.use(fetchWishlistCount);
+router.use(fetchCategories);
 
 router.use("/", authRoutes);
 router.use("/account", accountRoutes);

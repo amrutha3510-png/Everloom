@@ -1,5 +1,16 @@
 import * as orderService from '../../services/user/order.service.js';
+import Order from '../../models/orderModel.js';
 import PDFDocument from 'pdfkit';
+import Razorpay from 'razorpay';
+
+const getRazorpayInstance = () => {
+  const key_id = (process.env.RAZORPAY_KEY_ID || '').trim();
+  const key_secret = (process.env.RAZORPAY_KEY_SECRET || '').trim();
+  if (!key_id || !key_secret) {
+    throw new Error('Razorpay credentials are missing.');
+  }
+  return new Razorpay({ key_id, key_secret });
+};
 
 /**
  * Render My Orders listing page.
@@ -297,3 +308,115 @@ export const downloadInvoice = async (req, res) => {
     res.redirect('/account/orders');
   }
 };
+
+/**
+ * Handle stock reservation expiry from frontend timer or explicit check.
+ */
+export const expireReservationHandler = async (req, res) => {
+  try {
+    const userId = req.session.user?.id;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+
+    const { orderId } = req.params;
+    const updatedOrder = await orderService.expireOrderStockReservation(userId, orderId);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Stock reservation expired successfully.',
+      stockReservationStatus: updatedOrder.stockReservationStatus
+    });
+  } catch (error) {
+    console.error('Expire reservation controller error:', error);
+    return res.status(400).json({ success: false, message: error.message || 'Failed to expire reservation.' });
+  }
+};
+
+/**
+ * Handle re-ordering items from a failed/expired order.
+ */
+export const reorderFailedOrderHandler = async (req, res) => {
+  try {
+    const userId = req.session.user?.id;
+    if (!userId) {
+      req.session.toast = { type: 'error', message: 'Please login to checkout' };
+      return res.redirect('/login');
+    }
+
+    const { orderId } = req.params;
+    await orderService.reorderFailedOrder(userId, orderId);
+
+    req.session.toast = { type: 'success', message: 'Items re-added to cart. Please proceed with checkout.' };
+    return res.redirect('/checkout');
+  } catch (error) {
+    console.error('Reorder failed order controller error:', error);
+    req.session.toast = { type: 'error', message: error.message || 'Failed to re-order items.' };
+    return res.redirect('/account/orders');
+  }
+};
+
+/**
+ * Handle retry payment for an order with an active stock reservation.
+ * Uses the SAME original stockReservationExpiresAt deadline.
+ */
+export const retryPaymentHandler = async (req, res) => {
+  try {
+    const userId = req.session.user?.id;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+
+    const { orderId } = req.params;
+    const order = await orderService.getUserOrderById(userId, orderId);
+
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found.' });
+    }
+
+    // Check if the 5-minute stock reservation is still ACTIVE and not expired
+    if (
+      order.stockReservationStatus !== 'ACTIVE' ||
+      !order.stockReservationExpiresAt ||
+      new Date() >= new Date(order.stockReservationExpiresAt)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: 'The 5-minute payment window has expired. Stock has been restored.',
+        isExpired: true
+      });
+    }
+
+    let razorpayOrderId = order.razorpayOrderId;
+    const amountInPaise = Math.round(order.totalAmount * 100);
+
+    if (!razorpayOrderId) {
+      const razorpayInstance = getRazorpayInstance();
+      const rzpOrder = await razorpayInstance.orders.create({
+        amount: amountInPaise,
+        currency: 'INR',
+        receipt: `rcpt_retry_${Date.now()}_${userId.slice(-4)}`
+      });
+      razorpayOrderId = rzpOrder.id;
+
+      // Update Order with new razorpayOrderId without modifying original stockReservationExpiresAt
+      await Order.updateOne({ _id: order._id }, { $set: { razorpayOrderId: rzpOrder.id } });
+    }
+
+    const keyId = (process.env.RAZORPAY_KEY_ID || '').trim();
+
+    return res.status(200).json({
+      success: true,
+      keyId,
+      razorpayOrderId,
+      amount: amountInPaise,
+      currency: 'INR',
+      orderId: order.orderId,
+      stockReservationExpiresAt: order.stockReservationExpiresAt
+    });
+  } catch (error) {
+    console.error('Retry payment controller error:', error);
+    return res.status(500).json({ success: false, message: error.message || 'Failed to initialize payment retry.' });
+  }
+};
+

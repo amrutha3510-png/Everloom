@@ -21,7 +21,7 @@ export const getWalletData = async (userId) => {
 /**
  * Credit money to user's wallet.
  */
-export const addCredit = async (userId, amount, description) => {
+export const addCredit = async (userId, amount, description, orderId = null, razorpayOrderId = null, razorpayPaymentId = null) => {
   if (!amount || amount <= 0) {
     throw new Error('Invalid credit amount.');
   }
@@ -29,6 +29,18 @@ export const addCredit = async (userId, amount, description) => {
   const user = await User.findById(userId);
   if (!user) {
     throw new Error('User not found.');
+  }
+
+  // Prevent duplicate successful credits for the same Razorpay payment or order
+  if (razorpayPaymentId || razorpayOrderId) {
+    const query = { user: userId, status: 'Success' };
+    if (razorpayPaymentId) query.razorpayPaymentId = razorpayPaymentId;
+    else if (razorpayOrderId) query.razorpayOrderId = razorpayOrderId;
+
+    const existingTx = await WalletTransaction.findOne(query);
+    if (existingTx) {
+      return { walletBalance: user.walletBalance || 0, transaction: existingTx };
+    }
   }
 
   const currentBalance = user.walletBalance || 0;
@@ -42,7 +54,11 @@ export const addCredit = async (userId, amount, description) => {
     amount,
     type: 'Credit',
     description: description || 'Wallet Credit',
+    status: 'Success',
     runningBalance: newBalance,
+    orderId: orderId || null,
+    razorpayOrderId: razorpayOrderId || null,
+    razorpayPaymentId: razorpayPaymentId || null,
   });
   await transaction.save();
 
@@ -50,9 +66,53 @@ export const addCredit = async (userId, amount, description) => {
 };
 
 /**
+ * Record a failed credit transaction (e.g. failed wallet top-up).
+ * IMPORTANT: Does NOT mutate user's wallet balance.
+ */
+export const addFailedCredit = async (userId, amount, description, razorpayOrderId = null, razorpayPaymentId = null) => {
+  if (!amount || amount <= 0) {
+    throw new Error('Invalid credit amount.');
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new Error('User not found.');
+  }
+
+  // Prevent duplicate transaction records for the same Razorpay payment/order
+  if (razorpayPaymentId || razorpayOrderId) {
+    const query = { user: userId };
+    if (razorpayPaymentId) query.razorpayPaymentId = razorpayPaymentId;
+    else if (razorpayOrderId) query.razorpayOrderId = razorpayOrderId;
+
+    const existingTx = await WalletTransaction.findOne(query);
+    if (existingTx) {
+      return { walletBalance: user.walletBalance || 0, transaction: existingTx };
+    }
+  }
+
+  const currentBalance = user.walletBalance || 0;
+
+  const transaction = new WalletTransaction({
+    user: userId,
+    amount,
+    type: 'Credit',
+    description: description || 'Wallet Top-up',
+    status: 'Failed',
+    runningBalance: currentBalance,
+    orderId: null,
+    razorpayOrderId: razorpayOrderId || null,
+    razorpayPaymentId: razorpayPaymentId || null,
+  });
+  await transaction.save();
+
+  return { walletBalance: currentBalance, transaction };
+};
+
+/**
  * Debit money from user's wallet.
  */
-export const deductDebit = async (userId, amount, description) => {
+export const deductDebit = async (userId, amount, description, orderId = null) => {
   if (!amount || amount <= 0) {
     throw new Error('Invalid debit amount.');
   }
@@ -76,7 +136,9 @@ export const deductDebit = async (userId, amount, description) => {
     amount,
     type: 'Debit',
     description: description || 'Wallet Debit',
+    status: 'Success',
     runningBalance: newBalance,
+    orderId: orderId || null
   });
   await transaction.save();
 

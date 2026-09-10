@@ -217,7 +217,13 @@
                             });
                           }
                         %>
-                        <% if (minPriceVariant === maxPriceVariant && minPriceVariant !== Infinity) { %>
+                        <% if (product.hasOffer) { %>
+                          <div class="flex items-baseline gap-2">
+                            <span class="text-brand-black font-bold">₹<%= product.discountedPrice %></span>
+                            <span class="text-xs text-brand-gray-400 line-through font-normal">₹<%= product.originalPrice %></span>
+                            <span class="text-[10px] text-green-600 font-bold bg-green-50 px-1.5 py-0.5 rounded"><%= product.offerPercentage %>% OFF</span>
+                          </div>
+                        <% } else if (minPriceVariant === maxPriceVariant && minPriceVariant !== Infinity) { %>
                           ₹<%= minPriceVariant %>
                         <% } else if (minPriceVariant !== Infinity) { %>
                           ₹<%= minPriceVariant %> - ₹<%= maxPriceVariant %>

@@ -24,6 +24,17 @@ const userSchema = new mongoose.Schema({
   referralCode: {
     type: String,
     trim: true,
+    unique: true,
+    sparse: true,
+  },
+  referredBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null,
+  },
+  pendingReferralCode: {
+    type: String,
+    trim: true,
   },
   isVerified: {
     type: Boolean,

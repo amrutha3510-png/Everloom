@@ -1,4 +1,5 @@
 <%- include('../partials/navbar') %>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <main class="min-h-screen bg-brand-gray-50 pb-20">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -69,8 +70,8 @@
             <div class="flex items-center gap-3">
               <span class="w-2.5 h-2.5 rounded-full 
                 <%= order.status === 'Delivered' || order.status === 'Returned' ? 'bg-green-500' : 
-                    order.status === 'Cancelled' ? 'bg-red-500' : 
-                    order.status === 'Pending' ? 'bg-yellow-500' : 'bg-blue-500' %>">
+                    (order.status === 'Cancelled' || order.status === 'Payment Failed' || order.paymentStatus === 'Failed' ? 'bg-red-500' : 
+                    order.status === 'Pending' ? 'bg-yellow-500' : 'bg-blue-500') %>">
               </span>
               <div>
                 <span class="font-sans text-xs font-semibold text-brand-gray-400 uppercase tracking-wider block">Order Status</span>
@@ -97,6 +98,73 @@
             <% } %>
           </div>
 
+          <!-- Payment Failure & Stock Reservation Alert Card -->
+          <% if (order.paymentStatus === 'Failed' || order.status === 'Payment Failed' || order.stockReservationStatus === 'ACTIVE' || order.stockReservationStatus === 'EXPIRED') { %>
+            <% if (order.stockReservationStatus === 'ACTIVE' && order.stockReservationExpiresAt && new Date(order.stockReservationExpiresAt) > new Date()) { 
+                 const initialDiff = Math.max(0, Math.floor((new Date(order.stockReservationExpiresAt).getTime() - Date.now()) / 1000));
+                 const initMin = String(Math.floor(initialDiff / 60)).padStart(2, '0');
+                 const initSec = String(initialDiff % 60).padStart(2, '0');
+                 const initialTimerStr = `${initMin}:${initSec}`;
+            %>
+              <div class="bg-red-50 border border-red-200 p-6 rounded-md shadow-sm">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div class="flex items-start gap-3">
+                    <div class="p-2 bg-red-100 rounded-full text-red-600 mt-0.5">
+                      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 class="font-serif text-lg font-bold text-red-700">Payment Failed</h3>
+                      <p class="font-sans text-xs text-red-600 mt-0.5 flex items-center gap-1.5 font-semibold">
+                        <span>Payment:</span>
+                        <span class="inline-flex items-center gap-1 font-mono font-bold text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded border border-red-300">
+                          ⏱ <span id="reservation-timer"><%= initialTimerStr %></span> remaining
+                        </span>
+                      </p>
+                      <p class="font-sans text-xs text-brand-gray-600 mt-2 leading-relaxed">
+                        Please complete your payment before the timer expires.
+                      </p>
+                    </div>
+                  </div>
+                  <div class="flex-shrink-0">
+                    <button type="button" id="retry-payment-btn" onclick="retryRazorpayPayment()" class="w-full sm:w-auto px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-sans text-xs font-bold uppercase tracking-wider rounded transition-colors shadow-sm flex items-center justify-center gap-1.5">
+                      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                      Retry Payment
+                    </button>
+                  </div>
+                </div>
+              </div>
+            <% } else if (order.stockReservationStatus === 'EXPIRED' || (order.stockReservationExpiresAt && new Date(order.stockReservationExpiresAt) <= new Date())) { %>
+              <div class="bg-amber-50 border border-amber-200 p-6 rounded-md shadow-sm">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div class="flex items-start gap-3">
+                    <div class="p-2 bg-amber-100 rounded-full text-amber-600 mt-0.5">
+                      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 class="font-serif text-lg font-bold text-amber-800">Payment Failed - Time Expired</h3>
+                      <p class="font-sans text-xs text-amber-700 mt-1 leading-relaxed">
+                        The payment window has expired. You can re-add these items to your cart to proceed with a new checkout.
+                      </p>
+                    </div>
+                  </div>
+                  <div class="flex-shrink-0">
+                    <form action="/account/orders/<%= order.orderId %>/reorder" method="POST">
+                      <button type="submit" class="w-full sm:w-auto px-5 py-2.5 bg-brand-black hover:bg-brand-gray-600 text-white font-sans text-xs font-bold uppercase tracking-wider transition-colors shadow-sm">
+                        Re-order Items & Checkout
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            <% } %>
+          <% } %>
+
           <!-- Shipping Details & Payment Info -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-8 border-b border-brand-gray-100 pb-8">
             <div>
@@ -118,7 +186,7 @@
               <h3 class="font-serif text-base font-bold text-brand-black mb-3">Payment Information</h3>
               <div class="font-sans text-xs text-brand-gray-600 space-y-1">
                 <p>Method: <span class="font-semibold text-brand-black"><%= order.paymentMethod %></span></p>
-                <p>Status: <span class="font-semibold text-brand-black">Pending Settlement</span></p>
+                <p>Status: <span class="font-semibold <%= order.paymentStatus === 'Paid' ? 'text-green-600 font-bold' : (order.paymentStatus === 'Failed' ? 'text-red-600 font-bold' : 'text-brand-black') %>"><%= order.paymentStatus || 'Pending Settlement' %></span></p>
               </div>
             </div>
           </div>
@@ -342,8 +410,49 @@
         </div>
       </form>
     </div>
+<!-- Payment Failed Modal Popup -->
+<% if (order.paymentStatus === 'Failed' || order.status === 'Payment Failed' || order.stockReservationStatus === 'ACTIVE') { %>
+  <div id="payment-failed-modal" class="fixed inset-0 z-50 hidden overflow-y-auto" role="dialog" aria-modal="true">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+      <div class="fixed inset-0 bg-brand-black/60 backdrop-blur-sm transition-opacity" onclick="closePaymentFailedModal()"></div>
+
+      <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+      <div class="inline-block align-middle bg-white border border-brand-gray-200 text-center overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-sm sm:w-full p-6 sm:p-8 rounded-lg relative">
+        <!-- Close Button (×) -->
+        <button type="button" onclick="closePaymentFailedModal()" class="absolute top-4 right-4 text-brand-gray-400 hover:text-brand-black transition-colors focus:outline-none" aria-label="Close">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        <!-- Red Warning Icon -->
+        <div class="mx-auto flex items-center justify-center h-14 w-14 rounded-full bg-red-50 border border-red-100 mb-4">
+          <svg class="h-7 w-7 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+
+        <h3 class="font-serif text-2xl font-bold text-brand-black mb-1">Payment Failed</h3>
+        <p class="font-sans text-xs text-brand-gray-500 mb-5 leading-relaxed">Your payment was unsuccessful.</p>
+
+        <div class="bg-red-50/80 border border-red-200 p-4 rounded-md mb-5 text-center">
+          <span class="font-sans text-xs font-semibold text-brand-gray-600 block uppercase tracking-wider mb-1">Payment:</span>
+          <span id="modal-reservation-timer" class="font-mono font-bold text-3xl text-red-700 block tracking-widest my-1"><%= typeof initialTimerStr !== 'undefined' ? initialTimerStr : '05:00' %></span>
+          <span class="font-sans text-[11px] text-red-600 block font-medium mt-1"><span id="modal-reservation-remaining-text"><%= typeof initialTimerStr !== 'undefined' ? initialTimerStr : '05:00' %> remaining</span></span>
+        </div>
+
+        <p class="font-sans text-xs text-brand-gray-600 mb-6 leading-relaxed">
+          Please complete your payment before the timer expires.
+        </p>
+
+        <button type="button" onclick="closePaymentFailedModal()" class="w-full py-3 bg-brand-black text-white font-sans text-xs font-bold uppercase tracking-wider hover:bg-brand-gray-600 transition-colors rounded shadow-sm">
+          OK
+        </button>
+      </div>
+    </div>
   </div>
-</div>
+<% } %>
 
 <script>
   // Full Cancel Modal functions
@@ -643,7 +752,219 @@
       if (typeof showFlash === 'function') showFlash('error', 'Network error occurred');
     }
   });
-</script>);
+
+  // Payment Failed Modal functions
+  function openPaymentFailedModal() {
+    const modal = document.getElementById('payment-failed-modal');
+    if (modal) {
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  function closePaymentFailedModal() {
+    const modal = document.getElementById('payment-failed-modal');
+    if (modal) {
+      modal.classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+  }
+
+  // Auto-open modal if paymentFailed query parameter is present in URL
+  document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('paymentFailed') || urlParams.get('paymentFailed') === 'true') {
+      openPaymentFailedModal();
+    }
+  });
+
+  // Stock Reservation Live Countdown Timer (Updates Order Details & Modal timers in real-time)
+  <% if (order.stockReservationExpiresAt && new Date(order.stockReservationExpiresAt) > new Date()) { %>
+    (function initStockReservationTimer() {
+      const expiresAtMs = Number('<%= new Date(order.stockReservationExpiresAt).getTime() %>');
+      const pageTimerEl = document.getElementById('reservation-timer');
+      const modalTimerEl = document.getElementById('modal-reservation-timer');
+      const modalTextEl = document.getElementById('modal-reservation-remaining-text');
+      let expiryRequestSent = false;
+
+      function updateTimer() {
+        const now = Date.now();
+        const diffMs = expiresAtMs - now;
+
+        if (diffMs <= 0) {
+          if (pageTimerEl) pageTimerEl.textContent = '00:00';
+          if (modalTimerEl) modalTimerEl.textContent = '00:00';
+          if (modalTextEl) modalTextEl.textContent = '00:00 remaining';
+          
+          const retryBtn = document.getElementById('retry-payment-btn');
+          if (retryBtn) {
+            retryBtn.disabled = true;
+            retryBtn.textContent = 'Payment Retry Blocked';
+            retryBtn.className = 'w-full sm:w-auto px-4 py-2.5 bg-brand-gray-300 text-brand-gray-600 font-sans text-xs font-bold uppercase tracking-wider rounded cursor-not-allowed shadow-none';
+          }
+
+          clearInterval(timerInterval);
+
+          if (!expiryRequestSent) {
+            expiryRequestSent = true;
+            fetch('/account/orders/<%= order.orderId %>/expire-reservation', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' }
+            }).finally(() => {
+              window.location.reload();
+            });
+          }
+          return;
+        }
+
+        const totalSeconds = Math.floor(diffMs / 1000);
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        const formattedMinutes = String(minutes).padStart(2, '0');
+        const formattedSeconds = String(seconds).padStart(2, '0');
+        const timeString = `${formattedMinutes}:${formattedSeconds}`;
+
+        if (pageTimerEl) pageTimerEl.textContent = timeString;
+        if (modalTimerEl) modalTimerEl.textContent = timeString;
+        if (modalTextEl) modalTextEl.textContent = `${timeString} remaining`;
+      }
+
+      updateTimer();
+      const timerInterval = setInterval(updateTimer, 1000);
+    })();
+  <% } %>
+
+  function forceCloseRazorpay(rzpInstance) {
+    if (rzpInstance && typeof rzpInstance.close === 'function') {
+      try { rzpInstance.close(); } catch (e) {}
+    }
+    setTimeout(() => {
+      document.querySelectorAll('.razorpay-container, iframe[name^="razorpay"], iframe[src*="razorpay"]').forEach(el => {
+        try { el.remove(); } catch (err) {}
+      });
+      document.body.style.overflow = '';
+    }, 50);
+  }
+
+  // Retry Razorpay Payment for this order using SAME stockReservationExpiresAt
+  async function retryRazorpayPayment() {
+    let paymentSuccessHandled = false;
+    let paymentFailureHandled = false;
+
+    const btn = document.getElementById('retry-payment-btn');
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Initializing Retry...';
+    }
+
+    try {
+      const res = await fetch('/account/orders/<%= order.orderId %>/retry-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        if (typeof showFlash === 'function') showFlash('error', data.message || 'Payment retry failed');
+        if (data.isExpired) {
+          setTimeout(() => window.location.reload(), 1000);
+          return;
+        }
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<svg class="w-3.5 h-3.5 mr-1 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>Retry Payment';
+        }
+        return;
+      }
+
+      let rzpInstance = null;
+
+      function handleRetryFailure(message) {
+        if (paymentSuccessHandled || paymentFailureHandled) return;
+        paymentFailureHandled = true;
+        forceCloseRazorpay(rzpInstance);
+        if (message && typeof showFlash === 'function') showFlash('error', message);
+        openPaymentFailedModal();
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<svg class="w-3.5 h-3.5 mr-1 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>Retry Payment';
+        }
+      }
+
+      const options = {
+        key: data.keyId,
+        amount: data.amount,
+        currency: data.currency,
+        name: 'EverLoom',
+        description: 'EverLoom Order Payment Retry',
+        order_id: data.razorpayOrderId,
+        handler: async function (response) {
+          forceCloseRazorpay(rzpInstance);
+          if (btn) btn.textContent = 'Verifying Payment...';
+          try {
+            const verifyRes = await fetch('/checkout/verify-razorpay-payment', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature,
+                orderId: data.orderId
+              })
+            });
+            const verifyData = await verifyRes.json();
+            if (verifyRes.ok && verifyData.success) {
+              paymentSuccessHandled = true;
+              window.location.href = `/checkout/success?orderId=${verifyData.orderId}`;
+            } else {
+              handleRetryFailure(verifyData.message || 'Payment verification failed');
+            }
+          } catch (err) {
+            console.error(err);
+            handleRetryFailure('Network error during verification');
+          } finally {
+            if (!paymentSuccessHandled && btn) {
+              btn.disabled = false;
+              btn.innerHTML = '<svg class="w-3.5 h-3.5 mr-1 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>Retry Payment';
+            }
+          }
+        },
+        modal: {
+          ondismiss: function () {
+            if (!paymentSuccessHandled && !paymentFailureHandled) {
+              handleRetryFailure();
+            }
+            if (btn) {
+              btn.disabled = false;
+              btn.innerHTML = '<svg class="w-3.5 h-3.5 mr-1 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>Retry Payment';
+            }
+          }
+        },
+        theme: { color: '#111111' }
+      };
+
+      rzpInstance = new Razorpay(options);
+      rzpInstance.on('payment.failed', function () {
+        forceCloseRazorpay(rzpInstance);
+        if (!paymentSuccessHandled && !paymentFailureHandled) {
+          handleRetryFailure();
+        }
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<svg class="w-3.5 h-3.5 mr-1 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>Retry Payment';
+        }
+      });
+      rzpInstance.open();
+
+    } catch (error) {
+      console.error(error);
+      if (typeof showFlash === 'function') showFlash('error', 'Network error initializing retry');
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<svg class="w-3.5 h-3.5 mr-1 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>Retry Payment';
+      }
+    }
+  }
 </script>
 
 <%- include('../partials/footer') %>

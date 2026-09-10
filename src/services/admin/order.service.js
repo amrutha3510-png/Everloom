@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import Order from '../../models/orderModel.js';
 import User from '../../models/userModel.js';
+import * as walletService from '../user/wallet.service.js';
 
 /**
  * Get all orders with search, filter, sort and pagination.
@@ -193,6 +194,21 @@ export const updateOrderStatus = async (orderId, newStatus, restockOption = null
       }
       order.isStockRestored = true;
     }
+
+    // Credit refund to User Wallet ONLY ONCE on Admin approval
+    if (!order.isRefunded && (order.paymentMethod === 'Razorpay' || order.paymentMethod === 'WALLET')) {
+      if (order.totalAmount && order.totalAmount > 0) {
+        const recipientUserId = order.user._id ? order.user._id.toString() : order.user.toString();
+        await walletService.addCredit(
+          recipientUserId,
+          order.totalAmount,
+          `Return refund`,
+          order.orderId
+        );
+        order.isRefunded = true;
+      }
+    }
+
     order.returnStatus = 'Approved';
   }
 

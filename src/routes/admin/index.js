@@ -7,36 +7,31 @@ import productRoutes from './product.routes.js';
 import orderRoutes from './order.routes.js';
 import returnRoutes from './return.routes.js';
 import inventoryRoutes from './inventory.routes.js';
-import { getAdminDashboard } from '../../controllers/admin/dashboard.controller.js';
+import offerRoutes from './offer.routes.js';
+import couponRoutes from './coupon.routes.js';
+import salesReportRoutes from './salesReport.routes.js';
+import { getAdminDashboard, getDashboardChartApi } from '../../controllers/admin/dashboard.controller.js';
 import { isAdmin } from '../../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
-// Mount auth routes (which are mostly unauthenticated except logout)
+// Mount auth routes
 router.use('/', authRoutes);
 
-// Mount dashboard route, protected by isAdmin
+// Mount dashboard routes
 router.get('/dashboard', isAdmin, getAdminDashboard);
+router.get('/dashboard/api/chart-data', isAdmin, getDashboardChartApi);
 
-// Mount customer routes
+// Mount management routes
 router.use('/customers', customerRoutes);
-
-// Mount category routes
 router.use('/categories', categoryRoutes);
-
-// Mount subcategory routes
 router.use('/subcategories', subcategoryRoutes);
-
-// Mount product routes
 router.use('/products', productRoutes);
-
-// Mount order routes
 router.use('/orders', orderRoutes);
-
-// Mount return routes
 router.use('/returns', returnRoutes);
-
-// Mount inventory routes
 router.use('/inventory', inventoryRoutes);
+router.use('/offers', offerRoutes);
+router.use('/coupons', couponRoutes);
+router.use('/sales-report', salesReportRoutes);
 
 export default router;
