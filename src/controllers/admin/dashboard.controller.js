@@ -4,11 +4,31 @@ import * as salesReportService from '../../services/admin/salesReport.service.js
 /**
  * Render Admin Dashboard Page with real visual chart datasets.
  */
+const validateDateInputs = (startDate, endDate) => {
+  const todayStr = new Date().toISOString().split('T')[0];
+  if (startDate && startDate > todayStr) {
+    throw new Error('Future dates are not allowed.');
+  }
+  if (endDate && endDate > todayStr) {
+    throw new Error('Future dates are not allowed.');
+  }
+  if (startDate && endDate && startDate > endDate) {
+    throw new Error('Start Date must be before or equal to End Date.');
+  }
+};
+
+/**
+ * Render Admin Dashboard Page with real visual chart datasets.
+ */
 export const getAdminDashboard = async (req, res) => {
   try {
     const chartFilter = req.query.chartFilter || 'monthly';
     const startDate = req.query.startDate || null;
     const endDate = req.query.endDate || null;
+
+    if (chartFilter === 'custom') {
+      validateDateInputs(startDate, endDate);
+    }
 
     // 1. Overall Monthly Summary Metrics
     const monthlyReport = await salesReportService.getSalesReportData('monthly');
@@ -68,10 +88,14 @@ export const getDashboardChartApi = async (req, res) => {
     const startDate = req.query.startDate || null;
     const endDate = req.query.endDate || null;
 
+    if (filter === 'custom') {
+      validateDateInputs(startDate, endDate);
+    }
+
     const salesChart = await dashboardService.getSalesChartData(filter, startDate, endDate);
     return res.status(200).json({ success: true, salesChart });
   } catch (error) {
     console.error('Error fetching sales chart API:', error);
-    return res.status(500).json({ success: false, message: 'Failed to fetch sales chart data' });
+    return res.status(400).json({ success: false, message: error.message || 'Failed to fetch sales chart data' });
   }
 };

@@ -121,3 +121,30 @@ export const declineReturnHandler = async (req, res) => {
     res.redirect('/admin/returns');
   }
 };
+
+export const approveOrderCancellationHandler = async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    await orderService.approveOrderCancellation(orderId);
+    req.session.toast = { type: 'success', message: 'Order cancellation approved, stock restored, and refund processed.' };
+    res.redirect(`/admin/orders/${orderId}`);
+  } catch (error) {
+    console.error('Error approving order cancellation:', error);
+    req.session.toast = { type: 'error', message: error.message || 'Failed to approve order cancellation.' };
+    res.redirect(`/admin/orders/${req.params.id}`);
+  }
+};
+
+export const approveOrderItemCancellationHandler = async (req, res) => {
+  try {
+    const { id: orderId, itemId } = req.params;
+    await orderService.approveOrderItemCancellation(orderId, itemId);
+    req.session.toast = { type: 'success', message: 'Item cancellation approved, variant stock restored, and proportional refund processed.' };
+    res.redirect(`/admin/orders/${orderId}`);
+  } catch (error) {
+    console.error('Error approving item cancellation:', error);
+    req.session.toast = { type: 'error', message: error.message || 'Failed to approve item cancellation.' };
+    res.redirect(`/admin/orders/${req.params.id}`);
+  }
+};
+

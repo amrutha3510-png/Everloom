@@ -63,6 +63,19 @@
                 </span>
               </td>
               <td class="px-6 py-4 text-right whitespace-nowrap space-x-2">
+                <button type="button"
+                  data-id="<%= coupon._id %>"
+                  data-code="<%= coupon.code %>"
+                  data-type="<%= coupon.type %>"
+                  data-discount-value="<%= coupon.discountValue %>"
+                  data-min-purchase="<%= coupon.minPurchase || 0 %>"
+                  data-max-discount="<%= coupon.maxDiscount || '' %>"
+                  data-expiry-date="<%= new Date(coupon.expiryDate).toISOString().split('T')[0] %>"
+                  data-description="<%= coupon.description || '' %>"
+                  onclick="openEditCouponModal(this)"
+                  class="px-3 py-1.5 bg-brand-black text-white text-xs font-semibold rounded hover:bg-brand-gray-600 transition-colors">
+                  Edit
+                </button>
                 <button type="button" onclick="toggleCouponStatus('<%= coupon._id %>')" class="px-3 py-1.5 border border-brand-gray-200 text-brand-black text-xs font-semibold rounded hover:bg-brand-gray-50 transition-colors">
                   <%= coupon.status === 'Active' ? 'Deactivate' : 'Activate' %>
                 </button>
@@ -84,7 +97,7 @@
   </div>
 </div>
 
-<!-- Create Coupon Modal -->
+<!-- Create / Edit Coupon Modal -->
 <div id="coupon-modal" class="fixed inset-0 z-50 hidden overflow-y-auto" role="dialog" aria-modal="true">
   <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
     <div class="fixed inset-0 bg-brand-black/40 backdrop-blur-sm transition-opacity" onclick="closeCreateCouponModal()"></div>
@@ -93,7 +106,7 @@
 
     <div class="inline-block align-middle bg-white border border-brand-gray-200 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full p-6 sm:p-8">
       <div class="pb-4 border-b border-brand-gray-100 flex justify-between items-center">
-        <h3 class="font-serif text-xl font-bold text-brand-black">Create New Coupon</h3>
+        <h3 class="font-serif text-xl font-bold text-brand-black" id="coupon-modal-heading">Create New Coupon</h3>
         <button type="button" onclick="closeCreateCouponModal()" class="text-brand-gray-400 hover:text-brand-black transition-colors focus:outline-none">
           <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -102,14 +115,17 @@
       </div>
 
       <form id="coupon-form" class="mt-6 font-sans text-sm space-y-4" novalidate>
+        <input type="hidden" id="editing-coupon-id" value="">
+
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-xs font-semibold uppercase tracking-widest text-brand-gray-500 mb-1">Coupon Code <span class="text-red-500">*</span></label>
             <input type="text" id="coupon-code" required uppercase placeholder="e.g. FESTIVE20" class="w-full px-3 py-2 border border-brand-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-black uppercase font-mono">
+            <p class="hidden text-red-500 text-xs mt-1 font-sans" id="coupon-code-err"></p>
           </div>
           <div>
             <label class="block text-xs font-semibold uppercase tracking-widest text-brand-gray-500 mb-1">Discount Type</label>
-            <select id="coupon-type" class="w-full px-3 py-2 border border-brand-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-black">
+            <select id="coupon-type" class="w-full px-3 py-2 border border-brand-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-black" onchange="updateDiscountValueUI()">
               <option value="PERCENTAGE">Percentage (%)</option>
               <option value="FIXED">Fixed Amount (₹)</option>
             </select>
@@ -118,8 +134,9 @@
 
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-xs font-semibold uppercase tracking-widest text-brand-gray-500 mb-1">Discount Value <span class="text-red-500">*</span></label>
-            <input type="number" id="coupon-discountValue" min="1" required placeholder="e.g. 20" class="w-full px-3 py-2 border border-brand-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-black">
+            <label id="coupon-discountValue-label" class="block text-xs font-semibold uppercase tracking-widest text-brand-gray-500 mb-1">Discount Value (%) <span class="text-red-500">*</span></label>
+            <input type="number" id="coupon-discountValue" min="1" max="75" step="1" required placeholder="e.g. 20 (1-75%)" class="w-full px-3 py-2 border border-brand-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-black">
+            <p class="hidden text-red-500 text-xs mt-1 font-sans" id="coupon-discountValue-err"></p>
           </div>
           <div>
             <label class="block text-xs font-semibold uppercase tracking-widest text-brand-gray-500 mb-1">Min Purchase (₹)</label>
@@ -128,13 +145,15 @@
         </div>
 
         <div class="grid grid-cols-2 gap-4">
-          <div>
+          <div id="coupon-maxDiscount-container">
             <label class="block text-xs font-semibold uppercase tracking-widest text-brand-gray-500 mb-1">Max Discount Cap (₹)</label>
             <input type="number" id="coupon-maxDiscount" min="0" placeholder="e.g. 500 (Optional)" class="w-full px-3 py-2 border border-brand-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-black">
           </div>
           <div>
+            <% const tomorrowStr = new Date(Date.now() + 86400000).toISOString().split('T')[0]; %>
             <label class="block text-xs font-semibold uppercase tracking-widest text-brand-gray-500 mb-1">Expiry Date <span class="text-red-500">*</span></label>
-            <input type="date" id="coupon-expiryDate" required class="w-full px-3 py-2 border border-brand-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-black">
+            <input type="date" id="coupon-expiryDate" min="<%= tomorrowStr %>" required class="w-full px-3 py-2 border border-brand-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-black">
+            <p class="hidden text-red-500 text-xs mt-1 font-sans" id="coupon-expiryDate-err"></p>
           </div>
         </div>
 
@@ -145,7 +164,7 @@
 
         <div class="pt-4 flex gap-3">
           <button type="button" onclick="closeCreateCouponModal()" class="flex-1 py-2.5 border border-brand-gray-200 text-brand-gray-600 hover:bg-brand-gray-50 font-sans font-bold uppercase tracking-wider text-xs transition-colors">Cancel</button>
-          <button type="submit" class="flex-1 py-2.5 bg-brand-black text-white hover:bg-brand-gray-600 font-sans font-bold uppercase tracking-wider text-xs transition-colors">Save Coupon</button>
+          <button type="submit" id="coupon-submit-btn" class="flex-1 py-2.5 bg-brand-black text-white hover:bg-brand-gray-600 font-sans font-bold uppercase tracking-wider text-xs transition-colors">Save Coupon</button>
         </div>
       </form>
     </div>
@@ -153,8 +172,90 @@
 </div>
 
 <script>
+  function updateDiscountValueUI() {
+    const typeSelect = document.getElementById('coupon-type');
+    const discountInput = document.getElementById('coupon-discountValue');
+    const labelEl = document.getElementById('coupon-discountValue-label');
+    const maxDiscountInput = document.getElementById('coupon-maxDiscount');
+    const type = typeSelect ? typeSelect.value : 'PERCENTAGE';
+
+    if (type === 'PERCENTAGE') {
+      if (labelEl) labelEl.innerHTML = 'Discount Value (%) <span class="text-red-500">*</span>';
+      if (discountInput) {
+        discountInput.setAttribute('min', '1');
+        discountInput.setAttribute('max', '75');
+        discountInput.setAttribute('step', '1');
+        discountInput.placeholder = 'e.g. 20 (1-75%)';
+      }
+      if (maxDiscountInput) {
+        maxDiscountInput.disabled = false;
+        maxDiscountInput.placeholder = 'e.g. 500 (Optional)';
+      }
+    } else {
+      if (labelEl) labelEl.innerHTML = 'Discount Value (₹) <span class="text-red-500">*</span>';
+      if (discountInput) {
+        discountInput.setAttribute('min', '1');
+        discountInput.removeAttribute('max');
+        discountInput.setAttribute('step', 'any');
+        discountInput.placeholder = 'e.g. 500 (Min ₹1)';
+      }
+      if (maxDiscountInput) {
+        maxDiscountInput.value = '';
+        maxDiscountInput.disabled = true;
+        maxDiscountInput.placeholder = 'Not applicable for fixed amount';
+      }
+    }
+  }
+
+  function resetCouponErrors() {
+    ['coupon-code-err', 'coupon-discountValue-err', 'coupon-expiryDate-err'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('hidden');
+    });
+    ['coupon-code', 'coupon-discountValue', 'coupon-expiryDate'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('border-red-500');
+    });
+  }
+
   function openCreateCouponModal() {
     document.getElementById('coupon-form').reset();
+    document.getElementById('editing-coupon-id').value = '';
+    document.getElementById('coupon-modal-heading').textContent = 'Create New Coupon';
+    document.getElementById('coupon-submit-btn').textContent = 'Save Coupon';
+    resetCouponErrors();
+    updateDiscountValueUI();
+    document.getElementById('coupon-modal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function openEditCouponModal(btn) {
+    if (!btn) return;
+    document.getElementById('coupon-form').reset();
+    resetCouponErrors();
+
+    const id = btn.getAttribute('data-id');
+    const code = btn.getAttribute('data-code');
+    const type = btn.getAttribute('data-type');
+    const discountValue = btn.getAttribute('data-discount-value');
+    const minPurchase = btn.getAttribute('data-min-purchase');
+    const maxDiscount = btn.getAttribute('data-max-discount');
+    const expiryDate = btn.getAttribute('data-expiry-date');
+    const description = btn.getAttribute('data-description');
+
+    document.getElementById('editing-coupon-id').value = id || '';
+    document.getElementById('coupon-modal-heading').textContent = 'Edit Coupon';
+    document.getElementById('coupon-submit-btn').textContent = 'Update Coupon';
+
+    document.getElementById('coupon-code').value = code || '';
+    document.getElementById('coupon-type').value = type || 'PERCENTAGE';
+    document.getElementById('coupon-discountValue').value = discountValue || '';
+    document.getElementById('coupon-minPurchase').value = minPurchase || 0;
+    document.getElementById('coupon-maxDiscount').value = maxDiscount || '';
+    document.getElementById('coupon-expiryDate').value = expiryDate || '';
+    document.getElementById('coupon-description').value = description || '';
+
+    updateDiscountValueUI();
     document.getElementById('coupon-modal').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
   }
@@ -162,41 +263,83 @@
   function closeCreateCouponModal() {
     document.getElementById('coupon-modal').classList.add('hidden');
     document.body.style.overflow = '';
+    resetCouponErrors();
   }
 
   document.getElementById('coupon-form').addEventListener('submit', async function(e) {
     e.preventDefault();
+    resetCouponErrors();
 
-    const code = document.getElementById('coupon-code').value.trim().toUpperCase();
+    const editingId = document.getElementById('editing-coupon-id').value;
+    const codeInput = document.getElementById('coupon-code');
+    const code = codeInput.value.trim().toUpperCase();
     const type = document.getElementById('coupon-type').value;
-    const discountValue = Number(document.getElementById('coupon-discountValue').value);
+    const discountInput = document.getElementById('coupon-discountValue');
+    const discountValueRaw = discountInput.value;
+    const discountValue = Number(discountValueRaw);
     const minPurchase = Number(document.getElementById('coupon-minPurchase').value || 0);
-    const maxDiscount = document.getElementById('coupon-maxDiscount').value ? Number(document.getElementById('coupon-maxDiscount').value) : null;
-    const expiryDate = document.getElementById('coupon-expiryDate').value;
+    const maxDiscount = (type === 'PERCENTAGE' && document.getElementById('coupon-maxDiscount').value) ? Number(document.getElementById('coupon-maxDiscount').value) : null;
+    const expiryInput = document.getElementById('coupon-expiryDate');
+    const expiryDate = expiryInput.value;
     const description = document.getElementById('coupon-description').value.trim();
 
+    let valid = true;
+
     if (!code) {
-      alert('Coupon code is required');
-      return;
+      const err = document.getElementById('coupon-code-err');
+      err.textContent = 'Coupon Code is required and cannot be whitespace only.';
+      err.classList.remove('hidden');
+      codeInput.classList.add('border-red-500');
+      valid = false;
     }
 
-    if (isNaN(discountValue) || discountValue <= 0) {
-      alert('Discount value must be greater than 0');
-      return;
-    }
-
-    if (type === 'PERCENTAGE' && discountValue > 90) {
-      alert('Percentage discount cannot exceed 90%');
-      return;
+    if (type === 'PERCENTAGE') {
+      if (!discountValueRaw || isNaN(discountValue) || !Number.isInteger(discountValue) || discountValue < 1 || discountValue > 75) {
+        const err = document.getElementById('coupon-discountValue-err');
+        err.textContent = 'Percentage discount must be a whole number between 1% and 75%.';
+        err.classList.remove('hidden');
+        discountInput.classList.add('border-red-500');
+        valid = false;
+      }
+    } else if (type === 'FIXED') {
+      if (!discountValueRaw || isNaN(discountValue) || discountValue < 1) {
+        const err = document.getElementById('coupon-discountValue-err');
+        err.textContent = 'Fixed price discount must be at least ₹1.';
+        err.classList.remove('hidden');
+        discountInput.classList.add('border-red-500');
+        valid = false;
+      }
     }
 
     if (!expiryDate) {
-      alert('Expiry date is required');
-      return;
+      const err = document.getElementById('coupon-expiryDate-err');
+      err.textContent = 'Expiry Date is required.';
+      err.classList.remove('hidden');
+      expiryInput.classList.add('border-red-500');
+      valid = false;
+    } else {
+      const expD = new Date(expiryDate);
+      const todayEnd = new Date();
+      todayEnd.setHours(23, 59, 59, 999);
+      if (expD <= todayEnd) {
+        const err = document.getElementById('coupon-expiryDate-err');
+        err.textContent = 'Expiry Date must be a future date.';
+        err.classList.remove('hidden');
+        expiryInput.classList.add('border-red-500');
+        valid = false;
+      }
     }
 
+    if (!valid) return;
+
+    const submitBtn = document.getElementById('coupon-submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Saving...';
+
+    const url = editingId ? `/admin/coupons/${editingId}/edit` : '/admin/coupons/create';
+
     try {
-      const res = await fetch('/admin/coupons/create', {
+      const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -214,11 +357,19 @@
       if (res.ok && data.success) {
         window.location.reload();
       } else {
-        alert(data.message || 'Failed to create coupon');
+        const err = document.getElementById('coupon-discountValue-err');
+        err.textContent = data.message || 'Failed to save coupon.';
+        err.classList.remove('hidden');
+        submitBtn.disabled = false;
+        submitBtn.textContent = editingId ? 'Update Coupon' : 'Save Coupon';
       }
     } catch (err) {
       console.error(err);
-      alert('Network error occurred while creating coupon');
+      const errEl = document.getElementById('coupon-discountValue-err');
+      errEl.textContent = 'Network error occurred while saving coupon.';
+      errEl.classList.remove('hidden');
+      submitBtn.disabled = false;
+      submitBtn.textContent = editingId ? 'Update Coupon' : 'Save Coupon';
     }
   });
 

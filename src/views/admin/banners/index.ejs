@@ -1,0 +1,472 @@
+<!-- Cropper.js CDN & SweetAlert2 -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Title & Add Banner Button -->
+<div class="max-w-6xl mx-auto mb-8 flex items-center justify-between">
+  <div>
+    <h1 class="text-2xl font-serif font-bold text-brand-black flex items-center gap-2">
+      <svg class="w-6 h-6 text-brand-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      </svg>
+      Banner Management
+    </h1>
+    <p class="font-sans text-xs text-brand-gray-500 mt-1">Upload and manage promotional hero banners displayed on the User Home Page.</p>
+  </div>
+
+  <button type="button" onclick="openCreateBannerModal()" class="px-4 py-2.5 bg-brand-black text-white hover:bg-brand-gray-600 rounded-md font-sans text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-2 shadow-sm">
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+    </svg>
+    Add New Banner
+  </button>
+</div>
+
+<!-- Banners Table Card -->
+<div class="max-w-6xl mx-auto bg-white border border-brand-gray-100 rounded-xl shadow-sm overflow-hidden mb-12">
+  <div class="p-6 border-b border-brand-gray-100 flex items-center justify-between">
+    <h2 class="font-serif text-xl font-bold text-brand-black">All Promotional Banners</h2>
+    <span class="font-sans text-xs text-brand-gray-500 font-medium">Total Banners: <%= banners ? banners.length : 0 %></span>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse font-sans text-sm">
+      <thead>
+        <tr class="border-b border-brand-gray-100 bg-brand-gray-50 text-[10px] font-bold text-brand-gray-500 uppercase tracking-widest2">
+          <th class="px-6 py-4">Preview</th>
+          <th class="px-6 py-4">Banner Title</th>
+          <th class="px-6 py-4">Status</th>
+          <th class="px-6 py-4 text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-brand-gray-100 text-brand-black">
+        <% if (banners && banners.length > 0) { %>
+          <% banners.forEach(banner => { %>
+            <tr class="hover:bg-brand-gray-50/50 transition-colors">
+              <td class="px-6 py-4">
+                <div class="w-28 h-16 bg-brand-gray-50 border border-brand-gray-200 overflow-hidden rounded">
+                  <img src="<%= banner.image %>" alt="<%= banner.title %>" class="w-full h-full object-cover">
+                </div>
+              </td>
+              <td class="px-6 py-4 font-semibold text-brand-black">
+                <%= banner.title %>
+              </td>
+              <td class="px-6 py-4">
+                <% if (banner.status === 'Active') { %>
+                  <span class="px-2.5 py-1 inline-flex text-xs font-semibold rounded-md bg-green-100 text-green-700 border border-green-200">
+                    Active (Current Home Banner)
+                  </span>
+                <% } else { %>
+                  <span class="px-2.5 py-1 inline-flex text-xs font-semibold rounded-md bg-gray-100 text-gray-700 border border-gray-200">
+                    Inactive
+                  </span>
+                <% } %>
+              </td>
+              <td class="px-6 py-4 text-right whitespace-nowrap space-x-2">
+                <% if (banner.status === 'Active') { %>
+                  <button type="button" disabled class="px-3 py-1.5 bg-green-50 border border-green-200 text-green-700 text-xs font-semibold rounded cursor-default">
+                    Current Home Banner
+                  </button>
+                <% } else { %>
+                  <button type="button" onclick="selectHomeBanner('<%= banner._id %>')" class="px-3 py-1.5 bg-brand-black text-white text-xs font-semibold rounded hover:bg-brand-gray-600 transition-colors">
+                    Select as Home Banner
+                  </button>
+                <% } %>
+
+                <button type="button"
+                  data-id="<%= banner._id %>"
+                  data-title="<%= banner.title %>"
+                  data-status="<%= banner.status %>"
+                  data-image="<%= banner.image %>"
+                  onclick="openEditBannerModal(this)"
+                  class="px-3 py-1.5 border border-brand-gray-200 text-brand-black text-xs font-semibold rounded hover:bg-brand-gray-50 transition-colors">
+                  Edit
+                </button>
+
+                <button type="button" onclick="deleteBanner('<%= banner._id %>')" class="px-3 py-1.5 bg-red-600 text-white text-xs font-semibold rounded hover:bg-red-700 transition-colors">
+                  Delete
+                </button>
+              </td>
+            </tr>
+          <% }) %>
+        <% } else { %>
+          <tr>
+            <td colspan="4" class="px-6 py-12 text-center text-brand-gray-400 font-sans text-sm">
+              No banners created yet. Click "Add New Banner" to upload one.
+            </td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Add / Edit Banner Modal -->
+<div id="banner-modal" class="fixed inset-0 z-50 hidden overflow-y-auto" role="dialog" aria-modal="true">
+  <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+    <div class="fixed inset-0 bg-brand-black/40 backdrop-blur-sm transition-opacity" onclick="closeCreateBannerModal()"></div>
+
+    <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+    <div class="inline-block align-middle bg-white border border-brand-gray-200 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full p-6 sm:p-8">
+      <div class="pb-4 border-b border-brand-gray-100 flex justify-between items-center">
+        <h3 class="font-serif text-xl font-bold text-brand-black" id="banner-modal-heading">Add New Banner</h3>
+        <button type="button" onclick="closeCreateBannerModal()" class="text-brand-gray-400 hover:text-brand-black transition-colors focus:outline-none">
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <form id="banner-form" class="mt-6 font-sans text-sm space-y-4" novalidate>
+        <input type="hidden" id="editing-banner-id" value="">
+
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-widest text-brand-gray-500 mb-1">Banner Title <span class="text-red-500">*</span></label>
+          <input type="text" id="banner-title" required placeholder="e.g. Timeless Fashion For Modern Women" class="w-full px-3 py-2 border border-brand-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-black">
+          <p id="banner-title-err" class="hidden text-red-500 text-xs mt-1 font-sans">Banner Title is required and cannot be empty.</p>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-widest text-brand-gray-500 mb-1">Status</label>
+          <select id="banner-status" class="w-full px-3 py-2 border border-brand-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-black">
+            <option value="Active">Active (Set as Home Banner)</option>
+            <option value="Inactive">Inactive</option>
+          </select>
+        </div>
+
+        <!-- Existing Image Preview when Editing -->
+        <div id="banner-existing-preview-wrapper" class="hidden">
+          <label class="block text-xs font-semibold uppercase tracking-widest text-brand-gray-500 mb-1">Current Image</label>
+          <div class="w-full h-32 bg-brand-gray-50 border border-brand-gray-200 overflow-hidden rounded">
+            <img id="banner-existing-preview-img" src="" alt="Current Banner Image" class="w-full h-full object-cover">
+          </div>
+        </div>
+
+        <!-- Banner Image File Selection & Fixed Rectangular Cropper -->
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-widest text-brand-gray-500 mb-1">
+            <span id="banner-image-label-text">Banner Image (JPG, PNG, WEBP)</span> <span id="banner-image-required-star" class="text-red-500">*</span>
+          </label>
+          <input type="file" id="banner-image-file" accept="image/jpeg,image/png,image/webp" class="w-full text-xs text-brand-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-brand-black file:text-white hover:file:bg-brand-gray-600 transition-colors">
+          <p class="text-[11px] text-brand-gray-400 mt-1">Cropping ratio: 16:9 rectangular proportion.</p>
+          <p id="banner-image-err" class="hidden text-red-500 text-xs mt-1 font-sans">Banner Image is required.</p>
+        </div>
+
+        <!-- Crop Preview Container -->
+        <div id="banner-crop-wrapper" class="hidden mt-3 border border-brand-gray-200 p-2 rounded-md bg-brand-gray-50">
+          <div class="max-h-64 overflow-hidden">
+            <img id="banner-crop-img" src="" alt="Banner Crop Target" class="max-w-full block">
+          </div>
+          <p class="text-[10px] text-brand-gray-500 mt-2 font-medium">Adjust rectangular crop area above before saving.</p>
+        </div>
+
+        <div class="pt-4 flex gap-3">
+          <button type="button" onclick="closeCreateBannerModal()" class="flex-1 py-2.5 border border-brand-gray-200 text-brand-gray-600 hover:bg-brand-gray-50 font-sans font-bold uppercase tracking-wider text-xs transition-colors">Cancel</button>
+          <button type="submit" id="save-banner-btn" class="flex-1 py-2.5 bg-brand-black text-white hover:bg-brand-gray-600 font-sans font-bold uppercase tracking-wider text-xs transition-colors">Save Banner</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  let bannerCropper = null;
+
+  function openCreateBannerModal() {
+    document.getElementById('banner-form').reset();
+    document.getElementById('editing-banner-id').value = '';
+    document.getElementById('banner-modal-heading').textContent = 'Add New Banner';
+    document.getElementById('save-banner-btn').textContent = 'Save Banner';
+    document.getElementById('banner-crop-wrapper').classList.add('hidden');
+    document.getElementById('banner-existing-preview-wrapper').classList.add('hidden');
+    document.getElementById('banner-title-err').classList.add('hidden');
+    document.getElementById('banner-image-err').classList.add('hidden');
+    document.getElementById('banner-title').classList.remove('border-red-500');
+    document.getElementById('banner-image-file').classList.remove('border-red-500');
+    document.getElementById('banner-image-required-star').classList.remove('hidden');
+    if (bannerCropper) {
+      bannerCropper.destroy();
+      bannerCropper = null;
+    }
+    document.getElementById('banner-modal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function openEditBannerModal(btn) {
+    if (!btn) return;
+    document.getElementById('banner-form').reset();
+    document.getElementById('banner-crop-wrapper').classList.add('hidden');
+    document.getElementById('banner-title-err').classList.add('hidden');
+    document.getElementById('banner-image-err').classList.add('hidden');
+    document.getElementById('banner-title').classList.remove('border-red-500');
+    document.getElementById('banner-image-file').classList.remove('border-red-500');
+    if (bannerCropper) {
+      bannerCropper.destroy();
+      bannerCropper = null;
+    }
+
+    const id = btn.getAttribute('data-id');
+    const title = btn.getAttribute('data-title');
+    const status = btn.getAttribute('data-status');
+    const image = btn.getAttribute('data-image');
+
+    document.getElementById('editing-banner-id').value = id || '';
+    document.getElementById('banner-modal-heading').textContent = 'Edit Banner';
+    document.getElementById('save-banner-btn').textContent = 'Update Banner';
+
+    document.getElementById('banner-title').value = title || '';
+    document.getElementById('banner-status').value = status || 'Active';
+
+    if (image) {
+      document.getElementById('banner-existing-preview-img').src = image;
+      document.getElementById('banner-existing-preview-wrapper').classList.remove('hidden');
+      document.getElementById('banner-image-required-star').classList.add('hidden');
+    } else {
+      document.getElementById('banner-existing-preview-wrapper').classList.add('hidden');
+      document.getElementById('banner-image-required-star').classList.remove('hidden');
+    }
+
+    document.getElementById('banner-modal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeCreateBannerModal() {
+    document.getElementById('banner-modal').classList.add('hidden');
+    document.body.style.overflow = '';
+    if (bannerCropper) {
+      bannerCropper.destroy();
+      bannerCropper = null;
+    }
+  }
+
+  document.getElementById('banner-image-file').addEventListener('change', function (e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      const errEl = document.getElementById('banner-image-err');
+      errEl.textContent = 'Only JPG, JPEG, PNG, and WEBP image formats are supported.';
+      errEl.classList.remove('hidden');
+      this.value = '';
+      return;
+    }
+
+    document.getElementById('banner-image-err').classList.add('hidden');
+
+    const reader = new FileReader();
+    reader.onload = function (evt) {
+      const cropImg = document.getElementById('banner-crop-img');
+      cropImg.src = evt.target.result;
+      document.getElementById('banner-crop-wrapper').classList.remove('hidden');
+
+      if (bannerCropper) {
+        bannerCropper.destroy();
+      }
+
+      // Initialize Cropper.js with FIXED RECTANGULAR aspect ratio (16:9)
+      bannerCropper = new Cropper(cropImg, {
+        aspectRatio: 16 / 9,
+        viewMode: 1,
+        autoCropArea: 0.9,
+        responsive: true,
+        scalable: true,
+        zoomable: true
+      });
+    };
+    reader.readAsDataURL(file);
+  });
+
+  document.getElementById('banner-form').addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const editingId = document.getElementById('editing-banner-id').value;
+    const titleInput = document.getElementById('banner-title');
+    const title = titleInput.value.trim();
+    const status = document.getElementById('banner-status').value;
+    const fileInput = document.getElementById('banner-image-file');
+
+    const titleErr = document.getElementById('banner-title-err');
+    const imageErr = document.getElementById('banner-image-err');
+
+    let valid = true;
+
+    if (!title) {
+      titleErr.textContent = 'Banner Title is required and cannot be whitespace only.';
+      titleErr.classList.remove('hidden');
+      titleInput.classList.add('border-red-500');
+      valid = false;
+    } else {
+      titleErr.classList.add('hidden');
+      titleInput.classList.remove('border-red-500');
+    }
+
+    // New image is mandatory ONLY for Create mode
+    if (!editingId && (!fileInput.files || fileInput.files.length === 0 || !bannerCropper)) {
+      imageErr.textContent = 'Banner Image is required for new banners.';
+      imageErr.classList.remove('hidden');
+      valid = false;
+    } else {
+      imageErr.classList.add('hidden');
+    }
+
+    if (!valid) return;
+
+    const btn = document.getElementById('save-banner-btn');
+    btn.disabled = true;
+    btn.textContent = editingId ? 'Updating Banner...' : 'Saving Banner...';
+
+    const submitFormData = async (blob) => {
+      const formData = new FormData();
+      formData.append('title', title);
+      formData.append('status', status);
+      if (blob) {
+        formData.append('image', blob, 'banner.jpg');
+      }
+
+      const url = editingId ? `/admin/banners/${editingId}/edit` : '/admin/banners/create';
+
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          Swal.fire({
+            title: 'Success!',
+            text: data.message || 'Banner saved successfully.',
+            icon: 'success',
+            timer: 1500,
+            showConfirmButton: false,
+            customClass: { popup: 'rounded-xl font-sans' }
+          }).then(() => {
+            window.location.reload();
+          });
+        } else {
+          imageErr.textContent = data.message || 'Failed to save banner.';
+          imageErr.classList.remove('hidden');
+          btn.disabled = false;
+          btn.textContent = editingId ? 'Update Banner' : 'Save Banner';
+        }
+      } catch (err) {
+        console.error(err);
+        imageErr.textContent = 'Network error while saving banner.';
+        imageErr.classList.remove('hidden');
+        btn.disabled = false;
+        btn.textContent = editingId ? 'Update Banner' : 'Save Banner';
+      }
+    };
+
+    if (bannerCropper) {
+      bannerCropper.getCroppedCanvas({
+        width: 1600,
+        height: 900,
+        imageSmoothingQuality: 'high'
+      }).toBlob((blob) => {
+        if (!blob) {
+          imageErr.textContent = 'Failed to process cropped image.';
+          imageErr.classList.remove('hidden');
+          btn.disabled = false;
+          btn.textContent = editingId ? 'Update Banner' : 'Save Banner';
+          return;
+        }
+        submitFormData(blob);
+      }, 'image/jpeg', 0.92);
+    } else {
+      // Editing without selecting a new image file
+      submitFormData(null);
+    }
+  });
+
+  async function selectHomeBanner(bannerId) {
+    try {
+      const res = await fetch(`/admin/banners/${bannerId}/select`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        Swal.fire({
+          title: 'Home Banner Updated!',
+          text: data.message,
+          icon: 'success',
+          timer: 1500,
+          showConfirmButton: false,
+          customClass: { popup: 'rounded-xl font-sans' }
+        }).then(() => {
+          window.location.reload();
+        });
+      } else {
+        Swal.fire({
+          title: 'Error!',
+          text: data.message || 'Failed to set Home banner.',
+          icon: 'error',
+          customClass: { popup: 'rounded-xl font-sans' }
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      Swal.fire({
+        title: 'Error!',
+        text: 'Network error occurred.',
+        icon: 'error',
+        customClass: { popup: 'rounded-xl font-sans' }
+      });
+    }
+  }
+
+  async function deleteBanner(bannerId) {
+    const result = await Swal.fire({
+      title: 'Delete Banner?',
+      text: 'Are you sure you want to delete this banner?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'Cancel',
+      customClass: { popup: 'rounded-xl font-sans' }
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const res = await fetch(`/admin/banners/${bannerId}/delete`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          Swal.fire({
+            title: 'Deleted!',
+            text: data.message || 'Banner deleted successfully.',
+            icon: 'success',
+            timer: 1500,
+            showConfirmButton: false,
+            customClass: { popup: 'rounded-xl font-sans' }
+          }).then(() => {
+            window.location.reload();
+          });
+        } else {
+          Swal.fire({
+            title: 'Error!',
+            text: data.message || 'Failed to delete banner.',
+            icon: 'error',
+            customClass: { popup: 'rounded-xl font-sans' }
+          });
+        }
+      } catch (err) {
+        console.error(err);
+        Swal.fire({
+          title: 'Error!',
+          text: 'Network error occurred.',
+          icon: 'error',
+          customClass: { popup: 'rounded-xl font-sans' }
+        });
+      }
+    }
+  }
+</script>

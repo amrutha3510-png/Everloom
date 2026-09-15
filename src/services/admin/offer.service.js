@@ -33,23 +33,25 @@ export const createOffer = async (offerData) => {
   }
 
   const numericValue = Number(discountValue);
-  if (isNaN(numericValue) || numericValue <= 0) {
-    throw new Error('Discount value must be greater than 0.');
-  }
-
-  if (discountType === 'PERCENTAGE' && numericValue > 90) {
-    throw new Error('Percentage discount cannot exceed 90%.');
+  if (isNaN(numericValue) || !Number.isInteger(numericValue) || numericValue < 1 || numericValue > 75) {
+    throw new Error('Discount must be between 1% and 75%.');
   }
 
   const start = startDate ? new Date(startDate) : new Date();
   const end = new Date(endDate);
 
-  if (isNaN(end.getTime())) {
-    throw new Error('Valid end date is required.');
+  if (!endDate || isNaN(end.getTime())) {
+    throw new Error('Expiry Date is required.');
+  }
+
+  const todayEnd = new Date();
+  todayEnd.setHours(23, 59, 59, 999);
+  if (end <= todayEnd) {
+    throw new Error('Expiry Date must be a future date.');
   }
 
   if (end <= start) {
-    throw new Error('End date must be after start date.');
+    throw new Error('Expiry date must be after start date.');
   }
 
   const offerObj = {
@@ -75,6 +77,74 @@ export const createOffer = async (offerData) => {
   const newOffer = new Offer(offerObj);
   await newOffer.save();
   return newOffer;
+};
+
+/**
+ * Update an existing Product or Category offer with strict validation.
+ */
+export const updateOffer = async (offerId, offerData) => {
+  const { name, targetType, targetId, discountType, discountValue, startDate, endDate } = offerData;
+
+  const offer = await Offer.findById(offerId);
+  if (!offer || offer.isDeleted) {
+    throw new Error('Offer not found.');
+  }
+
+  if (!name || !name.trim()) {
+    throw new Error('Offer title is required.');
+  }
+
+  if (!['Product', 'Category'].includes(targetType)) {
+    throw new Error('Target type must be Product or Category.');
+  }
+
+  if (!targetId) {
+    throw new Error(`Please select a ${targetType.toLowerCase()}.`);
+  }
+
+  const numericValue = Number(discountValue);
+  if (isNaN(numericValue) || !Number.isInteger(numericValue) || numericValue < 1 || numericValue > 75) {
+    throw new Error('Discount must be between 1% and 75%.');
+  }
+
+  const start = startDate ? new Date(startDate) : (offer.startDate || new Date());
+  const end = new Date(endDate);
+
+  if (!endDate || isNaN(end.getTime())) {
+    throw new Error('Expiry Date is required.');
+  }
+
+  const todayEnd = new Date();
+  todayEnd.setHours(23, 59, 59, 999);
+  if (end <= todayEnd) {
+    throw new Error('Expiry Date must be a future date.');
+  }
+
+  if (end <= start) {
+    throw new Error('Expiry date must be after start date.');
+  }
+
+  offer.name = name.trim();
+  offer.targetType = targetType;
+  offer.discountType = discountType || 'PERCENTAGE';
+  offer.discountValue = numericValue;
+  offer.startDate = start;
+  offer.endDate = end;
+
+  if (targetType === 'Product') {
+    const product = await Product.findById(targetId);
+    if (!product) throw new Error('Selected product does not exist.');
+    offer.product = targetId;
+    offer.category = undefined;
+  } else {
+    const category = await Category.findById(targetId);
+    if (!category) throw new Error('Selected category does not exist.');
+    offer.category = targetId;
+    offer.product = undefined;
+  }
+
+  await offer.save();
+  return offer;
 };
 
 /**

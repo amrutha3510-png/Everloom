@@ -22,11 +22,15 @@ const orderItemSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['Pending', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled', 'Return Requested', 'Returned'],
+    enum: ['Pending', 'Cancellation Requested', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled', 'Return Requested', 'Returned'],
     default: 'Pending'
   },
   cancellationReason: {
     type: String
+  },
+  refundAmount: {
+    type: Number,
+    default: 0
   },
   isStockRestored: {
     type: Boolean,
@@ -35,6 +39,11 @@ const orderItemSchema = new mongoose.Schema({
   isRefunded: {
     type: Boolean,
     default: false
+  },
+  allocatedCouponDiscount: {
+    type: Number,
+    default: 0,
+    min: 0
   }
 });
 
@@ -78,7 +87,7 @@ const orderSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['Pending', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled', 'Return Requested', 'Returned', 'Payment Failed'],
+    enum: ['Pending', 'Cancellation Requested', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled', 'Return Requested', 'Returned', 'Payment Failed'],
     default: 'Pending',
     index: true
   },

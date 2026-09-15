@@ -30,12 +30,14 @@ export const createCoupon = async (couponData) => {
   }
 
   const discount = Number(discountValue);
-  if (isNaN(discount) || discount <= 0) {
-    throw new Error('Discount value must be greater than 0.');
-  }
-
-  if (type === 'PERCENTAGE' && discount > 90) {
-    throw new Error('Percentage discount cannot exceed 90%.');
+  if (type === 'PERCENTAGE') {
+    if (isNaN(discount) || !Number.isInteger(discount) || discount < 1 || discount > 75) {
+      throw new Error('Percentage discount must be a whole number between 1% and 75%.');
+    }
+  } else if (type === 'FIXED') {
+    if (isNaN(discount) || discount < 1) {
+      throw new Error('Fixed price discount must be at least ₹1.');
+    }
   }
 
   const minAmt = Number(minPurchase) || 0;
@@ -51,15 +53,15 @@ export const createCoupon = async (couponData) => {
   const start = startDate ? new Date(startDate) : new Date();
   const expiry = new Date(expiryDate);
 
-  if (isNaN(expiry.getTime())) {
-    throw new Error('Valid expiry date is required.');
+  if (!expiryDate || isNaN(expiry.getTime())) {
+    throw new Error('Expiry Date is required.');
   }
 
-  // Prevent creating coupon that is already expired
-  const now = new Date();
-  now.setHours(0, 0, 0, 0);
-  if (expiry < now) {
-    throw new Error('Expiry date cannot be in the past.');
+  // Prevent creating coupon that is not in the future
+  const todayEnd = new Date();
+  todayEnd.setHours(23, 59, 59, 999);
+  if (expiry <= todayEnd) {
+    throw new Error('Expiry Date must be a future date.');
   }
 
   if (expiry <= start) {
@@ -77,6 +79,84 @@ export const createCoupon = async (couponData) => {
     description: description ? description.trim() : '',
     status: 'Active'
   });
+
+  await coupon.save();
+  return coupon;
+};
+
+/**
+ * Update an existing coupon with strict backend validation.
+ */
+export const updateCoupon = async (couponId, couponData) => {
+  const { code, type, discountValue, minPurchase, maxDiscount, startDate, expiryDate, description } = couponData;
+
+  const coupon = await Coupon.findById(couponId);
+  if (!coupon) {
+    throw new Error('Coupon not found.');
+  }
+
+  if (!code || !code.trim()) {
+    throw new Error('Coupon code is required.');
+  }
+
+  const cleanCode = code.trim().toUpperCase();
+
+  // Prevent duplicate coupon codes for OTHER coupons
+  const existingCoupon = await Coupon.findOne({ code: cleanCode, _id: { $ne: couponId } });
+  if (existingCoupon) {
+    throw new Error(`Coupon code "${cleanCode}" already exists.`);
+  }
+
+  if (!['PERCENTAGE', 'FIXED'].includes(type)) {
+    throw new Error('Coupon type must be PERCENTAGE or FIXED.');
+  }
+
+  const discount = Number(discountValue);
+  if (type === 'PERCENTAGE') {
+    if (isNaN(discount) || !Number.isInteger(discount) || discount < 1 || discount > 75) {
+      throw new Error('Percentage discount must be a whole number between 1% and 75%.');
+    }
+  } else if (type === 'FIXED') {
+    if (isNaN(discount) || discount < 1) {
+      throw new Error('Fixed price discount must be at least ₹1.');
+    }
+  }
+
+  const minAmt = Number(minPurchase) || 0;
+  if (minAmt < 0) {
+    throw new Error('Minimum purchase amount cannot be negative.');
+  }
+
+  const maxCap = maxDiscount ? Number(maxDiscount) : null;
+  if (maxCap !== null && maxCap < 0) {
+    throw new Error('Maximum discount cap cannot be negative.');
+  }
+
+  const start = startDate ? new Date(startDate) : (coupon.startDate || new Date());
+  const expiry = new Date(expiryDate);
+
+  if (!expiryDate || isNaN(expiry.getTime())) {
+    throw new Error('Expiry Date is required.');
+  }
+
+  const todayEnd = new Date();
+  todayEnd.setHours(23, 59, 59, 999);
+  if (expiry <= todayEnd) {
+    throw new Error('Expiry Date must be a future date.');
+  }
+
+  if (expiry <= start) {
+    throw new Error('Expiry date must be after start date.');
+  }
+
+  coupon.code = cleanCode;
+  coupon.type = type;
+  coupon.discountValue = discount;
+  coupon.minPurchase = minAmt;
+  coupon.maxDiscount = maxCap;
+  coupon.startDate = start;
+  coupon.expiryDate = expiry;
+  coupon.description = description ? description.trim() : '';
 
   await coupon.save();
   return coupon;

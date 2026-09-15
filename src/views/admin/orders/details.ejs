@@ -15,7 +15,8 @@
     <span class="px-3 py-1 inline-flex text-xs font-semibold rounded-md 
       <%= order.status === 'Delivered' ? 'bg-green-100 text-green-700' : 
           order.status === 'Cancelled' ? 'bg-red-100 text-red-700' : 
-          order.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700' %>">
+          order.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 
+          order.status === 'Cancellation Requested' ? 'bg-orange-100 text-orange-700 font-bold' : 'bg-blue-100 text-blue-700' %>">
       <%= order.status %>
     </span>
   </div>
@@ -29,50 +30,112 @@
       <h3 class="font-serif text-lg font-bold text-brand-black mb-4">Ordered Products</h3>
       <div class="divide-y divide-brand-gray-100">
         <% order.items.forEach(item => { %>
-          <div class="py-4 flex gap-4 items-center">
-            <!-- Product Image -->
-            <div class="w-16 h-16 rounded-md overflow-hidden bg-brand-gray-50 border border-brand-gray-100 flex-shrink-0 flex items-center justify-center">
-              <% if (item.product && item.product.images && item.product.images.length > 0) { %>
-                <img src="<%= item.product.images[0] %>" alt="<%= item.product.name %>" class="w-full h-full object-cover">
-              <% } else { %>
-                <svg class="w-6 h-6 text-brand-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          <div class="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="flex gap-4 items-center flex-1 min-w-0">
+              <!-- Product Image -->
+              <div class="w-16 h-16 rounded-md overflow-hidden bg-brand-gray-50 border border-brand-gray-100 flex-shrink-0 flex items-center justify-center">
+                <% if (item.product && item.product.images && item.product.images.length > 0) { %>
+                  <img src="<%= item.product.images[0] %>" alt="<%= item.product.name %>" class="w-full h-full object-cover">
+                <% } else { %>
+                  <svg class="w-6 h-6 text-brand-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <% } %>
+              </div>
+              
+              <!-- Product Details -->
+              <div class="flex-1 min-w-0 font-sans">
+                <h4 class="font-semibold text-brand-black text-sm truncate"><%= item.product ? item.product.name : 'Unknown Product' %></h4>
+                <p class="text-xs text-brand-gray-500 mt-0.5">
+                  Size: <span class="font-semibold text-brand-black"><%= item.variant.size %></span> | 
+                  Color: <span class="font-semibold text-brand-black"><%= item.variant.color %></span>
+                </p>
+                <p class="text-xs text-brand-gray-500 mt-0.5">
+                  Quantity: <span class="font-semibold text-brand-black"><%= item.quantity %></span>
+                </p>
+                <% if (item.status) { %>
+                  <div class="mt-1 flex items-center gap-2">
+                    <span class="px-2 py-0.5 inline-flex text-[10px] font-bold rounded 
+                      <%= item.status === 'Cancelled' ? 'bg-red-100 text-red-700' : 
+                          item.status === 'Cancellation Requested' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-700' %>">
+                      <%= item.status %>
+                    </span>
+                  </div>
+                  <% if (item.cancellationReason) { %>
+                    <p class="text-[11px] text-orange-700 mt-0.5"><span class="font-semibold">Reason:</span> <%= item.cancellationReason %></p>
+                  <% } %>
+                <% } %>
+              </div>
+            </div>
+            
+            <!-- Price Info & Item Action -->
+            <div class="flex items-center justify-between sm:justify-end gap-4 font-sans">
+              <div class="text-right">
+                <% const pMap = order.pricing && order.pricing.itemDetailsMap ? order.pricing.itemDetailsMap : {}; %>
+                <% const itemInfo = pMap[item._id ? item._id.toString() : '']; %>
+                <% if (item.status === 'Cancelled') { %>
+                  <div class="font-semibold text-brand-gray-400 text-sm line-through">₹<%= item.price * item.quantity %></div>
+                  <div class="text-xs text-brand-gray-400 font-medium">Cancelled</div>
+                  <% if (itemInfo && itemInfo.allocatedCouponDiscount > 0) { %>
+                    <div class="text-[11px] text-brand-gray-500">Coupon share: -₹<%= itemInfo.allocatedCouponDiscount %></div>
+                  <% } %>
+                  <% if (itemInfo && itemInfo.effectiveAmount > 0) { %>
+                    <div class="text-xs text-green-600 font-bold">Refunded: ₹<%= item.refundAmount || itemInfo.effectiveAmount %></div>
+                  <% } %>
+                <% } else { %>
+                  <div class="font-semibold text-brand-black text-sm">₹<%= item.price * item.quantity %></div>
+                  <div class="text-xs text-brand-gray-400">₹<%= item.price %> each</div>
+                  <% if (itemInfo && itemInfo.allocatedCouponDiscount > 0) { %>
+                    <div class="text-[11px] text-green-600">Coupon share: -₹<%= itemInfo.allocatedCouponDiscount %></div>
+                    <div class="text-xs font-semibold text-brand-black">Net: ₹<%= itemInfo.effectiveAmount %></div>
+                  <% } %>
+                <% } %>
+              </div>
+              <% if (item.status === 'Cancellation Requested') { %>
+                <form action="/admin/orders/<%= order._id %>/items/<%= item._id %>/approve-cancellation" method="POST">
+                  <button type="submit" class="px-3 py-1.5 bg-orange-600 hover:bg-orange-700 text-white font-sans text-xs font-semibold rounded shadow transition-colors whitespace-nowrap">
+                    Approve Cancellation
+                  </button>
+                </form>
               <% } %>
-            </div>
-            
-            <!-- Product Details -->
-            <div class="flex-1 min-w-0 font-sans">
-              <h4 class="font-semibold text-brand-black text-sm truncate"><%= item.product ? item.product.name : 'Unknown Product' %></h4>
-              <p class="text-xs text-brand-gray-500 mt-0.5">
-                Size: <span class="font-semibold text-brand-black"><%= item.variant.size %></span> | 
-                Color: <span class="font-semibold text-brand-black"><%= item.variant.color %></span>
-              </p>
-              <p class="text-xs text-brand-gray-500 mt-0.5">
-                Quantity: <span class="font-semibold text-brand-black"><%= item.quantity %></span>
-              </p>
-            </div>
-            
-            <!-- Price Info -->
-            <div class="text-right font-sans">
-              <div class="font-semibold text-brand-black text-sm">₹<%= item.price * item.quantity %></div>
-              <div class="text-xs text-brand-gray-400">₹<%= item.price %> each</div>
             </div>
           </div>
         <% }) %>
       </div>
 
       <!-- Summary Divider -->
-      <div class="border-t border-brand-gray-100 pt-4 mt-4 space-y-2 font-sans">
-        <div class="flex justify-between text-sm text-brand-gray-500">
-          <span>Subtotal</span>
-          <span class="font-medium text-brand-black">₹<%= order.totalAmount %></span>
+      <div class="border-t border-brand-gray-100 pt-4 mt-4 space-y-2 font-sans text-xs sm:text-sm text-brand-gray-600">
+        <% const p = order.pricing || {}; %>
+        <div class="flex justify-between">
+          <span>Original Order Subtotal</span>
+          <span class="font-medium text-brand-black">₹<%= p.initialSubtotal %></span>
         </div>
-        <div class="flex justify-between text-sm text-brand-gray-500">
+
+        <% if (p.totalCouponDiscount > 0) { %>
+          <div class="flex justify-between text-green-600">
+            <span>Discount <%= order.couponCode ? `(${order.couponCode})` : '' %></span>
+            <span class="font-medium">-₹<%= p.totalCouponDiscount %></span>
+          </div>
+        <% } %>
+
+        <div class="flex justify-between">
           <span>Shipping</span>
-          <span class="text-green-600 font-medium">Free</span>
+          <span class="font-medium text-brand-black">₹<%= p.shippingCharge %></span>
         </div>
-        <div class="border-t border-brand-gray-100 pt-3 flex justify-between text-base font-bold text-brand-black">
-          <span>Total Amount</span>
-          <span>₹<%= order.totalAmount %></span>
+
+        <div class="flex justify-between font-semibold text-brand-black pt-1 border-t border-brand-gray-100">
+          <span>Original Total</span>
+          <span>₹<%= p.originalTotal %></span>
+        </div>
+
+        <% if (p.cancelledItemsDeduction > 0) { %>
+          <div class="flex justify-between text-red-600 font-semibold">
+            <span>Cancelled Items Deduction</span>
+            <span>-₹<%= p.cancelledItemsDeduction %></span>
+          </div>
+        <% } %>
+
+        <div class="border-t-2 border-brand-black pt-3 flex justify-between text-base font-bold text-brand-black">
+          <span>Current Order Total</span>
+          <span>₹<%= p.currentTotal %></span>
         </div>
       </div>
     </div>
@@ -109,7 +172,20 @@
     <div class="bg-white border border-brand-gray-100 rounded-xl shadow-sm p-6">
       <h3 class="font-serif text-lg font-bold text-brand-black mb-4">Order Status Management</h3>
 
-      <% if (order.status === 'Return Requested') { %>
+      <% if (order.status === 'Cancellation Requested') { %>
+        <div class="space-y-4 font-sans">
+          <div class="p-3 bg-orange-50 border border-orange-200 rounded-md">
+            <span class="block text-xs font-bold text-orange-800 uppercase tracking-wider mb-1">Cancellation Requested</span>
+            <p class="text-xs text-orange-900"><span class="font-semibold">Reason:</span> <%= order.cancellationReason || 'No reason provided' %></p>
+          </div>
+
+          <form action="/admin/orders/<%= order._id %>/approve-cancellation" method="POST" class="block">
+            <button type="submit" class="w-full bg-orange-600 text-white font-sans text-xs font-semibold tracking-wider uppercase py-2.5 rounded-md hover:bg-orange-700 transition-colors shadow">
+              Approve Order Cancellation
+            </button>
+          </form>
+        </div>
+      <% } else if (order.status === 'Return Requested') { %>
         <div class="space-y-4 font-sans">
           <div class="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
             <span class="block text-xs font-bold text-yellow-800 uppercase tracking-wider mb-1">Return Requested</span>

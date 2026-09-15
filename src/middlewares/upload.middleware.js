@@ -65,3 +65,21 @@ export const handleProductImagesUpload = (req, res, next) => {
     next();
   });
 };
+
+import { uploadHomeBanner } from '../configs/bannerUpload.config.js';
+
+export const handleHomeBannerUpload = (req, res, next) => {
+  uploadHomeBanner.single('image')(req, res, (err) => {
+    if (err instanceof multer.MulterError) {
+      const messages = {
+        LIMIT_FILE_SIZE: 'Banner image size must be under 5 MB.',
+        LIMIT_UNEXPECTED_FILE: 'Only JPG, JPEG, PNG, and WEBP images are allowed.'
+      };
+      return res.status(400).json({ success: false, message: messages[err.code] || err.message });
+    }
+    if (err) {
+      return res.status(400).json({ success: false, message: err.message || 'Image upload failed.' });
+    }
+    next();
+  });
+};

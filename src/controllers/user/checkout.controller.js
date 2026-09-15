@@ -24,6 +24,28 @@ const getRazorpayInstance = () => {
 };
 
 /**
+ * Helper to proportionally allocate coupon discount to items with exact rounding safety
+ */
+const allocateCouponToItems = (items, totalDiscount, totalSubtotal) => {
+  if (!items || items.length === 0) return;
+  if (!totalDiscount || totalDiscount <= 0 || !totalSubtotal || totalSubtotal <= 0) {
+    items.forEach(item => { item.allocatedCouponDiscount = 0; });
+    return;
+  }
+  let allocatedSum = 0;
+  for (let i = 0; i < items.length; i++) {
+    const itemTotal = items[i].price * items[i].quantity;
+    if (i === items.length - 1) {
+      items[i].allocatedCouponDiscount = Math.max(0, totalDiscount - allocatedSum);
+    } else {
+      const share = Math.round((itemTotal / totalSubtotal) * totalDiscount);
+      items[i].allocatedCouponDiscount = share;
+      allocatedSum += share;
+    }
+  }
+};
+
+/**
  * Render checkout page.
  */
 export const getCheckoutPage = async (req, res) => {
@@ -141,7 +163,7 @@ export const applyCoupon = async (req, res) => {
       finalTotal
     });
   } catch (error) {
-    console.error('Apply coupon error:', error);
+    console.warn('Apply coupon error:', error.message || error);
     return res.status(400).json({ success: false, message: error.message || 'Failed to apply coupon.' });
   }
 };
@@ -263,6 +285,8 @@ export const placeOrder = async (req, res) => {
         return res.status(400).json({ success: false, message: err.message });
       }
     }
+
+    allocateCouponToItems(orderItems, discount, subtotal);
 
     const shippingCharge = 49;
     const finalTotal = Math.max(0, subtotal - discount) + shippingCharge;
@@ -427,6 +451,8 @@ export const createRazorpayOrder = async (req, res) => {
         delete req.session.appliedCoupon;
       }
     }
+
+    allocateCouponToItems(orderItems, discount, subtotal);
 
     const shippingCharge = 49;
     const finalTotal = Math.max(0, subtotal - discount) + shippingCharge;

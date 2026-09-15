@@ -26,11 +26,6 @@ export const addCredit = async (userId, amount, description, orderId = null, raz
     throw new Error('Invalid credit amount.');
   }
 
-  const user = await User.findById(userId);
-  if (!user) {
-    throw new Error('User not found.');
-  }
-
   // Prevent duplicate successful credits for the same Razorpay payment or order
   if (razorpayPaymentId || razorpayOrderId) {
     const query = { user: userId, status: 'Success' };
@@ -39,15 +34,23 @@ export const addCredit = async (userId, amount, description, orderId = null, raz
 
     const existingTx = await WalletTransaction.findOne(query);
     if (existingTx) {
-      return { walletBalance: user.walletBalance || 0, transaction: existingTx };
+      const u = await User.findById(userId).select('walletBalance').lean();
+      return { walletBalance: u ? (u.walletBalance || 0) : 0, transaction: existingTx };
     }
   }
 
-  const currentBalance = user.walletBalance || 0;
-  const newBalance = currentBalance + amount;
+  // Atomic update in MongoDB to ensure walletBalance field is always updated directly
+  const updatedUser = await User.findByIdAndUpdate(
+    userId,
+    { $inc: { walletBalance: amount } },
+    { returnDocument: 'after', runValidators: false }
+  );
 
-  user.walletBalance = newBalance;
-  await user.save();
+  if (!updatedUser) {
+    throw new Error('User not found.');
+  }
+
+  const newBalance = updatedUser.walletBalance || 0;
 
   const transaction = new WalletTransaction({
     user: userId,
@@ -117,7 +120,7 @@ export const deductDebit = async (userId, amount, description, orderId = null) =
     throw new Error('Invalid debit amount.');
   }
 
-  const user = await User.findById(userId);
+  const user = await User.findById(userId).select('walletBalance');
   if (!user) {
     throw new Error('User not found.');
   }
@@ -127,9 +130,13 @@ export const deductDebit = async (userId, amount, description, orderId = null) =
     throw new Error('Insufficient wallet balance.');
   }
 
-  const newBalance = currentBalance - amount;
-  user.walletBalance = newBalance;
-  await user.save();
+  const updatedUser = await User.findByIdAndUpdate(
+    userId,
+    { $inc: { walletBalance: -amount } },
+    { returnDocument: 'after', runValidators: false }
+  );
+
+  const newBalance = updatedUser ? (updatedUser.walletBalance || 0) : 0;
 
   const transaction = new WalletTransaction({
     user: userId,

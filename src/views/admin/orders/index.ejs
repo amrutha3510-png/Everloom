@@ -91,6 +91,7 @@
         <select id="status-filter" name="status" class="w-full pl-4 pr-10 py-2.5 bg-white border border-brand-gray-200 rounded-md font-sans text-sm focus:outline-none focus:ring-1 focus:ring-brand-black focus:border-brand-black appearance-none" onchange="this.form.submit()">
           <option value="All" <%= statusFilter === 'All' ? 'selected' : '' %>>All Statuses</option>
           <option value="Pending" <%= statusFilter === 'Pending' ? 'selected' : '' %>>Pending</option>
+          <option value="Cancellation Requested" <%= statusFilter === 'Cancellation Requested' ? 'selected' : '' %>>Cancellation Requested</option>
           <option value="Shipped" <%= statusFilter === 'Shipped' ? 'selected' : '' %>>Shipped</option>
           <option value="Out for Delivery" <%= statusFilter === 'Out for Delivery' ? 'selected' : '' %>>Out for Delivery</option>
           <option value="Delivered" <%= statusFilter === 'Delivered' ? 'selected' : '' %>>Delivered</option>
@@ -146,7 +147,8 @@
               <span class="px-2.5 py-0.5 inline-flex text-[10px] leading-5 font-semibold rounded-md 
                 <%= order.status === 'Delivered' ? 'bg-green-100 text-green-700' : 
                     order.status === 'Cancelled' ? 'bg-red-100 text-red-700' : 
-                    order.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700' %>">
+                    order.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 
+                    order.status === 'Cancellation Requested' ? 'bg-orange-100 text-orange-700 font-bold' : 'bg-blue-100 text-blue-700' %>">
                 <%= order.status %>
               </span>
             </div>
@@ -211,7 +213,8 @@
                 <span class="px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-md 
                   <%= order.status === 'Delivered' ? 'bg-green-100 text-green-700' : 
                       order.status === 'Cancelled' ? 'bg-red-100 text-red-700' : 
-                      order.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700' %>">
+                      order.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 
+                      order.status === 'Cancellation Requested' ? 'bg-orange-100 text-orange-700 font-bold' : 'bg-blue-100 text-blue-700' %>">
                   <%= order.status %>
                 </span>
               </td>

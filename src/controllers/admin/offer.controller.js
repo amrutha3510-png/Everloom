@@ -52,6 +52,31 @@ export const createOffer = async (req, res) => {
 };
 
 /**
+ * Update an existing Offer.
+ */
+export const updateOffer = async (req, res) => {
+  try {
+    const offerId = req.params.id;
+    const { name, targetType, targetId, discountType, discountValue, startDate, endDate } = req.body;
+
+    await offerService.updateOffer(offerId, {
+      name,
+      targetType,
+      targetId,
+      discountType,
+      discountValue,
+      startDate,
+      endDate
+    });
+
+    return res.status(200).json({ success: true, message: 'Offer updated successfully!' });
+  } catch (error) {
+    console.error('Update offer error:', error);
+    return res.status(400).json({ success: false, message: error.message || 'Failed to update offer' });
+  }
+};
+
+/**
  * Toggle Offer Active/Inactive Status.
  */
 export const toggleOfferStatus = async (req, res) => {

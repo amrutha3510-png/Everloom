@@ -1,10 +1,10 @@
 <%- include('../partials/navbar') %>
 
-<main class="min-h-screen bg-brand-gray-50">
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<main class="min-h-screen bg-brand-gray-50 pb-20">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
 
     <!-- Breadcrumb -->
-    <nav class="flex items-center gap-2 text-xs font-sans text-brand-gray-400 mb-6">
+    <nav class="flex items-center gap-2 text-xs font-sans text-brand-gray-400 mb-6" aria-label="Breadcrumb">
       <a href="/" class="hover:text-brand-black transition-colors">Home</a>
       <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
       <a href="/account/profile" class="hover:text-brand-black transition-colors">My Account</a>
@@ -15,10 +15,10 @@
     <!-- Page header -->
     <p class="font-sans text-xs uppercase tracking-widest text-brand-gray-400 mb-1">Account Dashboard</p>
     <h1 class="font-serif text-3xl sm:text-4xl font-bold text-brand-black mb-1">My Account</h1>
-    <p class="font-sans text-sm text-brand-gray-400 mb-8 max-w-2xl">Manage your profile, addresses, orders, wallet, and security settings in one elegant space.</p>
+    <p class="font-sans text-sm text-brand-gray-400 mb-8 max-w-2xl font-normal">Manage your profile, addresses, orders, wallet, and security settings in one elegant space.</p>
 
     <!-- Two-column layout -->
-    <div class="flex flex-col lg:flex-row gap-8">
+    <div class="flex flex-col lg:flex-row gap-8 lg:gap-12">
 
       <!-- Sidebar -->
       <%- include('../partials/account-sidebar') %>

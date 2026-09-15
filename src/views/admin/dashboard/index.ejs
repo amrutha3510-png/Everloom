@@ -63,10 +63,11 @@
       </div>
 
       <!-- Custom Date Pickers -->
+      <% const todayDateStr = new Date().toISOString().split('T')[0]; %>
       <div id="custom-sales-dates" class="<%= salesChart.filter === 'custom' ? 'flex' : 'hidden' %> items-center gap-2">
-        <input type="date" id="salesStartDate" class="px-2.5 py-1.5 border border-brand-gray-200 rounded-md bg-white">
+        <input type="date" id="salesStartDate" max="<%= todayDateStr %>" class="px-2.5 py-1.5 border border-brand-gray-200 rounded-md bg-white">
         <span class="text-brand-gray-400">to</span>
-        <input type="date" id="salesEndDate" class="px-2.5 py-1.5 border border-brand-gray-200 rounded-md bg-white">
+        <input type="date" id="salesEndDate" max="<%= todayDateStr %>" class="px-2.5 py-1.5 border border-brand-gray-200 rounded-md bg-white">
         <button type="button" onclick="applyCustomSalesFilter()" class="px-3 py-1.5 bg-brand-black text-white rounded-md font-bold uppercase tracking-wider hover:bg-brand-gray-600 transition-colors">Apply</button>
       </div>
     </div>
@@ -331,6 +332,15 @@
     const end = document.getElementById('salesEndDate').value;
     if (!start || !end) {
       alert('Please select both start and end dates.');
+      return;
+    }
+    const todayStr = new Date().toISOString().split('T')[0];
+    if (start > todayStr || end > todayStr) {
+      alert('Future dates are not allowed.');
+      return;
+    }
+    if (start > end) {
+      alert('Start Date must be before or equal to End Date.');
       return;
     }
     fetchSalesChartData('custom', start, end);

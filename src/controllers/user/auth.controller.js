@@ -9,11 +9,14 @@ import { getRemainingSeconds, resendOtp, sendOtp, verifyOtp } from '../../servic
 
 import { getActiveCategories, getListedProducts } from '../../services/user/shop.service.js';
 
+import { getActiveHomeBanner } from '../../services/admin/banner.service.js';
+
 export const getHomePage = async (req, res) => {
     try {
         const categories = await getActiveCategories();
         const result = await getListedProducts({ sort: 'newest' }, 1, 4);
         const latestProducts = result.products;
+        const activeBanner = await getActiveHomeBanner();
 
         let userWishlistItems = [];
         if (req.session.user) {
@@ -28,7 +31,9 @@ export const getHomePage = async (req, res) => {
             title: "Home | Everloom",
             categories,
             latestProducts,
-            userWishlistItems
+            userWishlistItems,
+            banners: activeBanner ? [activeBanner] : [],
+            activeBanner
         });
     } catch (error) {
         console.error("Error loading home page:", error);

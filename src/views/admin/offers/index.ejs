@@ -71,6 +71,18 @@
                 </span>
               </td>
               <td class="px-6 py-4 text-right whitespace-nowrap space-x-2">
+                <button type="button" 
+                  data-id="<%= offer._id %>"
+                  data-name="<%= offer.name %>"
+                  data-target-type="<%= offer.targetType %>"
+                  data-target-id="<%= offer.targetType === 'Product' ? (offer.product ? (offer.product._id || offer.product) : '') : (offer.category ? (offer.category._id || offer.category) : '') %>"
+                  data-discount-type="<%= offer.discountType %>"
+                  data-discount-value="<%= offer.discountValue %>"
+                  data-end-date="<%= new Date(offer.endDate).toISOString().split('T')[0] %>"
+                  onclick="openEditOfferModal(this)"
+                  class="px-3 py-1.5 bg-brand-black text-white text-xs font-semibold rounded hover:bg-brand-gray-600 transition-colors">
+                  Edit
+                </button>
                 <button type="button" onclick="toggleOfferStatus('<%= offer._id %>')" class="px-3 py-1.5 border border-brand-gray-200 text-brand-black text-xs font-semibold rounded hover:bg-brand-gray-50 transition-colors">
                   <%= offer.status === 'Active' ? 'Deactivate' : 'Activate' %>
                 </button>
@@ -92,7 +104,7 @@
   </div>
 </div>
 
-<!-- Create Offer Modal -->
+<!-- Create / Edit Offer Modal -->
 <div id="offer-modal" class="fixed inset-0 z-50 hidden overflow-y-auto" role="dialog" aria-modal="true">
   <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
     <div class="fixed inset-0 bg-brand-black/40 backdrop-blur-sm transition-opacity" onclick="closeCreateOfferModal()"></div>
@@ -101,7 +113,7 @@
 
     <div class="inline-block align-middle bg-white border border-brand-gray-200 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full p-6 sm:p-8">
       <div class="pb-4 border-b border-brand-gray-100 flex justify-between items-center">
-        <h3 class="font-serif text-xl font-bold text-brand-black">Create New Offer</h3>
+        <h3 class="font-serif text-xl font-bold text-brand-black" id="offer-modal-heading">Create New Offer</h3>
         <button type="button" onclick="closeCreateOfferModal()" class="text-brand-gray-400 hover:text-brand-black transition-colors focus:outline-none">
           <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -110,6 +122,8 @@
       </div>
 
       <form id="offer-form" class="mt-6 font-sans text-sm space-y-4" novalidate>
+        <input type="hidden" id="editing-offer-id" value="">
+
         <div>
           <label class="block text-xs font-semibold uppercase tracking-widest text-brand-gray-500 mb-1">Offer Title <span class="text-red-500">*</span></label>
           <input type="text" id="offer-name" required placeholder="e.g. Festive Product Special" class="w-full px-3 py-2 border border-brand-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-black">
@@ -155,24 +169,26 @@
             <% }) %>
           </select>
         </div>
+        <p class="hidden text-red-500 text-xs mt-1" id="offer-targetId-err"></p>
 
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-xs font-semibold uppercase tracking-widest text-brand-gray-500 mb-1">Discount Value <span class="text-red-500">*</span></label>
-            <input type="number" id="offer-discountValue" min="1" required placeholder="e.g. 15" class="w-full px-3 py-2 border border-brand-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-black">
+            <label class="block text-xs font-semibold uppercase tracking-widest text-brand-gray-500 mb-1">Discount Value (%) <span class="text-red-500">*</span></label>
+            <input type="number" id="offer-discountValue" min="1" max="75" step="1" required placeholder="e.g. 15 (1-75%)" class="w-full px-3 py-2 border border-brand-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-black">
             <p class="hidden text-red-500 text-xs mt-1" id="offer-discountValue-err"></p>
           </div>
 
           <div>
+            <% const tomorrowStr = new Date(Date.now() + 86400000).toISOString().split('T')[0]; %>
             <label class="block text-xs font-semibold uppercase tracking-widest text-brand-gray-500 mb-1">Expiry Date <span class="text-red-500">*</span></label>
-            <input type="date" id="offer-endDate" required class="w-full px-3 py-2 border border-brand-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-black">
+            <input type="date" id="offer-endDate" min="<%= tomorrowStr %>" required class="w-full px-3 py-2 border border-brand-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-black">
             <p class="hidden text-red-500 text-xs mt-1" id="offer-endDate-err"></p>
           </div>
         </div>
 
         <div class="pt-4 flex gap-3">
           <button type="button" onclick="closeCreateOfferModal()" class="flex-1 py-2.5 border border-brand-gray-200 text-brand-gray-600 hover:bg-brand-gray-50 font-sans font-bold uppercase tracking-wider text-xs transition-colors">Cancel</button>
-          <button type="submit" class="flex-1 py-2.5 bg-brand-black text-white hover:bg-brand-gray-600 font-sans font-bold uppercase tracking-wider text-xs transition-colors">Save Offer</button>
+          <button type="submit" id="offer-submit-btn" class="flex-1 py-2.5 bg-brand-black text-white hover:bg-brand-gray-600 font-sans font-bold uppercase tracking-wider text-xs transition-colors">Save Offer</button>
         </div>
       </form>
     </div>
@@ -180,9 +196,58 @@
 </div>
 
 <script>
+  function resetOfferErrors() {
+    ['offer-name-err', 'offer-targetId-err', 'offer-discountValue-err', 'offer-endDate-err'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('hidden');
+    });
+    ['offer-name', 'offer-productId', 'offer-categoryId', 'offer-discountValue', 'offer-endDate'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('border-red-500');
+    });
+  }
+
   function openCreateOfferModal() {
     document.getElementById('offer-form').reset();
+    document.getElementById('editing-offer-id').value = '';
+    document.getElementById('offer-modal-heading').textContent = 'Create New Offer';
+    document.getElementById('offer-submit-btn').textContent = 'Save Offer';
+    resetOfferErrors();
     handleTargetTypeChange();
+    document.getElementById('offer-modal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function openEditOfferModal(btn) {
+    if (!btn) return;
+    document.getElementById('offer-form').reset();
+    resetOfferErrors();
+
+    const id = btn.getAttribute('data-id');
+    const name = btn.getAttribute('data-name');
+    const targetType = btn.getAttribute('data-target-type');
+    const targetId = btn.getAttribute('data-target-id');
+    const discountType = btn.getAttribute('data-discount-type');
+    const discountValue = btn.getAttribute('data-discount-value');
+    const endDate = btn.getAttribute('data-end-date');
+
+    document.getElementById('editing-offer-id').value = id || '';
+    document.getElementById('offer-modal-heading').textContent = 'Edit Offer';
+    document.getElementById('offer-submit-btn').textContent = 'Update Offer';
+
+    document.getElementById('offer-name').value = name || '';
+    document.getElementById('offer-targetType').value = targetType || 'Product';
+    document.getElementById('offer-discountType').value = discountType || 'PERCENTAGE';
+    document.getElementById('offer-discountValue').value = discountValue || '';
+    document.getElementById('offer-endDate').value = endDate || '';
+
+    handleTargetTypeChange();
+    if (targetType === 'Product') {
+      document.getElementById('offer-productId').value = targetId || '';
+    } else {
+      document.getElementById('offer-categoryId').value = targetId || '';
+    }
+
     document.getElementById('offer-modal').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
   }
@@ -190,6 +255,7 @@
   function closeCreateOfferModal() {
     document.getElementById('offer-modal').classList.add('hidden');
     document.body.style.overflow = '';
+    resetOfferErrors();
   }
 
   function handleTargetTypeChange() {
@@ -208,46 +274,79 @@
 
   document.getElementById('offer-form').addEventListener('submit', async function(e) {
     e.preventDefault();
+    resetOfferErrors();
 
-    const name = document.getElementById('offer-name').value.trim();
+    const editingId = document.getElementById('editing-offer-id').value;
+    const nameInput = document.getElementById('offer-name');
+    const name = nameInput.value.trim();
     const targetType = document.getElementById('offer-targetType').value;
     const discountType = document.getElementById('offer-discountType').value;
-    const discountValue = Number(document.getElementById('offer-discountValue').value);
-    const endDate = document.getElementById('offer-endDate').value;
+    const discountInput = document.getElementById('offer-discountValue');
+    const discountValueRaw = discountInput.value;
+    const discountValue = Number(discountValueRaw);
+    const endDateInput = document.getElementById('offer-endDate');
+    const endDate = endDateInput.value;
 
-    const targetId = targetType === 'Product' ? 
-      document.getElementById('offer-productId').value : 
-      document.getElementById('offer-categoryId').value;
+    const targetSelect = targetType === 'Product' ? 
+      document.getElementById('offer-productId') : 
+      document.getElementById('offer-categoryId');
+    const targetId = targetSelect ? targetSelect.value : '';
 
     let valid = true;
 
     if (!name) {
-      alert('Offer title is required');
-      return;
+      const err = document.getElementById('offer-name-err');
+      err.textContent = 'Offer Title is required and cannot be whitespace only.';
+      err.classList.remove('hidden');
+      nameInput.classList.add('border-red-500');
+      valid = false;
     }
 
     if (!targetId) {
-      alert(`Please select a ${targetType.toLowerCase()}`);
-      return;
+      const err = document.getElementById('offer-targetId-err');
+      err.textContent = `Please select a ${targetType.toLowerCase()}.`;
+      err.classList.remove('hidden');
+      if (targetSelect) targetSelect.classList.add('border-red-500');
+      valid = false;
     }
 
-    if (isNaN(discountValue) || discountValue <= 0) {
-      alert('Discount value must be greater than 0');
-      return;
-    }
-
-    if (discountType === 'PERCENTAGE' && discountValue > 90) {
-      alert('Percentage discount cannot exceed 90%');
-      return;
+    if (!discountValueRaw || isNaN(discountValue) || !Number.isInteger(discountValue) || discountValue < 1 || discountValue > 75) {
+      const err = document.getElementById('offer-discountValue-err');
+      err.textContent = 'Discount must be between 1% and 75%.';
+      err.classList.remove('hidden');
+      discountInput.classList.add('border-red-500');
+      valid = false;
     }
 
     if (!endDate) {
-      alert('Expiry date is required');
-      return;
+      const err = document.getElementById('offer-endDate-err');
+      err.textContent = 'Expiry Date is required.';
+      err.classList.remove('hidden');
+      endDateInput.classList.add('border-red-500');
+      valid = false;
+    } else {
+      const endD = new Date(endDate);
+      const todayEnd = new Date();
+      todayEnd.setHours(23, 59, 59, 999);
+      if (endD <= todayEnd) {
+        const err = document.getElementById('offer-endDate-err');
+        err.textContent = 'Expiry Date must be a future date.';
+        err.classList.remove('hidden');
+        endDateInput.classList.add('border-red-500');
+        valid = false;
+      }
     }
 
+    if (!valid) return;
+
+    const submitBtn = document.getElementById('offer-submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Saving...';
+
+    const url = editingId ? `/admin/offers/${editingId}/edit` : '/admin/offers/create';
+
     try {
-      const res = await fetch('/admin/offers/create', {
+      const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -264,11 +363,19 @@
       if (res.ok && data.success) {
         window.location.reload();
       } else {
-        alert(data.message || 'Failed to create offer');
+        const err = document.getElementById('offer-discountValue-err');
+        err.textContent = data.message || 'Failed to save offer.';
+        err.classList.remove('hidden');
+        submitBtn.disabled = false;
+        submitBtn.textContent = editingId ? 'Update Offer' : 'Save Offer';
       }
     } catch (err) {
       console.error(err);
-      alert('Network error occurred while saving offer');
+      const errEl = document.getElementById('offer-discountValue-err');
+      errEl.textContent = 'Network error occurred while saving offer.';
+      errEl.classList.remove('hidden');
+      submitBtn.disabled = false;
+      submitBtn.textContent = editingId ? 'Update Offer' : 'Save Offer';
     }
   });
 

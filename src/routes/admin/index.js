@@ -9,6 +9,7 @@ import returnRoutes from './return.routes.js';
 import inventoryRoutes from './inventory.routes.js';
 import offerRoutes from './offer.routes.js';
 import couponRoutes from './coupon.routes.js';
+import bannerRoutes from './banner.routes.js';
 import salesReportRoutes from './salesReport.routes.js';
 import { getAdminDashboard, getDashboardChartApi } from '../../controllers/admin/dashboard.controller.js';
 import { isAdmin } from '../../middlewares/auth.middleware.js';
@@ -33,5 +34,6 @@ router.use('/inventory', inventoryRoutes);
 router.use('/offers', offerRoutes);
 router.use('/coupons', couponRoutes);
 router.use('/sales-report', salesReportRoutes);
+router.use('/banners', bannerRoutes);
 
 export default router;

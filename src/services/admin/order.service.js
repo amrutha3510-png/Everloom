@@ -94,23 +94,29 @@ export const getAllOrders = async (queryParams, page = 1, limit = 10) => {
   };
 };
 
+import { calculateOrderPricing } from '../general/orderPricing.service.js';
+
 /**
  * Get detailed order by ID.
  */
 export const getOrderById = async (orderId) => {
-  if (!mongoose.Types.ObjectId.isValid(orderId)) {
-    throw new Error('Invalid Order ID format.');
+  let order;
+  if (mongoose.Types.ObjectId.isValid(orderId)) {
+    order = await Order.findById(orderId)
+      .populate('user')
+      .populate('items.product');
   }
-
-  const order = await Order.findById(orderId)
-    .populate('user')
-    .populate('items.product');
+  if (!order) {
+    order = await Order.findOne({ orderId: orderId })
+      .populate('user')
+      .populate('items.product');
+  }
 
   if (!order) {
     throw new Error('Order not found.');
   }
 
-  return order;
+  return calculateOrderPricing(order);
 };
 
 /**
@@ -159,22 +165,12 @@ export const updateOrderStatus = async (orderId, newStatus, restockOption = null
 
   // 3. Cancellation rules
   if (newStatus === 'Cancelled') {
-    const cancellableStatuses = ['Pending', 'Shipped'];
+    const cancellableStatuses = ['Pending', 'Shipped', 'Cancellation Requested'];
     if (!cancellableStatuses.includes(order.status)) {
       throw new Error(`Cancellation is not allowed for orders with status "${order.status}".`);
     }
 
-    // Restore stock if not already restored
-    if (!order.isStockRestored) {
-      const Product = mongoose.model('Product');
-      for (const item of order.items) {
-        await Product.updateOne(
-          { _id: item.product, 'variants.size': item.variant.size, 'variants.color': item.variant.color },
-          { $inc: { 'variants.$.stock': item.quantity } }
-        );
-      }
-      order.isStockRestored = true;
-    }
+    return await approveOrderCancellation(orderId);
   }
 
   // 4. Return processing (Restock vs Do Not Restock option)
@@ -196,7 +192,7 @@ export const updateOrderStatus = async (orderId, newStatus, restockOption = null
     }
 
     // Credit refund to User Wallet ONLY ONCE on Admin approval
-    if (!order.isRefunded && (order.paymentMethod === 'Razorpay' || order.paymentMethod === 'WALLET')) {
+    if (!order.isRefunded && (order.paymentMethod === 'Razorpay' || order.paymentMethod === 'WALLET' || order.paymentStatus === 'Paid')) {
       if (order.totalAmount && order.totalAmount > 0) {
         const recipientUserId = order.user._id ? order.user._id.toString() : order.user.toString();
         await walletService.addCredit(
@@ -213,6 +209,170 @@ export const updateOrderStatus = async (orderId, newStatus, restockOption = null
   }
 
   order.status = newStatus;
+  if (order.items && order.items.length > 0) {
+    order.items.forEach(item => {
+      if (item.status !== 'Cancelled') {
+        item.status = newStatus;
+      }
+    });
+  }
+  await order.save();
+  return order;
+};
+
+/**
+ * Approve full order cancellation request by Admin.
+ */
+export const approveOrderCancellation = async (orderId) => {
+  let order;
+  if (mongoose.Types.ObjectId.isValid(orderId)) {
+    order = await Order.findById(orderId);
+  }
+  if (!order) {
+    order = await Order.findOne({ orderId: orderId });
+  }
+
+  if (!order) {
+    throw new Error('Order not found.');
+  }
+
+  const Product = mongoose.model('Product');
+  const recipientUserId = order.user._id ? order.user._id.toString() : order.user.toString();
+  const subtotal = order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const isEligibleForRefund = (order.paymentMethod === 'Razorpay' || order.paymentMethod === 'WALLET' || order.paymentStatus === 'Paid');
+
+  for (const item of order.items) {
+    if (item.status !== 'Cancelled') {
+      // 1. Restore variant stock ONCE
+      if (!item.isStockRestored) {
+        await Product.updateOne(
+          { _id: item.product, 'variants.size': item.variant.size, 'variants.color': item.variant.color },
+          { $inc: { 'variants.$.stock': item.quantity } }
+        );
+        item.isStockRestored = true;
+      }
+
+      // 2. Process item proportional refund ONCE
+      const itemTotal = item.price * item.quantity;
+      const itemAllocatedDiscount = (typeof item.allocatedCouponDiscount !== 'undefined' && item.allocatedCouponDiscount !== null)
+        ? item.allocatedCouponDiscount
+        : (subtotal > 0 ? Math.round((order.discountAmount || 0) * itemTotal / subtotal) : 0);
+      const itemRefund = Math.max(0, itemTotal - itemAllocatedDiscount);
+
+      if (isEligibleForRefund && itemRefund > 0) {
+        if (!item.isRefunded) {
+          await walletService.addCredit(
+            recipientUserId,
+            itemRefund,
+            `Item cancellation refund (#${order.orderId})`,
+            order.orderId
+          );
+          item.refundAmount = itemRefund;
+          item.isRefunded = true;
+        }
+      } else {
+        item.refundAmount = 0;
+        item.isRefunded = true;
+      }
+
+      item.status = 'Cancelled';
+    }
+  }
+
+  order.status = 'Cancelled';
+  order.isStockRestored = true;
+  order.isRefunded = true;
+
+  await order.save();
+  return order;
+};
+
+/**
+ * Approve single item cancellation request by Admin.
+ */
+export const approveOrderItemCancellation = async (orderId, itemId) => {
+  let order;
+  if (mongoose.Types.ObjectId.isValid(orderId)) {
+    order = await Order.findById(orderId);
+  }
+  if (!order) {
+    order = await Order.findOne({ orderId: orderId });
+  }
+
+  if (!order) {
+    throw new Error('Order not found.');
+  }
+
+  const item = order.items.id(itemId) || order.items.find(i => i._id && i._id.toString() === itemId);
+  if (!item) {
+    throw new Error('Product item not found in this order.');
+  }
+
+  if (item.status === 'Cancelled') {
+    return order; // Prevent double approval
+  }
+
+  const Product = mongoose.model('Product');
+  const recipientUserId = order.user._id ? order.user._id.toString() : order.user.toString();
+  const subtotal = order.items.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+
+  // 1. Restore exact variant stock ONCE
+  if (!item.isStockRestored) {
+    await Product.updateOne(
+      { _id: item.product, 'variants.size': item.variant.size, 'variants.color': item.variant.color },
+      { $inc: { 'variants.$.stock': item.quantity } }
+    );
+    item.isStockRestored = true;
+  }
+
+  // 2. Process proportional refund ONCE
+  const itemTotal = item.price * item.quantity;
+  const itemAllocatedDiscount = (typeof item.allocatedCouponDiscount !== 'undefined' && item.allocatedCouponDiscount !== null)
+    ? item.allocatedCouponDiscount
+    : (subtotal > 0 ? Math.round((order.discountAmount || 0) * itemTotal / subtotal) : 0);
+  const itemRefund = Math.max(0, itemTotal - itemAllocatedDiscount);
+
+  const isEligibleForRefund = (order.paymentMethod === 'Razorpay' || order.paymentMethod === 'WALLET' || order.paymentStatus === 'Paid');
+
+  if (isEligibleForRefund && itemRefund > 0) {
+    if (!item.isRefunded) {
+      await walletService.addCredit(
+        recipientUserId,
+        itemRefund,
+        `Item cancellation refund (#${order.orderId})`,
+        order.orderId
+      );
+      item.refundAmount = itemRefund;
+      item.isRefunded = true;
+    }
+  } else {
+    item.refundAmount = 0;
+    item.isRefunded = true;
+  }
+
+  item.status = 'Cancelled';
+
+  // 3. Recompute overall order status based on remaining active items
+  const allCancelled = order.items.every(i => i.status === 'Cancelled');
+  if (allCancelled) {
+    order.status = 'Cancelled';
+    order.isStockRestored = true;
+    order.isRefunded = true;
+  } else {
+    const activeItems = order.items.filter(i => i.status !== 'Cancelled');
+    if (activeItems.some(i => i.status === 'Delivered')) {
+      order.status = 'Delivered';
+    } else if (activeItems.some(i => i.status === 'Out for Delivery')) {
+      order.status = 'Out for Delivery';
+    } else if (activeItems.some(i => i.status === 'Shipped')) {
+      order.status = 'Shipped';
+    } else if (activeItems.some(i => i.status === 'Cancellation Requested')) {
+      order.status = 'Cancellation Requested';
+    } else {
+      order.status = 'Pending';
+    }
+  }
+
   await order.save();
   return order;
 };

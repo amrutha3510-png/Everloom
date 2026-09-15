@@ -86,6 +86,7 @@ import {
   cancelOrder,
   cancelOrderItem,
   returnOrder,
+  returnOrderItem,
   downloadInvoice,
   expireReservationHandler,
   reorderFailedOrderHandler,
@@ -98,6 +99,7 @@ router.get('/orders/:orderId/track', isUserPage, trackOrder);
 router.post('/orders/:orderId/cancel', isUser, cancelOrder);
 router.post('/orders/:orderId/items/:itemId/cancel', isUser, cancelOrderItem);
 router.post('/orders/:orderId/return', isUser, returnOrder);
+router.post('/orders/:orderId/items/:itemId/return', isUser, returnOrderItem);
 router.get('/orders/:orderId/invoice', isUser, downloadInvoice);
 router.post('/orders/:orderId/expire-reservation', isUser, expireReservationHandler);
 router.post('/orders/:orderId/reorder', isUserPage, reorderFailedOrderHandler);

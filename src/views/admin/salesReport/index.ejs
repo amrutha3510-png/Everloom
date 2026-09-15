@@ -47,14 +47,15 @@
       </select>
     </div>
 
+    <% const todayDateStr = new Date().toISOString().split('T')[0]; %>
     <div id="custom-date-container" class="<%= reportData.reportType === 'custom' ? 'flex' : 'hidden' %> items-center gap-3">
       <div>
         <label class="block font-semibold uppercase tracking-widest text-brand-gray-500 mb-1">From Date</label>
-        <input type="date" id="startDate" name="startDate" value="<%= reportData.dateRange.rawStart || '' %>" class="px-3 py-2 border border-brand-gray-200 rounded-md bg-white font-medium">
+        <input type="date" id="startDate" name="startDate" max="<%= todayDateStr %>" value="<%= reportData.dateRange.rawStart || '' %>" class="px-3 py-2 border border-brand-gray-200 rounded-md bg-white font-medium">
       </div>
       <div>
         <label class="block font-semibold uppercase tracking-widest text-brand-gray-500 mb-1">To Date</label>
-        <input type="date" id="endDate" name="endDate" value="<%= reportData.dateRange.rawEnd || '' %>" class="px-3 py-2 border border-brand-gray-200 rounded-md bg-white font-medium">
+        <input type="date" id="endDate" name="endDate" max="<%= todayDateStr %>" value="<%= reportData.dateRange.rawEnd || '' %>" class="px-3 py-2 border border-brand-gray-200 rounded-md bg-white font-medium">
       </div>
     </div>
 
@@ -158,4 +159,28 @@
       container.classList.remove('flex');
     }
   }
+
+  document.getElementById('sales-filter-form').addEventListener('submit', function(e) {
+    const val = document.getElementById('reportTypeSelect').value;
+    if (val === 'custom') {
+      const start = document.getElementById('startDate').value;
+      const end = document.getElementById('endDate').value;
+      if (!start || !end) {
+        e.preventDefault();
+        alert('Please select both From Date and To Date.');
+        return;
+      }
+      const todayStr = new Date().toISOString().split('T')[0];
+      if (start > todayStr || end > todayStr) {
+        e.preventDefault();
+        alert('Future dates are not allowed.');
+        return;
+      }
+      if (start > end) {
+        e.preventDefault();
+        alert('From Date must be before or equal to To Date.');
+        return;
+      }
+    }
+  });
 </script>

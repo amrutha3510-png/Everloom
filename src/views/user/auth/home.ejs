@@ -1,31 +1,31 @@
 <%- include('../partials/navbar') %>
 
-<section class="relative w-full h-[65vh] sm:h-[80vh] bg-brand-gray-50 overflow-hidden flex items-center">
+<% 
+  const heroBanner = (typeof activeBanner !== 'undefined' && activeBanner) ? activeBanner : ((typeof banners !== 'undefined' && banners && banners.length > 0) ? banners[0] : null);
+%>
+<section class="relative w-full h-[70vh] sm:h-[85vh] bg-brand-gray-50 overflow-hidden flex items-center">
   <div class="absolute inset-0 z-0">
     <img 
-      src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2070" 
-      alt="New Season Minimalist Wardrobe" 
+      src="<%= heroBanner ? heroBanner.image : 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2070' %>" 
+      alt="<%= heroBanner ? heroBanner.title : 'New Season Minimalist Wardrobe' %>" 
       class="w-full h-full object-cover object-center brightness-[0.93]"
     />
   </div>
   
   <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-    <div class="max-w-xl md:max-w-2xl">
-      <span class="text-[10px] font-semibold uppercase tracking-widest2 text-brand-gray-600 block mb-2 sm:mb-4">
-        New Season Collection
+    <div class="max-w-xl md:max-w-2xl bg-white/40 backdrop-blur-xs p-6 sm:p-8 rounded-sm">
+      <span class="text-[10px] font-semibold uppercase tracking-widest2 text-brand-gray-700 block mb-2 sm:mb-4">
+        <%= heroBanner && heroBanner.subtitle ? heroBanner.subtitle : 'New Season Collection' %>
       </span>
       <h1 class="font-serif text-4xl sm:text-6xl lg:text-7xl font-bold text-brand-black leading-[1.1] mb-4 sm:mb-6">
-        Timeless Fashion<br />For Modern Women
+        <%= heroBanner ? heroBanner.title : 'Timeless Fashion For Modern Women' %>
       </h1>
-      <p class="font-sans text-xs sm:text-sm text-brand-gray-600 leading-relaxed mb-6 sm:mb-8 max-w-md">
+      <p class="font-sans text-xs sm:text-sm text-brand-gray-700 leading-relaxed mb-6 sm:mb-8 max-w-md">
         Discover elevated essentials, curated luxury, and effortless elegance designed for the contemporary wardrobe.
       </p>
       <div class="flex flex-wrap gap-4">
-        <a href="/shop" class="bg-brand-black text-white text-[10px] font-bold uppercase tracking-widest2 px-6 py-3.5 hover:bg-brand-gray-600 transition-colors">
+        <a href="<%= heroBanner && heroBanner.linkUrl ? heroBanner.linkUrl : '/shop' %>" class="bg-brand-black text-white text-[10px] font-bold uppercase tracking-widest2 px-6 py-3.5 hover:bg-brand-gray-600 transition-colors">
           Shop Collection
-        </a>
-        <a href="/lookbook" class="bg-white border border-brand-gray-200 text-brand-black text-[10px] font-bold uppercase tracking-widest2 px-6 py-3.5 hover:bg-brand-gray-50 transition-colors">
-          Explore Lookbook
         </a>
       </div>
     </div>

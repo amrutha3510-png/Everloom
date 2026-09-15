@@ -58,7 +58,7 @@ export const getOrdersPage = async (req, res) => {
  */
 export const getOrderDetailPage = async (req, res) => {
   try {
-    const userId = req.session.user?.id;
+    const userId = req.session?.user ? (req.session.user.id || req.session.user._id) : (req.user ? (req.user._id || req.user.id) : null);
     if (!userId) {
       req.session.toast = { type: 'error', message: 'Please login to view order details' };
       return res.redirect('/login');
@@ -72,12 +72,27 @@ export const getOrderDetailPage = async (req, res) => {
       return res.redirect('/account/orders');
     }
 
+    const itemReviews = {};
+    if (order.items && order.items.length > 0) {
+      const Review = (await import('../../models/reviewModel.js')).default;
+      for (const item of order.items) {
+        const prodId = item.product ? (item.product._id || item.product) : null;
+        if (prodId) {
+          const rev = await Review.findOne({ user: userId, product: prodId }).lean();
+          if (rev) {
+            itemReviews[prodId.toString()] = rev;
+          }
+        }
+      }
+    }
+
     res.render('user/account/order-details', {
       title: `Order Details - #${order.orderId}`,
       order,
+      itemReviews,
       layout: 'layouts/user-layout',
       accountPage: 'orders',
-      user: req.session.user
+      user: req.session.user || req.user
     });
   } catch (error) {
     console.error('Error loading order details page:', error);
@@ -85,6 +100,7 @@ export const getOrderDetailPage = async (req, res) => {
     res.redirect('/account/orders');
   }
 };
+
 
 /**
  * Render Order Tracking page.
@@ -191,6 +207,27 @@ export const returnOrder = async (req, res) => {
 };
 
 /**
+ * Handle Single Product Item Return.
+ */
+export const returnOrderItem = async (req, res) => {
+  try {
+    const userId = req.session.user?.id;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+
+    const { orderId, itemId } = req.params;
+    const { returnReason, customReason } = req.body;
+
+    await orderService.returnUserOrderItem(userId, orderId, itemId, returnReason, customReason);
+    res.status(200).json({ success: true, message: 'Item return request submitted successfully.' });
+  } catch (error) {
+    console.error('Return order item controller error:', error);
+    res.status(400).json({ success: false, message: error.message || 'Failed to submit item return request.' });
+  }
+};
+
+/**
  * Download Invoice PDF.
  */
 export const downloadInvoice = async (req, res) => {
@@ -209,8 +246,11 @@ export const downloadInvoice = async (req, res) => {
       return res.redirect('/account/orders');
     }
 
-    if (order.status !== 'Delivered') {
-      req.session.toast = { type: 'error', message: 'Invoice download is only available for delivered orders.' };
+    const isInvoiceAllowed = ['Delivered', 'Return Requested', 'Returned'].includes(order.status) || 
+      (order.items && order.items.some(i => ['Delivered', 'Return Requested', 'Returned'].includes(i.status)));
+
+    if (!isInvoiceAllowed) {
+      req.session.toast = { type: 'error', message: 'Invoice download is only available for delivered or returned orders.' };
       return res.redirect(`/account/orders/${order.orderId}`);
     }
 

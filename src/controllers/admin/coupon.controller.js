@@ -47,6 +47,32 @@ export const createCoupon = async (req, res) => {
 };
 
 /**
+ * Update an existing Coupon.
+ */
+export const updateCoupon = async (req, res) => {
+  try {
+    const couponId = req.params.id;
+    const { code, type, discountValue, minPurchase, maxDiscount, startDate, expiryDate, description } = req.body;
+
+    await couponService.updateCoupon(couponId, {
+      code,
+      type,
+      discountValue,
+      minPurchase,
+      maxDiscount,
+      startDate,
+      expiryDate,
+      description
+    });
+
+    return res.status(200).json({ success: true, message: 'Coupon updated successfully!' });
+  } catch (error) {
+    console.error('Update coupon error:', error);
+    return res.status(400).json({ success: false, message: error.message || 'Failed to update coupon' });
+  }
+};
+
+/**
  * Toggle Coupon Active/Inactive Status.
  */
 export const toggleCouponStatus = async (req, res) => {
