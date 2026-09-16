@@ -105,7 +105,7 @@
                           <%= order.status %>
                         </span>
                       </td>
-                      <td class="px-4 py-4 font-semibold text-xs">₹<%= order.totalAmount %></td>
+                      <td class="px-4 py-4 font-semibold text-xs">₹<%= (order.pricing && typeof order.pricing.currentTotal !== 'undefined') ? order.pricing.currentTotal : order.totalAmount %></td>
                       <td class="px-4 py-4 text-right">
                         <div class="inline-flex items-center justify-end gap-2">
                           <a href="/account/orders/<%= order.orderId %>" class="inline-flex px-3 py-1.5 border border-brand-gray-200 text-brand-black hover:bg-brand-gray-50 text-xs font-semibold uppercase tracking-wider transition-colors">
@@ -152,7 +152,7 @@
                     </div>
                     <div>
                       <span class="block text-[9px] text-brand-gray-400 uppercase tracking-wider">Total</span>
-                      <span class="font-bold text-brand-black">₹<%= order.totalAmount %></span>
+                      <span class="font-bold text-brand-black">₹<%= (order.pricing && typeof order.pricing.currentTotal !== 'undefined') ? order.pricing.currentTotal : order.totalAmount %></span>
                     </div>
                   </div>
 

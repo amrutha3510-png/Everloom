@@ -161,7 +161,7 @@
             </div>
             <div>
               <span class="block text-[10px] text-brand-gray-400 uppercase tracking-wider">Total Amount</span>
-              <span class="font-medium text-brand-black">₹<%= order.totalAmount %></span>
+              <span class="font-medium text-brand-black">₹<%= (order.pricing && typeof order.pricing.currentTotal !== 'undefined') ? order.pricing.currentTotal : order.totalAmount %></span>
             </div>
             <div class="col-span-2 mt-1">
               <span class="block text-[10px] text-brand-gray-400 uppercase tracking-wider">Order Date</span>
@@ -208,7 +208,7 @@
                 <div class="font-medium"><%= order.user ? order.user.fullName : 'Guest' %></div>
                 <div class="text-xs text-brand-gray-400"><%= order.user ? order.user.email : '' %></div>
               </td>
-              <td class="px-6 py-4 font-medium">₹<%= order.totalAmount %></td>
+              <td class="px-6 py-4 font-medium">₹<%= (order.pricing && typeof order.pricing.currentTotal !== 'undefined') ? order.pricing.currentTotal : order.totalAmount %></td>
               <td class="px-6 py-4">
                 <span class="px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-md 
                   <%= order.status === 'Delivered' ? 'bg-green-100 text-green-700' : 

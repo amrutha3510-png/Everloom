@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import Order from '../../models/orderModel.js';
 import User from '../../models/userModel.js';
 import * as walletService from '../user/wallet.service.js';
+import { calculateOrderPricing } from '../general/orderPricing.service.js';
 
 /**
  * Get all orders with search, filter, sort and pagination.
@@ -50,12 +51,15 @@ export const getAllOrders = async (queryParams, page = 1, limit = 10) => {
   const skip = (page - 1) * limit;
 
   // Execute query
-  const orders = await Order.find(matchQuery)
+  const rawOrders = await Order.find(matchQuery)
     .populate('user')
     .populate('items.product')
     .sort(sortOption)
     .skip(skip)
-    .limit(limit);
+    .limit(limit)
+    .lean();
+
+  const orders = rawOrders.map(ord => calculateOrderPricing(ord));
 
   const totalEntries = await Order.countDocuments(matchQuery);
   const totalPages = Math.ceil(totalEntries / limit);
@@ -94,7 +98,6 @@ export const getAllOrders = async (queryParams, page = 1, limit = 10) => {
   };
 };
 
-import { calculateOrderPricing } from '../general/orderPricing.service.js';
 
 /**
  * Get detailed order by ID.

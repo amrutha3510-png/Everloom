@@ -3,6 +3,7 @@ import Product from '../../models/productModel.js';
 import Cart from '../../models/cartModel.js';
 import * as walletService from './wallet.service.js';
 import mongoose from 'mongoose';
+import { calculateOrderPricing } from '../general/orderPricing.service.js';
 
 /**
  * Automatically check and expire stock reservation if 5 minutes have elapsed.
@@ -80,7 +81,8 @@ export const getUserOrders = async (userId, queryParams, page = 1, limit = 10) =
 
   const orders = [];
   for (let ord of rawOrders) {
-    const processed = await processStockReservationExpiry(ord);
+    let processed = await processStockReservationExpiry(ord);
+    processed = calculateOrderPricing(processed);
     orders.push(processed);
   }
 
@@ -95,7 +97,6 @@ export const getUserOrders = async (userId, queryParams, page = 1, limit = 10) =
   };
 };
 
-import { calculateOrderPricing } from '../general/orderPricing.service.js';
 
 /**
  * Retrieve a specific order by readable orderId or database ObjectId.
