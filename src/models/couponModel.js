@@ -46,6 +46,11 @@ const couponSchema = new mongoose.Schema(
       type: String,
       trim: true,
       default: ''
+    },
+    userUsageLimit: {
+      type: Number,
+      default: 1,
+      min: [1, 'User usage limit must be at least 1']
     }
   },
   {

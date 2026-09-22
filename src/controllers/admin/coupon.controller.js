@@ -25,7 +25,7 @@ export const getCouponPage = async (req, res) => {
  */
 export const createCoupon = async (req, res) => {
   try {
-    const { code, type, discountValue, minPurchase, maxDiscount, startDate, expiryDate, description } = req.body;
+    const { code, type, discountValue, minPurchase, maxDiscount, startDate, expiryDate, description, userUsageLimit } = req.body;
 
     const coupon = await couponService.createCoupon({
       code,
@@ -35,7 +35,8 @@ export const createCoupon = async (req, res) => {
       maxDiscount,
       startDate,
       expiryDate,
-      description
+      description,
+      userUsageLimit
     });
 
     req.session.toast = { type: 'success', message: `Coupon "${coupon.code}" created successfully!` };
@@ -52,7 +53,7 @@ export const createCoupon = async (req, res) => {
 export const updateCoupon = async (req, res) => {
   try {
     const couponId = req.params.id;
-    const { code, type, discountValue, minPurchase, maxDiscount, startDate, expiryDate, description } = req.body;
+    const { code, type, discountValue, minPurchase, maxDiscount, startDate, expiryDate, description, userUsageLimit } = req.body;
 
     await couponService.updateCoupon(couponId, {
       code,
@@ -62,7 +63,8 @@ export const updateCoupon = async (req, res) => {
       maxDiscount,
       startDate,
       expiryDate,
-      description
+      description,
+      userUsageLimit
     });
 
     return res.status(200).json({ success: true, message: 'Coupon updated successfully!' });

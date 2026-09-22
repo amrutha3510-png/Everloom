@@ -71,7 +71,7 @@ export const getCheckoutPage = async (req, res) => {
 
     const addresses = await getAddresses(userId);
     const defaultAddress = addresses.find(addr => addr.isDefault) || addresses[0] || null;
-    const availableCoupons = await getAvailableCoupons();
+    const availableCoupons = await getAvailableCoupons(userId);
     const walletData = await walletService.getWalletData(userId);
     const userWalletBalance = walletData ? walletData.walletBalance : 0;
 
@@ -80,7 +80,7 @@ export const getCheckoutPage = async (req, res) => {
     let appliedDiscount = 0;
     if (req.session.appliedCoupon) {
       try {
-        const couponResult = await calculateCouponDiscount(req.session.appliedCoupon.code, cart.cartTotal);
+        const couponResult = await calculateCouponDiscount(req.session.appliedCoupon.code, cart.cartTotal, userId);
         appliedDiscount = couponResult.discount;
         appliedCoupon = {
           code: couponResult.coupon.code,
@@ -141,7 +141,7 @@ export const applyCoupon = async (req, res) => {
     }
 
     const subtotal = cart.cartTotal;
-    const { discount, coupon } = await calculateCouponDiscount(couponCode, subtotal);
+    const { discount, coupon } = await calculateCouponDiscount(couponCode, subtotal, userId);
 
     req.session.appliedCoupon = {
       code: coupon.code,
@@ -278,7 +278,7 @@ export const placeOrder = async (req, res) => {
     const activeCouponCode = req.session.appliedCoupon ? req.session.appliedCoupon.code : (req.body.couponCode || '');
     if (activeCouponCode && activeCouponCode.trim()) {
       try {
-        const couponResult = await calculateCouponDiscount(activeCouponCode, subtotal);
+        const couponResult = await calculateCouponDiscount(activeCouponCode, subtotal, userId);
         discount = couponResult.discount;
         appliedCouponCode = couponResult.coupon.code;
       } catch (err) {
@@ -332,7 +332,7 @@ export const placeOrder = async (req, res) => {
       await walletService.deductDebit(
         userId,
         finalTotal,
-        `Order payment`,
+        `Order payment (#${order.orderId})`,
         order.orderId
       );
     }
@@ -444,7 +444,7 @@ export const createRazorpayOrder = async (req, res) => {
     let appliedCouponCode = '';
     if (req.session.appliedCoupon) {
       try {
-        const couponResult = await calculateCouponDiscount(req.session.appliedCoupon.code, subtotal);
+        const couponResult = await calculateCouponDiscount(req.session.appliedCoupon.code, subtotal, userId);
         discount = couponResult.discount;
         appliedCouponCode = couponResult.coupon.code;
       } catch (err) {

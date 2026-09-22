@@ -35,7 +35,7 @@
 
 <!-- Date Filter Form -->
 <div class="max-w-6xl mx-auto bg-white border border-brand-gray-100 rounded-xl shadow-sm p-6 mb-8">
-  <form id="sales-filter-form" action="/admin/sales-report" method="GET" class="flex flex-col md:flex-row items-end gap-4 font-sans text-xs">
+  <form id="sales-filter-form" action="/admin/sales-report" method="GET" class="flex flex-col md:flex-row items-end gap-4 font-sans text-xs" onsubmit="event.preventDefault(); applySalesReportFilter();">
     <div>
       <label class="block font-semibold uppercase tracking-widest text-brand-gray-500 mb-1">Report Period</label>
       <select id="reportTypeSelect" name="reportType" onchange="handlePeriodChange()" class="w-full md:w-48 px-3 py-2 border border-brand-gray-200 rounded-md bg-white font-medium focus:outline-none focus:ring-1 focus:ring-brand-black">
@@ -47,7 +47,10 @@
       </select>
     </div>
 
-    <% const todayDateStr = new Date().toISOString().split('T')[0]; %>
+    <% 
+      const nowObj = new Date();
+      const todayDateStr = `${nowObj.getFullYear()}-${String(nowObj.getMonth() + 1).padStart(2, '0')}-${String(nowObj.getDate()).padStart(2, '0')}`;
+    %>
     <div id="custom-date-container" class="<%= reportData.reportType === 'custom' ? 'flex' : 'hidden' %> items-center gap-3">
       <div>
         <label class="block font-semibold uppercase tracking-widest text-brand-gray-500 mb-1">From Date</label>
@@ -59,32 +62,33 @@
       </div>
     </div>
 
-    <button type="submit" class="px-6 py-2.5 bg-brand-black text-white font-bold uppercase tracking-wider rounded-md hover:bg-brand-gray-600 transition-colors">
+    <button type="submit" id="apply-filter-btn" class="px-6 py-2.5 bg-brand-black text-white font-bold uppercase tracking-wider rounded-md hover:bg-brand-gray-600 transition-colors">
       Apply Filter
     </button>
   </form>
+  <div id="date-error-message" class="hidden text-red-600 font-semibold text-xs mt-3 font-sans"></div>
 </div>
 
 <!-- Summary Stat Cards -->
 <div class="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 font-sans">
   <div class="bg-white p-6 border border-brand-gray-100 rounded-xl shadow-sm">
     <span class="text-xs text-brand-gray-400 font-bold uppercase tracking-widest2 block mb-1">Overall Sales Count</span>
-    <h3 class="font-serif text-3xl font-bold text-brand-black"><%= reportData.summary.totalSalesCount %></h3>
+    <h3 id="stat-sales-count" class="font-serif text-3xl font-bold text-brand-black"><%= reportData.summary.totalSalesCount %></h3>
   </div>
 
   <div class="bg-white p-6 border border-brand-gray-100 rounded-xl shadow-sm">
     <span class="text-xs text-brand-gray-400 font-bold uppercase tracking-widest2 block mb-1">Gross Order Amount</span>
-    <h3 class="font-serif text-3xl font-bold text-brand-black">₹<%= reportData.summary.totalOrderAmount.toLocaleString('en-IN') %></h3>
+    <h3 id="stat-gross-amount" class="font-serif text-3xl font-bold text-brand-black">₹<%= reportData.summary.totalOrderAmount.toLocaleString('en-IN') %></h3>
   </div>
 
   <div class="bg-white p-6 border border-brand-gray-100 rounded-xl shadow-sm">
     <span class="text-xs text-brand-gray-400 font-bold uppercase tracking-widest2 block mb-1">Coupon Deductions</span>
-    <h3 class="font-serif text-3xl font-bold text-green-600">₹<%= reportData.summary.couponDeductions.toLocaleString('en-IN') %></h3>
+    <h3 id="stat-coupon-deductions" class="font-serif text-3xl font-bold text-green-600">₹<%= reportData.summary.couponDeductions.toLocaleString('en-IN') %></h3>
   </div>
 
   <div class="bg-white p-6 border border-brand-gray-100 rounded-xl shadow-sm">
     <span class="text-xs text-brand-gray-400 font-bold uppercase tracking-widest2 block mb-1">Final Sales Amount</span>
-    <h3 class="font-serif text-3xl font-bold text-brand-black">₹<%= reportData.summary.finalSalesAmount.toLocaleString('en-IN') %></h3>
+    <h3 id="stat-net-amount" class="font-serif text-3xl font-bold text-brand-black">₹<%= reportData.summary.finalSalesAmount.toLocaleString('en-IN') %></h3>
   </div>
 </div>
 
@@ -92,7 +96,7 @@
 <div class="max-w-6xl mx-auto bg-white border border-brand-gray-100 rounded-xl shadow-sm overflow-hidden mb-12">
   <div class="p-6 border-b border-brand-gray-100 flex items-center justify-between">
     <h2 class="font-serif text-xl font-bold text-brand-black">Completed Sales Breakdown</h2>
-    <span class="font-sans text-xs text-brand-gray-500 font-medium">Period: <%= reportData.dateRange.start %> - <%= reportData.dateRange.end %></span>
+    <span id="breakdown-period-text" class="font-sans text-xs text-brand-gray-500 font-medium">Period: <%= reportData.dateRange.start %> - <%= reportData.dateRange.end %></span>
   </div>
 
   <div class="overflow-x-auto">
@@ -107,7 +111,7 @@
           <th class="px-6 py-4 text-right">Net Amount</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-brand-gray-100 text-brand-black">
+      <tbody id="sales-table-body" class="divide-y divide-brand-gray-100 text-brand-black">
         <% if (reportData.orders && reportData.orders.length > 0) { %>
           <% reportData.orders.forEach(order => { %>
             <tr class="hover:bg-brand-gray-50/50 transition-colors">
@@ -131,7 +135,7 @@
                 </span>
               </td>
               <td class="px-6 py-4 text-right font-bold text-brand-black">
-                ₹<%= order.totalAmount %>
+                ₹<%= typeof order.netDisplayAmount !== 'undefined' ? order.netDisplayAmount : ((order.pricing && typeof order.pricing.currentTotal !== 'undefined') ? order.pricing.currentTotal : order.totalAmount) %>
               </td>
             </tr>
           <% }) %>
@@ -148,39 +152,215 @@
 </div>
 
 <script>
+  function updateDownloadLinks() {
+    const reportTypeSelect = document.getElementById('reportTypeSelect');
+    const startDateInput = document.getElementById('startDate');
+    const endDateInput = document.getElementById('endDate');
+    if (!reportTypeSelect) return;
+
+    const reportType = reportTypeSelect.value;
+    const startDate = startDateInput ? startDateInput.value : '';
+    const endDate = endDateInput ? endDateInput.value : '';
+
+    const pdfBtn = document.getElementById('download-pdf-btn');
+    const excelBtn = document.getElementById('download-excel-btn');
+
+    let queryString = `reportType=${encodeURIComponent(reportType)}`;
+    if (reportType === 'custom') {
+      if (startDate) queryString += `&startDate=${encodeURIComponent(startDate)}`;
+      if (endDate) queryString += `&endDate=${encodeURIComponent(endDate)}`;
+    }
+
+    if (pdfBtn) pdfBtn.href = `/admin/sales-report/pdf?${queryString}`;
+    if (excelBtn) excelBtn.href = `/admin/sales-report/excel?${queryString}`;
+  }
+
   function handlePeriodChange() {
-    const val = document.getElementById('reportTypeSelect').value;
+    const select = document.getElementById('reportTypeSelect');
+    if (!select) return;
+    const val = select.value;
     const container = document.getElementById('custom-date-container');
+    const startInput = document.getElementById('startDate');
+    const endInput = document.getElementById('endDate');
+
     if (val === 'custom') {
-      container.classList.remove('hidden');
-      container.classList.add('flex');
+      if (container) {
+        container.classList.remove('hidden');
+        container.classList.add('flex');
+      }
+      if (startInput) startInput.disabled = false;
+      if (endInput) endInput.disabled = false;
     } else {
-      container.classList.add('hidden');
-      container.classList.remove('flex');
+      if (container) {
+        container.classList.add('hidden');
+        container.classList.remove('flex');
+      }
+      if (startInput) startInput.disabled = true;
+      if (endInput) endInput.disabled = true;
+    }
+    updateDownloadLinks();
+  }
+
+  async function applySalesReportFilter() {
+    const select = document.getElementById('reportTypeSelect');
+    const val = select ? select.value : 'monthly';
+    const errorDiv = document.getElementById('date-error-message');
+    if (errorDiv) {
+      errorDiv.classList.add('hidden');
+      errorDiv.textContent = '';
+    }
+
+    const startInput = document.getElementById('startDate');
+    const endInput = document.getElementById('endDate');
+    const start = startInput ? startInput.value : '';
+    const end = endInput ? endInput.value : '';
+
+    if (val === 'custom') {
+      let errorMsg = '';
+      if (!start || !end) {
+        errorMsg = 'Please select both From Date and To Date.';
+      } else {
+        const now = new Date();
+        const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        if (start > todayStr || end > todayStr) {
+          errorMsg = 'Future dates are not allowed.';
+        } else if (start > end) {
+          errorMsg = 'From Date must be before or equal to To Date.';
+        }
+      }
+
+      if (errorMsg) {
+        if (errorDiv) {
+          errorDiv.textContent = errorMsg;
+          errorDiv.classList.remove('hidden');
+        }
+        if (typeof showFlash === 'function') {
+          showFlash('error', errorMsg);
+        }
+        return;
+      }
+    }
+
+    const params = new URLSearchParams();
+    params.set('reportType', val);
+    if (val === 'custom') {
+      if (start) params.set('startDate', start);
+      if (end) params.set('endDate', end);
+    }
+    params.set('ajax', 'true');
+
+    try {
+      const res = await fetch('/admin/sales-report?' + params.toString(), {
+        headers: { 'Accept': 'application/json' }
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success && data.reportData) {
+        const rData = data.reportData;
+
+        // 1. Update Stat Cards
+        const countEl = document.getElementById('stat-sales-count');
+        const grossEl = document.getElementById('stat-gross-amount');
+        const couponEl = document.getElementById('stat-coupon-deductions');
+        const netEl = document.getElementById('stat-net-amount');
+
+        if (countEl) countEl.textContent = rData.summary.totalSalesCount;
+        if (grossEl) grossEl.textContent = '₹' + Number(rData.summary.totalOrderAmount || 0).toLocaleString('en-IN');
+        if (couponEl) couponEl.textContent = '₹' + Number(rData.summary.couponDeductions || 0).toLocaleString('en-IN');
+        if (netEl) netEl.textContent = '₹' + Number(rData.summary.finalSalesAmount || 0).toLocaleString('en-IN');
+
+        // 2. Update Breakdown Period Header
+        const periodTextEl = document.getElementById('breakdown-period-text');
+        if (periodTextEl && rData.dateRange) {
+          periodTextEl.textContent = `Period: ${rData.dateRange.start} - ${rData.dateRange.end}`;
+        }
+
+        // 3. Update Sales Breakdown Table
+        const tbody = document.getElementById('sales-table-body');
+        if (tbody) {
+          if (rData.orders && rData.orders.length > 0) {
+            let tableHtml = '';
+            rData.orders.forEach(order => {
+              const orderIdStr = order.orderId || order._id;
+              const dateStr = new Date(order.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+              const customerStr = order.user ? order.user.fullName : (order.shippingAddress?.fullName || 'Guest');
+              const paymentStr = order.paymentMethod || 'COD';
+
+              tableHtml += `
+                <tr class="hover:bg-brand-gray-50/50 transition-colors">
+                  <td class="px-6 py-4 font-semibold">
+                    <a href="/admin/orders/${order._id}" class="underline hover:text-brand-gray-600">
+                      #${orderIdStr}
+                    </a>
+                  </td>
+                  <td class="px-6 py-4 text-xs text-brand-gray-500">
+                    ${dateStr}
+                  </td>
+                  <td class="px-6 py-4 font-medium">
+                    ${customerStr}
+                  </td>
+                  <td class="px-6 py-4 text-xs font-semibold text-brand-gray-600">
+                    ${paymentStr}
+                  </td>
+                  <td class="px-6 py-4">
+                    <span class="px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-md bg-green-100 text-green-700">
+                      ${order.status}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 text-right font-bold text-brand-black">
+                    ₹${typeof order.netDisplayAmount !== 'undefined' ? order.netDisplayAmount : ((order.pricing && typeof order.pricing.currentTotal !== 'undefined') ? order.pricing.currentTotal : order.totalAmount)}
+                  </td>
+                </tr>
+              `;
+            });
+            tbody.innerHTML = tableHtml;
+          } else {
+            tbody.innerHTML = `
+              <tr>
+                <td colspan="6" class="px-6 py-12 text-center text-brand-gray-400 font-sans text-sm">
+                  No sales records found for this period.
+                </td>
+              </tr>
+            `;
+          }
+        }
+
+        // 4. Update Download Links
+        updateDownloadLinks();
+
+        // 5. Update Browser URL
+        params.delete('ajax');
+        const newUrl = '/admin/sales-report' + (params.toString() ? '?' + params.toString() : '');
+        window.history.pushState(null, '', newUrl);
+
+      } else {
+        const msg = (data && data.message) ? data.message : 'Failed to apply filter.';
+        if (errorDiv) {
+          errorDiv.textContent = msg;
+          errorDiv.classList.remove('hidden');
+        }
+        if (typeof showFlash === 'function') showFlash('error', msg);
+      }
+    } catch (err) {
+      console.error('Error applying sales report filter:', err);
+      if (typeof showFlash === 'function') showFlash('error', 'Network error occurred');
     }
   }
 
-  document.getElementById('sales-filter-form').addEventListener('submit', function(e) {
-    const val = document.getElementById('reportTypeSelect').value;
-    if (val === 'custom') {
-      const start = document.getElementById('startDate').value;
-      const end = document.getElementById('endDate').value;
-      if (!start || !end) {
+  document.addEventListener('DOMContentLoaded', function() {
+    handlePeriodChange();
+
+    ['startDate', 'endDate'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('change', updateDownloadLinks);
+    });
+
+    const form = document.getElementById('sales-filter-form');
+    if (form) {
+      form.addEventListener('submit', function(e) {
         e.preventDefault();
-        alert('Please select both From Date and To Date.');
-        return;
-      }
-      const todayStr = new Date().toISOString().split('T')[0];
-      if (start > todayStr || end > todayStr) {
-        e.preventDefault();
-        alert('Future dates are not allowed.');
-        return;
-      }
-      if (start > end) {
-        e.preventDefault();
-        alert('From Date must be before or equal to To Date.');
-        return;
-      }
+        applySalesReportFilter();
+      });
     }
   });
 </script>

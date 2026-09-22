@@ -27,7 +27,7 @@
           <h2 class="font-serif text-xl font-bold text-brand-black mb-6">My Orders</h2>
 
           <!-- Search & Filter Controls -->
-          <form id="filter-form" action="/account/orders" method="GET" class="flex flex-col sm:flex-row gap-4 mb-6">
+          <form id="filter-form" action="/account/orders" method="GET" class="flex flex-col sm:flex-row gap-4 mb-6" onsubmit="event.preventDefault(); applyOrdersFilter(1);">
             <!-- Search by Order ID -->
             <div class="relative flex-1">
               <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -37,18 +37,16 @@
               </div>
               <input type="text" id="search-input" name="search" value="<%= searchQuery || '' %>" placeholder="Search by Order ID..." 
                      class="w-full pl-9 pr-10 py-2.5 bg-white border border-brand-gray-200 rounded-md font-sans text-xs focus:outline-none focus:ring-1 focus:ring-brand-black">
-              <% if (searchQuery) { %>
-                <button type="button" id="clear-search-btn" class="absolute inset-y-0 right-0 pr-3 flex items-center text-brand-gray-400 hover:text-brand-black" title="Clear search">
-                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              <% } %>
+              <button type="button" id="clear-search-btn" onclick="clearOrdersSearch()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-brand-gray-400 hover:text-brand-black <%= searchQuery ? '' : 'hidden' %>" title="Clear search">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
             
             <!-- Status Dropdown -->
             <div class="relative w-full sm:w-44">
-              <select name="status" class="w-full pl-3 pr-8 py-2.5 bg-white border border-brand-gray-200 rounded-md font-sans text-xs focus:outline-none focus:ring-1 focus:ring-brand-black appearance-none" onchange="this.form.submit()">
+              <select name="status" class="w-full pl-3 pr-8 py-2.5 bg-white border border-brand-gray-200 rounded-md font-sans text-xs focus:outline-none focus:ring-1 focus:ring-brand-black appearance-none" onchange="applyOrdersFilter(1)">
                 <option value="All" <%= statusFilter === 'All' ? 'selected' : '' %>>All Statuses</option>
                 <option value="Pending" <%= statusFilter === 'Pending' ? 'selected' : '' %>>Pending</option>
                 <option value="Shipped" <%= statusFilter === 'Shipped' ? 'selected' : '' %>>Shipped</option>
@@ -69,11 +67,9 @@
               <button type="submit" class="px-5 py-2.5 bg-brand-black text-white rounded-md font-sans text-xs font-bold uppercase tracking-wider hover:bg-brand-gray-600 transition-colors">
                 Search
               </button>
-              <% if (searchQuery || statusFilter !== 'All') { %>
-                <a href="/account/orders" class="px-5 py-2.5 bg-brand-gray-100 text-brand-black border border-brand-gray-200 rounded-md font-sans text-xs font-bold uppercase tracking-wider hover:bg-brand-gray-200 transition-colors flex items-center justify-center">
-                  Clear
-                </a>
-              <% } %>
+              <button type="button" id="clear-filters-btn" onclick="resetOrdersFilter()" class="px-5 py-2.5 bg-brand-gray-100 text-brand-black border border-brand-gray-200 rounded-md font-sans text-xs font-bold uppercase tracking-wider hover:bg-brand-gray-200 transition-colors flex items-center justify-center <%= (searchQuery || statusFilter !== 'All') ? '' : 'hidden' %>">
+                Clear
+              </button>
             </div>
           </form>
 
@@ -89,7 +85,7 @@
                   <th class="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-brand-gray-100 font-sans text-sm text-brand-black">
+              <tbody id="desktop-orders-body" class="divide-y divide-brand-gray-100 font-sans text-sm text-brand-black">
                 <% if (orders && orders.length > 0) { %>
                   <% orders.forEach(order => { %>
                     <tr class="hover:bg-brand-gray-50/50 transition-colors">
@@ -128,7 +124,7 @@
           </div>
 
           <!-- Mobile Orders Card List -->
-          <div class="block md:hidden divide-y divide-brand-gray-100">
+          <div id="mobile-orders-container" class="block md:hidden divide-y divide-brand-gray-100">
             <% if (orders && orders.length > 0) { %>
               <% orders.forEach(order => { %>
                 <div class="py-4 flex flex-col gap-3">
@@ -172,27 +168,29 @@
           </div>
 
           <!-- Pagination Footer -->
-          <% if (orders && orders.length > 0 && totalPages > 1) { %>
-            <div class="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-brand-gray-100">
-              <p class="font-sans text-xs text-brand-gray-500">
-                Showing Page <span class="font-semibold text-brand-black"><%= currentPage %></span> of <span class="font-semibold text-brand-black"><%= totalPages %></span>
-              </p>
-              
-              <div class="flex items-center gap-2">
-                <% if (currentPage > 1) { %>
-                  <a href="?page=<%= currentPage - 1 %>&search=<%= encodeURIComponent(searchQuery) %>&status=<%= encodeURIComponent(statusFilter) %>" class="px-3 py-1.5 border border-brand-gray-200 rounded-md text-brand-gray-600 hover:bg-brand-gray-50 transition-colors text-xs flex items-center gap-1">
-                    Previous
-                  </a>
-                <% } %>
+          <div id="orders-pagination-container">
+            <% if (orders && orders.length > 0 && totalPages > 1) { %>
+              <div class="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-brand-gray-100">
+                <p class="font-sans text-xs text-brand-gray-500">
+                  Showing Page <span class="font-semibold text-brand-black"><%= currentPage %></span> of <span class="font-semibold text-brand-black"><%= totalPages %></span>
+                </p>
+                
+                <div class="flex items-center gap-2">
+                  <% if (currentPage > 1) { %>
+                    <button type="button" onclick="applyOrdersFilter(<%= currentPage - 1 %>)" class="px-3 py-1.5 border border-brand-gray-200 rounded-md text-brand-gray-600 hover:bg-brand-gray-50 transition-colors text-xs flex items-center gap-1">
+                      Previous
+                    </button>
+                  <% } %>
 
-                <% if (currentPage < totalPages) { %>
-                  <a href="?page=<%= currentPage + 1 %>&search=<%= encodeURIComponent(searchQuery) %>&status=<%= encodeURIComponent(statusFilter) %>" class="px-3 py-1.5 border border-brand-gray-200 rounded-md text-brand-gray-600 hover:bg-brand-gray-50 transition-colors text-xs flex items-center gap-1">
-                    Next
-                  </a>
-                <% } %>
+                  <% if (currentPage < totalPages) { %>
+                    <button type="button" onclick="applyOrdersFilter(<%= currentPage + 1 %>)" class="px-3 py-1.5 border border-brand-gray-200 rounded-md text-brand-gray-600 hover:bg-brand-gray-50 transition-colors text-xs flex items-center gap-1">
+                      Next
+                    </button>
+                  <% } %>
+                </div>
               </div>
-            </div>
-          <% } %>
+            <% } %>
+          </div>
 
         </div>
       </div>
@@ -202,13 +200,175 @@
 </main>
 
 <script>
-  // Filter form auto-submit clear logic
-  const clearSearchBtn = document.getElementById('clear-search-btn');
-  if (clearSearchBtn) {
-    clearSearchBtn.addEventListener('click', () => {
-      document.getElementById('search-input').value = '';
-      document.getElementById('filter-form').submit();
+  function clearOrdersSearch() {
+    const input = document.getElementById('search-input');
+    if (input) input.value = '';
+    applyOrdersFilter(1);
+  }
+
+  function resetOrdersFilter() {
+    const input = document.getElementById('search-input');
+    if (input) input.value = '';
+    const select = document.querySelector('select[name="status"]');
+    if (select) select.value = 'All';
+    applyOrdersFilter(1);
+  }
+
+  async function applyOrdersFilter(page = 1) {
+    const searchInput = document.getElementById('search-input');
+    const statusSelect = document.querySelector('select[name="status"]');
+
+    const searchVal = searchInput ? searchInput.value.trim() : '';
+    const statusVal = statusSelect ? statusSelect.value : 'All';
+
+    const clearSearchBtn = document.getElementById('clear-search-btn');
+    if (clearSearchBtn) {
+      if (searchVal) clearSearchBtn.classList.remove('hidden');
+      else clearSearchBtn.classList.add('hidden');
+    }
+
+    const clearFiltersBtn = document.getElementById('clear-filters-btn');
+    if (clearFiltersBtn) {
+      if (searchVal || statusVal !== 'All') clearFiltersBtn.classList.remove('hidden');
+      else clearFiltersBtn.classList.add('hidden');
+    }
+
+    const params = new URLSearchParams();
+    if (searchVal) params.set('search', searchVal);
+    if (statusVal && statusVal !== 'All') params.set('status', statusVal);
+    if (page && page > 1) params.set('page', page);
+    params.set('ajax', 'true');
+
+    try {
+      const res = await fetch('/account/orders?' + params.toString(), {
+        headers: { 'Accept': 'application/json' }
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        renderOrdersList(data.orders, data.totalPages, data.currentPage, data.totalEntries);
+
+        params.delete('ajax');
+        const newUrl = '/account/orders' + (params.toString() ? '?' + params.toString() : '');
+        window.history.pushState(null, '', newUrl);
+      } else {
+        if (typeof showFlash === 'function') showFlash('error', data.message || 'Failed to filter orders');
+      }
+    } catch (err) {
+      console.error('Error filtering orders:', err);
+      if (typeof showFlash === 'function') showFlash('error', 'Network error occurred');
+    }
+  }
+
+  function renderOrdersList(orders, totalPages, currentPage, totalEntries) {
+    const desktopTbody = document.getElementById('desktop-orders-body');
+    const mobileContainer = document.getElementById('mobile-orders-container');
+    const paginationContainer = document.getElementById('orders-pagination-container');
+
+    if (!orders || orders.length === 0) {
+      if (desktopTbody) {
+        desktopTbody.innerHTML = `<tr><td colspan="5" class="px-4 py-10 text-center text-brand-gray-400 text-xs">No orders found.</td></tr>`;
+      }
+      if (mobileContainer) {
+        mobileContainer.innerHTML = `<div class="py-8 text-center text-brand-gray-400 text-xs">No orders found.</div>`;
+      }
+      if (paginationContainer) {
+        paginationContainer.innerHTML = '';
+      }
+      return;
+    }
+
+    let desktopHtml = '';
+    let mobileHtml = '';
+
+    orders.forEach(order => {
+      const dateStr = new Date(order.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+      const statusClass = (order.status === 'Delivered' || order.status === 'Returned') ? 'bg-green-100 text-green-700' :
+                          (order.status === 'Cancelled') ? 'bg-red-100 text-red-700' :
+                          (order.status === 'Pending') ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700';
+
+      const totalVal = (order.pricing && typeof order.pricing.currentTotal !== 'undefined') ? order.pricing.currentTotal : order.totalAmount;
+
+      desktopHtml += `
+        <tr class="hover:bg-brand-gray-50/50 transition-colors">
+          <td class="px-4 py-4 font-bold text-xs">#${order.orderId}</td>
+          <td class="px-4 py-4 text-xs text-brand-gray-500">${dateStr}</td>
+          <td class="px-4 py-4">
+            <span class="px-2 py-0.5 inline-flex text-[10px] leading-5 font-semibold rounded-md ${statusClass}">
+              ${order.status}
+            </span>
+          </td>
+          <td class="px-4 py-4 font-semibold text-xs">₹${totalVal}</td>
+          <td class="px-4 py-4 text-right">
+            <div class="inline-flex items-center justify-end gap-2">
+              <a href="/account/orders/${order.orderId}" class="inline-flex px-3 py-1.5 border border-brand-gray-200 text-brand-black hover:bg-brand-gray-50 text-xs font-semibold uppercase tracking-wider transition-colors">
+                View
+              </a>
+              <a href="/account/orders/${order.orderId}/track" class="inline-flex px-3 py-1.5 border border-brand-gray-200 text-brand-black hover:bg-brand-gray-50 text-xs font-semibold uppercase tracking-wider transition-colors">
+                Track
+              </a>
+            </div>
+          </td>
+        </tr>
+      `;
+
+      mobileHtml += `
+        <div class="py-4 flex flex-col gap-3">
+          <div class="flex justify-between items-start">
+            <div>
+              <span class="block text-[10px] text-brand-gray-400 uppercase tracking-wider">Order ID</span>
+              <span class="font-sans font-bold text-brand-black text-xs block">#${order.orderId}</span>
+            </div>
+            <span class="px-2 py-0.5 inline-flex text-[9px] leading-5 font-semibold rounded-md ${statusClass}">
+              ${order.status}
+            </span>
+          </div>
+          <div class="grid grid-cols-2 gap-2 text-xs border-t border-brand-gray-50 pt-2 text-brand-gray-600">
+            <div>
+              <span class="block text-[9px] text-brand-gray-400 uppercase tracking-wider">Date</span>
+              <span class="font-medium text-brand-black">${dateStr}</span>
+            </div>
+            <div>
+              <span class="block text-[9px] text-brand-gray-400 uppercase tracking-wider">Total</span>
+              <span class="font-bold text-brand-black">₹${totalVal}</span>
+            </div>
+          </div>
+          <div class="pt-2 flex gap-2">
+            <a href="/account/orders/${order.orderId}" class="flex-1 text-center py-2 border border-brand-gray-200 text-brand-black hover:bg-brand-gray-50 text-xs font-semibold uppercase tracking-wider transition-colors">
+              View
+            </a>
+            <a href="/account/orders/${order.orderId}/track" class="flex-1 text-center py-2 border border-brand-gray-200 text-brand-black hover:bg-brand-gray-50 text-xs font-semibold uppercase tracking-wider transition-colors">
+              Track
+            </a>
+          </div>
+        </div>
+      `;
     });
+
+    if (desktopTbody) desktopTbody.innerHTML = desktopHtml;
+    if (mobileContainer) mobileContainer.innerHTML = mobileHtml;
+
+    if (paginationContainer) {
+      if (totalPages > 1) {
+        let pagHtml = `
+          <div class="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-brand-gray-100">
+            <p class="font-sans text-xs text-brand-gray-500">
+              Showing Page <span class="font-semibold text-brand-black">${currentPage}</span> of <span class="font-semibold text-brand-black">${totalPages}</span>
+            </p>
+            <div class="flex items-center gap-2">
+        `;
+        if (currentPage > 1) {
+          pagHtml += `<button type="button" onclick="applyOrdersFilter(${currentPage - 1})" class="px-3 py-1.5 border border-brand-gray-200 rounded-md text-brand-gray-600 hover:bg-brand-gray-50 transition-colors text-xs flex items-center gap-1">Previous</button>`;
+        }
+        if (currentPage < totalPages) {
+          pagHtml += `<button type="button" onclick="applyOrdersFilter(${currentPage + 1})" class="px-3 py-1.5 border border-brand-gray-200 rounded-md text-brand-gray-600 hover:bg-brand-gray-50 transition-colors text-xs flex items-center gap-1">Next</button>`;
+        }
+        pagHtml += `</div></div>`;
+        paginationContainer.innerHTML = pagHtml;
+      } else {
+        paginationContainer.innerHTML = '';
+      }
+    }
   }
 </script>
 

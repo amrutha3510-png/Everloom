@@ -20,7 +20,7 @@
 
             <div class="flex flex-col gap-6 pt-4">
               <% cart.items.forEach(item => { %>
-                <div class="flex flex-col sm:grid sm:grid-cols-12 gap-4 items-start sm:items-center py-4 border-b border-brand-gray-50 last:border-0 relative">
+                <div id="cart-item-row-<%= item._id %>" class="flex flex-col sm:grid sm:grid-cols-12 gap-4 items-start sm:items-center py-4 border-b border-brand-gray-50 last:border-0 relative">
                   
                   <!-- Mobile Remove Button -->
                   <button type="button" onclick="removeItem('<%= item._id %>')" class="absolute top-4 right-0 sm:hidden text-brand-gray-400 hover:text-red-500 p-2">
@@ -76,9 +76,9 @@
                       <span class="text-brand-gray-400 font-sans text-sm font-medium">N/A</span>
                     <% } else { %>
                       <div class="flex items-center border border-brand-gray-200 h-10 w-28 bg-white">
-                        <button type="button" onclick="updateQty('<%= item._id %>', 'decrement')" class="flex-1 h-full flex items-center justify-center text-brand-gray-600 hover:bg-brand-gray-50 transition-colors <%= item.quantity <= 1 ? 'opacity-50 cursor-not-allowed' : '' %>" <%= item.quantity <= 1 ? 'disabled' : '' %>>-</button>
-                        <input type="text" value="<%= item.quantity %>" class="w-10 h-full text-center font-sans text-brand-black focus:outline-none appearance-none border-x border-brand-gray-200 bg-transparent text-sm pointer-events-none" readonly>
-                        <button type="button" onclick="updateQty('<%= item._id %>', 'increment')" class="flex-1 h-full flex items-center justify-center text-brand-gray-600 hover:bg-brand-gray-50 transition-colors <%= item.quantity >= 5 || item.quantity >= item.stock ? 'opacity-50 cursor-not-allowed' : '' %>" <%= item.quantity >= 5 || item.quantity >= item.stock ? 'disabled' : '' %>>+</button>
+                        <button type="button" id="btn-dec-<%= item._id %>" onclick="updateQty('<%= item._id %>', 'decrement')" class="flex-1 h-full flex items-center justify-center text-brand-gray-600 hover:bg-brand-gray-50 transition-colors <%= item.quantity <= 1 ? 'opacity-50 cursor-not-allowed' : '' %>" <%= item.quantity <= 1 ? 'disabled' : '' %>>-</button>
+                        <input type="text" id="qty-input-<%= item._id %>" value="<%= item.quantity %>" class="w-10 h-full text-center font-sans text-brand-black focus:outline-none appearance-none border-x border-brand-gray-200 bg-transparent text-sm pointer-events-none" readonly>
+                        <button type="button" id="btn-inc-<%= item._id %>" onclick="updateQty('<%= item._id %>', 'increment')" class="flex-1 h-full flex items-center justify-center text-brand-gray-600 hover:bg-brand-gray-50 transition-colors <%= item.quantity >= 5 || item.quantity >= item.stock ? 'opacity-50 cursor-not-allowed' : '' %>" <%= item.quantity >= 5 || item.quantity >= item.stock ? 'disabled' : '' %>>+</button>
                       </div>
                     <% } %>
                   </div>
@@ -86,7 +86,7 @@
                   <!-- Total -->
                   <div class="sm:col-span-2 flex items-center justify-between sm:justify-end w-full sm:w-auto mt-2 sm:mt-0 relative pr-0 sm:pr-8">
                     <span class="sm:hidden font-sans text-sm font-bold text-brand-black">Total:</span>
-                    <span class="font-sans font-semibold text-brand-black text-base">
+                    <span id="item-total-<%= item._id %>" class="font-sans font-semibold text-brand-black text-base">
                       <% if (!item.isUnavailable && !item.isOutOfStock && !item.stockMismatch && item.itemTotal) { %>
                         ₹<%= item.itemTotal %>
                       <% } else { %>
@@ -113,7 +113,7 @@
             
             <div class="flex justify-between items-center mb-4 font-sans text-sm text-brand-gray-600">
               <span>Subtotal</span>
-              <span class="font-medium text-brand-black">₹<%= cart.cartTotal %></span>
+              <span id="cart-subtotal-val" class="font-medium text-brand-black">₹<%= cart.cartTotal %></span>
             </div>
             
             <div class="flex justify-between items-center mb-6 font-sans text-sm text-brand-gray-600">
@@ -123,7 +123,7 @@
 
             <div class="border-t border-brand-gray-100 pt-4 mb-8 flex justify-between items-center">
               <span class="font-sans font-bold text-brand-black">Total</span>
-              <span class="font-sans font-bold text-brand-black text-xl">₹<%= cart.cartTotal %></span>
+              <span id="cart-total-val" class="font-sans font-bold text-brand-black text-xl">₹<%= cart.cartTotal %></span>
             </div>
 
             <% 
@@ -182,13 +182,56 @@
       const data = await res.json();
       
       if (res.ok && data.success) {
-        window.location.reload();
+        if (typeof window.updateNavCounts === 'function' && typeof data.cartCount !== 'undefined') {
+          window.updateNavCounts(data.cartCount, undefined);
+        }
+
+        // Update item quantity input & buttons
+        if (data.item) {
+          const qtyInput = document.getElementById(`qty-input-${itemId}`);
+          const itemTotalSpan = document.getElementById(`item-total-${itemId}`);
+          const btnDec = document.getElementById(`btn-dec-${itemId}`);
+          const btnInc = document.getElementById(`btn-inc-${itemId}`);
+
+          if (qtyInput) qtyInput.value = data.item.quantity;
+          if (itemTotalSpan && typeof data.item.itemTotal !== 'undefined') {
+            itemTotalSpan.textContent = `₹${data.item.itemTotal}`;
+          }
+
+          if (btnDec) {
+            if (data.item.quantity <= 1) {
+              btnDec.disabled = true;
+              btnDec.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+              btnDec.disabled = false;
+              btnDec.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+          }
+
+          if (btnInc) {
+            if (data.item.quantity >= 5 || (data.item.stock && data.item.quantity >= data.item.stock)) {
+              btnInc.disabled = true;
+              btnInc.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+              btnInc.disabled = false;
+              btnInc.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+          }
+        }
+
+        // Update Order Summary subtotal & total
+        if (typeof data.cartTotal !== 'undefined') {
+          const subtotalEl = document.getElementById('cart-subtotal-val');
+          const totalEl = document.getElementById('cart-total-val');
+          if (subtotalEl) subtotalEl.textContent = `₹${data.cartTotal}`;
+          if (totalEl) totalEl.textContent = `₹${data.cartTotal}`;
+        }
       } else {
-        if(typeof showFlash === 'function') showFlash('error', data.message || 'Failed to update quantity');
+        if (typeof showFlash === 'function') showFlash('error', data.message || 'Failed to update quantity');
       }
     } catch (error) {
       console.error(error);
-      if(typeof showFlash === 'function') showFlash('error', 'Network error occurred');
+      if (typeof showFlash === 'function') showFlash('error', 'Network error occurred');
     }
   }
 
@@ -225,11 +268,11 @@
       if (res.ok && data.success) {
         window.location.reload();
       } else {
-        if(typeof showFlash === 'function') showFlash('error', data.message || 'Failed to remove item');
+        if (typeof showFlash === 'function') showFlash('error', data.message || 'Failed to remove item');
       }
     } catch (error) {
       console.error(error);
-      if(typeof showFlash === 'function') showFlash('error', 'Network error occurred');
+      if (typeof showFlash === 'function') showFlash('error', 'Network error occurred');
     }
   }
 </script>

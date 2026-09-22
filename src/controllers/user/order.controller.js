@@ -19,6 +19,9 @@ export const getOrdersPage = async (req, res) => {
   try {
     const userId = req.session.user?.id;
     if (!userId) {
+      if (req.xhr || (req.headers.accept && req.headers.accept.includes('application/json')) || req.query.ajax === 'true') {
+        return res.status(401).json({ success: false, message: 'Please login to view your orders' });
+      }
       req.session.toast = { type: 'error', message: 'Please login to view your orders' };
       return res.redirect('/login');
     }
@@ -34,6 +37,18 @@ export const getOrdersPage = async (req, res) => {
 
     const result = await orderService.getUserOrders(userId, query, currentPage, limit);
 
+    if (req.xhr || (req.headers.accept && req.headers.accept.includes('application/json')) || req.query.ajax === 'true') {
+      return res.json({
+        success: true,
+        orders: result.orders,
+        totalPages: result.totalPages,
+        currentPage: result.currentPage,
+        totalEntries: result.totalEntries,
+        searchQuery: query.search,
+        statusFilter: query.status
+      });
+    }
+
     res.render('user/account/orders', {
       title: 'My Orders',
       orders: result.orders,
@@ -48,6 +63,9 @@ export const getOrdersPage = async (req, res) => {
     });
   } catch (error) {
     console.error('Error loading orders page:', error);
+    if (req.xhr || (req.headers.accept && req.headers.accept.includes('application/json')) || req.query.ajax === 'true') {
+      return res.status(500).json({ success: false, message: 'Failed to load orders' });
+    }
     req.session.toast = { type: 'error', message: 'Failed to load orders' };
     res.redirect('/account/profile');
   }

@@ -45,13 +45,13 @@
         class="block font-sans text-xs font-semibold uppercase tracking-wider text-brand-black mb-2">
         Description <span class="text-red-500">*</span>
       </label>
-      <textarea id="description" name="description" rows="4" required minlength="5" maxlength="500"
+      <textarea id="description" name="description" rows="4" required minlength="3" maxlength="500"
         class="w-full px-4 py-3 bg-white border border-brand-gray-200 rounded-md font-sans text-sm text-brand-black focus:outline-none focus:ring-1 focus:ring-brand-black focus:border-brand-black transition-colors resize-y"><%= (typeof oldData !== 'undefined' && typeof oldData.description !== 'undefined') ? oldData.description : (category.description || '') %></textarea>
       <p id="description-err"
         class="<%= (typeof formErrors !== 'undefined' && formErrors.description) ? '' : 'hidden' %> text-red-500 text-xs mt-1.5 font-sans pl-1">
         <%= (typeof formErrors !=='undefined' && formErrors.description) ? formErrors.description : '' %>
       </p>
-      <p class="font-sans text-[11px] text-brand-gray-400 mt-1">Between 5 and 500 characters.</p>
+      <p class="font-sans text-[11px] text-brand-gray-400 mt-1">Between 3 and 500 characters.</p>
     </div>
 
     <!-- Category Banner Image Replacement -->
@@ -320,11 +320,11 @@
       if (!nameVal) {
         setInvalid('name', 'Category name is required.');
         isValid = false;
-      } else if (nameVal.length < 3 || nameVal.length > 50) {
-        setInvalid('name', 'Category name must be between 3 and 50 characters.');
+      } else if (nameVal.length < 2 || nameVal.length > 50) {
+        setInvalid('name', 'Category name must be between 2 and 50 characters.');
         isValid = false;
-      } else if (nameAlphabetCount < 3) {
-        setInvalid('name', 'Category name must contain at least 3 alphabetic characters.');
+      } else if (nameAlphabetCount < 2) {
+        setInvalid('name', 'Category name must contain at least 2 alphabetic letters.');
         isValid = false;
       }
 
@@ -333,11 +333,11 @@
       if (!descVal) {
         setInvalid('description', 'Description is required.');
         isValid = false;
-      } else if (descVal.length < 5 || descVal.length > 500) {
-        setInvalid('description', 'Description must be between 5 and 500 characters.');
+      } else if (descVal.length < 3 || descVal.length > 500) {
+        setInvalid('description', 'Description must be between 3 and 500 characters.');
         isValid = false;
       } else if (descAlphabetCount < 3) {
-        setInvalid('description', 'Category description must contain at least 3 alphabetic characters.');
+        setInvalid('description', 'Category description must contain at least 3 alphabetic letters.');
         isValid = false;
       }
 

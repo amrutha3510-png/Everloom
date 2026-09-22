@@ -74,11 +74,11 @@ export const createCategory = async (data, file) => {
   if (!trimmedName) {
     throw new Error('Category name is required.');
   }
-  if (trimmedName.length < 3) {
-    throw new Error('Category name must be at least 3 characters long.');
+  if (trimmedName.length < 2) {
+    throw new Error('Category name must be at least 2 characters long.');
   }
-  if ((trimmedName.match(/[a-zA-Z]/g) || []).length < 3) {
-    throw new Error('Category name must contain at least 3 alphabetic characters.');
+  if ((trimmedName.match(/[a-zA-Z]/g) || []).length < 2) {
+    throw new Error('Category name must contain at least 2 alphabetic characters.');
   }
   if (trimmedName.length > 50) {
     throw new Error('Category name cannot exceed 50 characters.');
@@ -107,9 +107,10 @@ export const createCategory = async (data, file) => {
     ? file.path
     : `/uploads/category-banners/${file.filename}`;
 
-  // Duplicate Check (Case-Insensitive)
+  // Duplicate Check (Case-Insensitive & active categories only)
   const duplicate = await Category.findOne({
-    name: { $regex: `^${escapeRegex(trimmedName)}$`, $options: 'i' }
+    name: { $regex: `^${escapeRegex(trimmedName)}$`, $options: 'i' },
+    isDeleted: false
   });
 
   if (duplicate) {
@@ -143,11 +144,11 @@ export const updateCategory = async (id, data, file) => {
   if (!trimmedName) {
     throw new Error('Category name is required.');
   }
-  if (trimmedName.length < 3) {
-    throw new Error('Category name must be at least 3 characters long.');
+  if (trimmedName.length < 2) {
+    throw new Error('Category name must be at least 2 characters long.');
   }
-  if ((trimmedName.match(/[a-zA-Z]/g) || []).length < 3) {
-    throw new Error('Category name must contain at least 3 alphabetic characters.');
+  if ((trimmedName.match(/[a-zA-Z]/g) || []).length < 2) {
+    throw new Error('Category name must contain at least 2 alphabetic characters.');
   }
   if (trimmedName.length > 50) {
     throw new Error('Category name cannot exceed 50 characters.');
@@ -157,8 +158,8 @@ export const updateCategory = async (id, data, file) => {
   if (!trimmedDesc) {
     throw new Error('Category description is required.');
   }
-  if (trimmedDesc.length < 5) {
-    throw new Error('Category description must be at least 5 characters long.');
+  if (trimmedDesc.length < 3) {
+    throw new Error('Category description must be at least 3 characters long.');
   }
   if ((trimmedDesc.match(/[a-zA-Z]/g) || []).length < 3) {
     throw new Error('Category description must contain at least 3 alphabetic characters.');
@@ -167,10 +168,11 @@ export const updateCategory = async (id, data, file) => {
     throw new Error('Category description cannot exceed 500 characters.');
   }
 
-  // Duplicate Check (Case-Insensitive excluding current ID)
+  // Duplicate Check (Case-Insensitive excluding current ID & active only)
   const duplicate = await Category.findOne({
     _id: { $ne: id },
-    name: { $regex: `^${escapeRegex(trimmedName)}$`, $options: 'i' }
+    name: { $regex: `^${escapeRegex(trimmedName)}$`, $options: 'i' },
+    isDeleted: false
   });
 
   if (duplicate) {
@@ -221,6 +223,17 @@ export const restoreCategory = async (id) => {
   if (!category) {
     throw new Error('Category not found.');
   }
+
+  const duplicateActive = await Category.findOne({
+    _id: { $ne: id },
+    name: { $regex: `^${escapeRegex(category.name.trim())}$`, $options: 'i' },
+    isDeleted: false
+  });
+
+  if (duplicateActive) {
+    throw new Error(`Cannot restore category. An active category with the name "${category.name}" already exists.`);
+  }
+
   category.isDeleted = false;
   await category.save();
   return true;

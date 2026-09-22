@@ -58,8 +58,19 @@ export const updateQuantity = async (req, res) => {
     const { action } = req.body;
 
     await cartService.updateQuantity(userId, itemId, action);
+    const cart = await cartService.getCart(userId);
     const cartCount = await cartService.getCartCount(userId);
-    res.status(200).json({ success: true, message: 'Quantity updated', cartCount });
+    const updatedItem = cart.items.find(i => i._id.toString() === itemId.toString());
+
+    res.status(200).json({
+      success: true,
+      message: 'Quantity updated',
+      cartCount,
+      cartTotal: cart.cartTotal,
+      originalTotal: cart.originalTotal,
+      totalOfferDiscount: cart.totalOfferDiscount,
+      item: updatedItem
+    });
   } catch (error) {
     console.error('Update quantity error:', error);
     res.status(400).json({ success: false, message: error.message || 'Failed to update quantity' });

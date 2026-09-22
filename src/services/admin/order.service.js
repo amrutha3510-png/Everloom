@@ -140,11 +140,13 @@ export const updateOrderStatus = async (orderId, newStatus, restockOption = null
     throw new Error('Order not found.');
   }
 
-  // 1. Prevent updating already terminal statuses
+  // 1. Prevent updating already terminal statuses, unless already in target status (idempotent)
   if (order.status === 'Cancelled') {
+    if (newStatus === 'Cancelled') return order;
     throw new Error('Cannot update status of a cancelled order.');
   }
   if (order.status === 'Returned') {
+    if (newStatus === 'Returned') return order;
     throw new Error('Cannot update status of an already returned order.');
   }
 
@@ -186,29 +188,83 @@ export const updateOrderStatus = async (orderId, newStatus, restockOption = null
     if (restockOption === 'restock' && !order.isStockRestored) {
       const Product = mongoose.model('Product');
       for (const item of order.items) {
-        await Product.updateOne(
-          { _id: item.product, 'variants.size': item.variant.size, 'variants.color': item.variant.color },
-          { $inc: { 'variants.$.stock': item.quantity } }
-        );
+        if (item.status !== 'Cancelled' && !item.isStockRestored) {
+          const colorVal = item.variant ? (item.variant.color || item.variant.colorName || '') : '';
+          const sizeVal = item.variant ? (item.variant.size || '') : '';
+          if (colorVal && sizeVal) {
+            await Product.updateOne(
+              {
+                _id: item.product,
+                variants: {
+                  $elemMatch: {
+                    size: new RegExp(`^${sizeVal.trim()}$`, 'i'),
+                    color: new RegExp(`^${colorVal.trim()}$`, 'i')
+                  }
+                }
+              },
+              { $inc: { 'variants.$.stock': item.quantity } }
+            );
+          }
+          item.isStockRestored = true;
+        }
       }
       order.isStockRestored = true;
     }
 
-    // Credit refund to User Wallet ONLY ONCE on Admin approval
-    if (!order.isRefunded && (order.paymentMethod === 'Razorpay' || order.paymentMethod === 'WALLET' || order.paymentStatus === 'Paid')) {
-      if (order.totalAmount && order.totalAmount > 0) {
-        const recipientUserId = order.user._id ? order.user._id.toString() : order.user.toString();
+    // Credit return refund to User Wallet ONLY ONCE on Admin approval using orderPricing calculation
+    const isEligibleForRefund = (order.paymentMethod === 'Razorpay' || order.paymentMethod === 'WALLET' || order.paymentStatus === 'Paid');
+    if (isEligibleForRefund && !order.isRefunded) {
+      const recipientUserId = order.user._id ? order.user._id.toString() : order.user.toString();
+      const pricedOrder = calculateOrderPricing(order);
+      const itemMap = pricedOrder.pricing ? pricedOrder.pricing.itemDetailsMap : {};
+
+      let totalReturnRefund = 0;
+      for (const item of order.items) {
+        if (item.status !== 'Cancelled' && !item.isRefunded) {
+          const itemIdStr = item._id ? item._id.toString() : '';
+          const info = itemMap[itemIdStr];
+          const itemRefund = info ? info.effectiveAmount : Math.max(0, (item.price * item.quantity) - (item.allocatedCouponDiscount || 0));
+          totalReturnRefund += itemRefund;
+          item.refundAmount = itemRefund;
+          item.isRefunded = true;
+          item.status = 'Returned';
+        }
+      }
+
+      // If all active non-cancelled items in order are now returned, ensure remaining order amount (including shipping if applicable) is refunded
+      const activeNonCancelled = order.items.filter(i => i.status !== 'Cancelled');
+      const allReturnedNow = activeNonCancelled.length > 0 && activeNonCancelled.every(i => i.isRefunded || i.status === 'Returned');
+      if (allReturnedNow && pricedOrder.pricing) {
+        const expectedTotalRefund = pricedOrder.pricing.originalTotal || order.totalAmount;
+        const alreadyRefunded = order.items.reduce((sum, i) => sum + (i.refundAmount || 0), 0);
+        const remainingToRefund = Math.max(0, expectedTotalRefund - alreadyRefunded);
+        if (remainingToRefund > totalReturnRefund) {
+          totalReturnRefund = remainingToRefund;
+        }
+      }
+
+      if (totalReturnRefund > 0) {
+        const returnRefId = `${order.orderId}_return_approval`;
         await walletService.addCredit(
           recipientUserId,
-          order.totalAmount,
-          `Return refund`,
-          order.orderId
+          totalReturnRefund,
+          `Return refund (#${order.orderId})`,
+          order.orderId,
+          null,
+          null,
+          returnRefId
         );
-        order.isRefunded = true;
       }
+      order.isRefunded = true;
     }
 
     order.returnStatus = 'Approved';
+  }
+
+  if (newStatus === 'Delivered') {
+    if (!order.deliveredAt) {
+      order.deliveredAt = new Date();
+    }
   }
 
   order.status = newStatus;
@@ -216,6 +272,9 @@ export const updateOrderStatus = async (orderId, newStatus, restockOption = null
     order.items.forEach(item => {
       if (item.status !== 'Cancelled') {
         item.status = newStatus;
+        if (newStatus === 'Delivered' && !item.deliveredAt) {
+          item.deliveredAt = new Date();
+        }
       }
     });
   }
@@ -248,10 +307,22 @@ export const approveOrderCancellation = async (orderId) => {
     if (item.status !== 'Cancelled') {
       // 1. Restore variant stock ONCE
       if (!item.isStockRestored) {
-        await Product.updateOne(
-          { _id: item.product, 'variants.size': item.variant.size, 'variants.color': item.variant.color },
-          { $inc: { 'variants.$.stock': item.quantity } }
-        );
+        const colorVal = item.variant ? (item.variant.color || item.variant.colorName || '') : '';
+        const sizeVal = item.variant ? (item.variant.size || '') : '';
+        if (colorVal && sizeVal) {
+          await Product.updateOne(
+            {
+              _id: item.product,
+              variants: {
+                $elemMatch: {
+                  size: new RegExp(`^${sizeVal.trim()}$`, 'i'),
+                  color: new RegExp(`^${colorVal.trim()}$`, 'i')
+                }
+              }
+            },
+            { $inc: { 'variants.$.stock': item.quantity } }
+          );
+        }
         item.isStockRestored = true;
       }
 
@@ -264,11 +335,15 @@ export const approveOrderCancellation = async (orderId) => {
 
       if (isEligibleForRefund && itemRefund > 0) {
         if (!item.isRefunded) {
+          const itemRefId = `${order.orderId}_item_${item._id}_cancel`;
           await walletService.addCredit(
             recipientUserId,
             itemRefund,
             `Item cancellation refund (#${order.orderId})`,
-            order.orderId
+            order.orderId,
+            null,
+            null,
+            itemRefId
           );
           item.refundAmount = itemRefund;
           item.isRefunded = true;
@@ -321,10 +396,22 @@ export const approveOrderItemCancellation = async (orderId, itemId) => {
 
   // 1. Restore exact variant stock ONCE
   if (!item.isStockRestored) {
-    await Product.updateOne(
-      { _id: item.product, 'variants.size': item.variant.size, 'variants.color': item.variant.color },
-      { $inc: { 'variants.$.stock': item.quantity } }
-    );
+    const colorVal = item.variant ? (item.variant.color || item.variant.colorName || '') : '';
+    const sizeVal = item.variant ? (item.variant.size || '') : '';
+    if (colorVal && sizeVal) {
+      await Product.updateOne(
+        {
+          _id: item.product,
+          variants: {
+            $elemMatch: {
+              size: new RegExp(`^${sizeVal.trim()}$`, 'i'),
+              color: new RegExp(`^${colorVal.trim()}$`, 'i')
+            }
+          }
+        },
+        { $inc: { 'variants.$.stock': item.quantity } }
+      );
+    }
     item.isStockRestored = true;
   }
 
@@ -339,11 +426,15 @@ export const approveOrderItemCancellation = async (orderId, itemId) => {
 
   if (isEligibleForRefund && itemRefund > 0) {
     if (!item.isRefunded) {
+      const itemRefId = `${order.orderId}_item_${item._id}_cancel`;
       await walletService.addCredit(
         recipientUserId,
         itemRefund,
         `Item cancellation refund (#${order.orderId})`,
-        order.orderId
+        order.orderId,
+        null,
+        null,
+        itemRefId
       );
       item.refundAmount = itemRefund;
       item.isRefunded = true;

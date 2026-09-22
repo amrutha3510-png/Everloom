@@ -33,6 +33,7 @@
           <th class="px-6 py-4">Discount</th>
           <th class="px-6 py-4">Min Purchase</th>
           <th class="px-6 py-4">Max Cap</th>
+          <th class="px-6 py-4">User Limit</th>
           <th class="px-6 py-4">Expiry Date</th>
           <th class="px-6 py-4">Status</th>
           <th class="px-6 py-4 text-right">Actions</th>
@@ -54,6 +55,9 @@
               <td class="px-6 py-4 text-brand-gray-500">
                 <%= coupon.maxDiscount ? '₹' + coupon.maxDiscount : 'No Limit' %>
               </td>
+              <td class="px-6 py-4 text-brand-gray-600 font-medium">
+                <%= coupon.userUsageLimit || 1 %> time(s)
+              </td>
               <td class="px-6 py-4 text-xs text-brand-gray-500">
                 <%= new Date(coupon.expiryDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) %>
               </td>
@@ -70,6 +74,7 @@
                   data-discount-value="<%= coupon.discountValue %>"
                   data-min-purchase="<%= coupon.minPurchase || 0 %>"
                   data-max-discount="<%= coupon.maxDiscount || '' %>"
+                  data-user-usage-limit="<%= coupon.userUsageLimit || 1 %>"
                   data-expiry-date="<%= new Date(coupon.expiryDate).toISOString().split('T')[0] %>"
                   data-description="<%= coupon.description || '' %>"
                   onclick="openEditCouponModal(this)"
@@ -157,9 +162,15 @@
           </div>
         </div>
 
-        <div>
-          <label class="block text-xs font-semibold uppercase tracking-widest text-brand-gray-500 mb-1">Description</label>
-          <input type="text" id="coupon-description" placeholder="e.g. Flat 20% OFF on all items" class="w-full px-3 py-2 border border-brand-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-black">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-widest text-brand-gray-500 mb-1">Per-User Usage Limit <span class="text-red-500">*</span></label>
+            <input type="number" id="coupon-userUsageLimit" min="1" step="1" value="1" required placeholder="e.g. 1" class="w-full px-3 py-2 border border-brand-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-black">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-widest text-brand-gray-500 mb-1">Description</label>
+            <input type="text" id="coupon-description" placeholder="e.g. Flat 20% OFF on all items" class="w-full px-3 py-2 border border-brand-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-brand-black">
+          </div>
         </div>
 
         <div class="pt-4 flex gap-3">
@@ -223,6 +234,7 @@
     document.getElementById('editing-coupon-id').value = '';
     document.getElementById('coupon-modal-heading').textContent = 'Create New Coupon';
     document.getElementById('coupon-submit-btn').textContent = 'Save Coupon';
+    document.getElementById('coupon-userUsageLimit').value = 1;
     resetCouponErrors();
     updateDiscountValueUI();
     document.getElementById('coupon-modal').classList.remove('hidden');
@@ -240,6 +252,7 @@
     const discountValue = btn.getAttribute('data-discount-value');
     const minPurchase = btn.getAttribute('data-min-purchase');
     const maxDiscount = btn.getAttribute('data-max-discount');
+    const userUsageLimit = btn.getAttribute('data-user-usage-limit');
     const expiryDate = btn.getAttribute('data-expiry-date');
     const description = btn.getAttribute('data-description');
 
@@ -252,6 +265,7 @@
     document.getElementById('coupon-discountValue').value = discountValue || '';
     document.getElementById('coupon-minPurchase').value = minPurchase || 0;
     document.getElementById('coupon-maxDiscount').value = maxDiscount || '';
+    document.getElementById('coupon-userUsageLimit').value = userUsageLimit || 1;
     document.getElementById('coupon-expiryDate').value = expiryDate || '';
     document.getElementById('coupon-description').value = description || '';
 
@@ -279,6 +293,7 @@
     const discountValue = Number(discountValueRaw);
     const minPurchase = Number(document.getElementById('coupon-minPurchase').value || 0);
     const maxDiscount = (type === 'PERCENTAGE' && document.getElementById('coupon-maxDiscount').value) ? Number(document.getElementById('coupon-maxDiscount').value) : null;
+    const userUsageLimit = Number(document.getElementById('coupon-userUsageLimit').value || 1);
     const expiryInput = document.getElementById('coupon-expiryDate');
     const expiryDate = expiryInput.value;
     const description = document.getElementById('coupon-description').value.trim();
@@ -348,6 +363,7 @@
           discountValue,
           minPurchase,
           maxDiscount,
+          userUsageLimit,
           expiryDate,
           description
         })

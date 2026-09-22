@@ -9,30 +9,34 @@
         <h1 class="font-serif text-3xl font-bold text-brand-black">Shop All</h1>
         <p class="font-sans text-brand-gray-600 text-sm mt-1">Discover our timeless collections.</p>
       </div>
-      <div class="text-sm text-brand-gray-500 font-sans">
+      <div id="showing-results-text" class="text-sm text-brand-gray-500 font-sans">
         Showing <%= totalEntries > 0 ? ((currentPage - 1) * 12) + 1 : 0 %>–<%= Math.min(currentPage * 12, totalEntries) %> of <%= totalEntries %> results
       </div>
     </div>
   </div>
 
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-    <form id="filter-form" action="/shop" method="GET">
+    <form id="filter-form" action="/shop" method="GET" onsubmit="event.preventDefault(); applyShopFilter(1);">
       
-      <!-- TOP: CATEGORY SELECTION -->
-      <div class="bg-white p-5 sm:p-6 rounded-lg border border-brand-gray-200 shadow-sm mb-6">
-        <div class="overflow-x-auto scrollbar-hide">
-          <div class="flex gap-3">
-            <input type="radio" name="category" value="All Categories" id="cat-all" class="hidden" onchange="this.form.submit()" <%= categoryFilter === 'All Categories' ? 'checked' : '' %>>
-            <label for="cat-all" class="cursor-pointer px-5 py-2.5 rounded-full border <%= categoryFilter === 'All Categories' ? 'bg-brand-black text-white border-brand-black' : 'bg-white text-brand-gray-600 border-brand-gray-200 hover:border-brand-gray-300' %> font-sans text-sm font-medium transition-colors whitespace-nowrap">
-              ALL
-            </label>
-            
+      <!-- TOP: CATEGORY SELECTION DROPDOWN -->
+      <div class="bg-white p-5 sm:p-6 rounded-lg border border-brand-gray-200 shadow-sm mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-brand-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h7" />
+          </svg>
+          <label for="category-select" class="font-sans text-sm font-bold text-brand-black uppercase tracking-wider">Category</label>
+        </div>
+        <div class="relative w-full sm:w-72">
+          <select id="category-select" name="category" class="w-full pl-4 pr-10 py-2.5 bg-brand-gray-50 border border-brand-gray-200 rounded-md font-sans text-sm font-medium text-brand-black focus:outline-none focus:ring-1 focus:ring-brand-black focus:bg-white appearance-none cursor-pointer transition-colors shadow-sm" onchange="applyShopFilter(1)">
+            <option value="All Categories" <%= categoryFilter === 'All Categories' ? 'selected' : '' %>>All Categories</option>
             <% categories.forEach(cat => { %>
-              <input type="radio" name="category" value="<%= cat._id %>" id="cat-<%= cat._id %>" class="hidden" onchange="this.form.submit()" <%= categoryFilter === cat._id.toString() ? 'checked' : '' %>>
-              <label for="cat-<%= cat._id %>" class="cursor-pointer px-5 py-2.5 rounded-full border <%= categoryFilter === cat._id.toString() ? 'bg-brand-black text-white border-brand-black' : 'bg-white text-brand-gray-600 border-brand-gray-200 hover:border-brand-gray-300' %> font-sans text-sm font-medium transition-colors whitespace-nowrap">
-                <%= cat.name.toUpperCase() %>
-              </label>
+              <option value="<%= cat._id %>" <%= categoryFilter === cat._id.toString() ? 'selected' : '' %>>
+                <%= cat.name %>
+              </option>
             <% }) %>
+          </select>
+          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-brand-gray-500">
+            <svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
           </div>
         </div>
       </div>
@@ -46,13 +50,11 @@
             <svg class="w-4 h-4 text-brand-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
           </div>
           <input type="text" id="search-input" name="search" value="<%= searchQuery || '' %>" placeholder="Search products..." class="w-full pl-9 pr-10 py-2.5 bg-white border border-brand-gray-200 rounded-md font-sans text-sm focus:outline-none focus:ring-1 focus:ring-brand-black transition-colors shadow-sm">
-          <% if (searchQuery) { %>
-            <button type="button" id="clear-search-btn" class="absolute inset-y-0 right-0 pr-3 flex items-center text-brand-gray-400 hover:text-brand-black transition-colors">
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          <% } %>
+          <button type="button" id="clear-search-btn" class="absolute inset-y-0 right-0 pr-3 flex items-center text-brand-gray-400 hover:text-brand-black transition-colors <%= searchQuery ? '' : 'hidden' %>" onclick="clearSearchInput()">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
         
         <!-- SEARCH BUTTON -->
@@ -62,7 +64,7 @@
         
         <!-- SORT DROPDOWN -->
         <div class="relative w-full sm:w-48 sm:ml-auto flex-shrink-0">
-          <select name="sort" class="w-full pl-3 pr-10 py-2.5 bg-white border border-brand-gray-200 rounded-md font-sans text-sm focus:outline-none focus:ring-1 focus:ring-brand-black appearance-none cursor-pointer transition-colors shadow-sm" onchange="this.form.submit()">
+          <select name="sort" class="w-full pl-3 pr-10 py-2.5 bg-white border border-brand-gray-200 rounded-md font-sans text-sm focus:outline-none focus:ring-1 focus:ring-brand-black appearance-none cursor-pointer transition-colors shadow-sm" onchange="applyShopFilter(1)">
             <option value="newest" <%= sortOption === 'newest' ? 'selected' : '' %>>Newest First</option>
             <option value="price-low" <%= sortOption === 'price-low' ? 'selected' : '' %>>Price: Low to High</option>
             <option value="price-high" <%= sortOption === 'price-high' ? 'selected' : '' %>>Price: High to Low</option>
@@ -83,33 +85,31 @@
         <aside class="w-full lg:w-1/4">
           <div class="bg-white p-5 rounded-lg border border-brand-gray-200 shadow-sm flex flex-col gap-8">
             
-            <!-- SUBCATEGORY CHECKBOXES -->
-            <% if (categoryFilter !== 'All Categories') { %>
-              <div>
-                <h3 class="font-sans text-sm font-bold text-brand-black uppercase tracking-wider mb-4 border-b border-brand-gray-100 pb-2">Subcategory</h3>
-                <div class="flex flex-col gap-3">
-                  <% 
-                    const currentSubcats = Array.isArray(subcategoryFilter) ? subcategoryFilter : (subcategoryFilter ? [subcategoryFilter] : []);
-                    const relevantSubcats = subcategories.filter(s => s.category && s.category.toString() === categoryFilter.toString());
-                  %>
-                  <% if (relevantSubcats.length > 0) { %>
-                    <% relevantSubcats.forEach(sub => { %>
-                      <label class="flex items-center gap-3 cursor-pointer group">
-                        <div class="relative flex items-center justify-center">
-                          <input type="checkbox" name="subcategory" value="<%= sub._id %>" class="peer appearance-none w-5 h-5 border border-brand-gray-300 rounded cursor-pointer checked:bg-brand-black checked:border-brand-black focus:outline-none focus:ring-1 focus:ring-brand-black transition-colors" <%= currentSubcats.includes(sub._id.toString()) ? 'checked' : '' %>>
-                          <svg class="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                          </svg>
-                        </div>
-                        <span class="font-sans text-sm text-brand-gray-600 group-hover:text-brand-black transition-colors"><%= sub.name %></span>
-                      </label>
-                    <% }) %>
-                  <% } else { %>
-                    <span class="text-sm text-brand-gray-400 font-sans italic">No subcategories found.</span>
-                  <% } %>
-                </div>
+            <!-- SUBCATEGORY CHECKBOXES CONTAINER -->
+            <div id="subcategories-container" class="<%= categoryFilter !== 'All Categories' ? '' : 'hidden' %>">
+              <h3 class="font-sans text-sm font-bold text-brand-black uppercase tracking-wider mb-4 border-b border-brand-gray-100 pb-2">Subcategory</h3>
+              <div class="flex flex-col gap-3" id="subcategories-list">
+                <% 
+                  const currentSubcats = Array.isArray(subcategoryFilter) ? subcategoryFilter : (subcategoryFilter ? [subcategoryFilter] : []);
+                  const relevantSubcats = subcategories.filter(s => s.category && s.category.toString() === categoryFilter.toString());
+                %>
+                <% if (relevantSubcats.length > 0) { %>
+                  <% relevantSubcats.forEach(sub => { %>
+                    <label class="flex items-center gap-3 cursor-pointer group">
+                      <div class="relative flex items-center justify-center">
+                        <input type="checkbox" name="subcategory" value="<%= sub._id %>" class="peer appearance-none w-5 h-5 border border-brand-gray-300 rounded cursor-pointer checked:bg-brand-black checked:border-brand-black focus:outline-none focus:ring-1 focus:ring-brand-black transition-colors" <%= currentSubcats.includes(sub._id.toString()) ? 'checked' : '' %> onchange="applyShopFilter(1)">
+                        <svg class="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                        </svg>
+                      </div>
+                      <span class="font-sans text-sm text-brand-gray-600 group-hover:text-brand-black transition-colors"><%= sub.name %></span>
+                    </label>
+                  <% }) %>
+                <% } else { %>
+                  <span class="text-sm text-brand-gray-400 font-sans italic">No subcategories found.</span>
+                <% } %>
               </div>
-            <% } %>
+            </div>
 
             <!-- PRICE RANGE -->
             <div>
@@ -117,11 +117,11 @@
               <div class="flex flex-col gap-3">
                 <div class="relative">
                   <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-brand-gray-500 font-sans text-sm">₹</div>
-                  <input type="number" name="minPrice" value="<%= minPrice || '' %>" min="0" placeholder="Min" class="w-full pl-7 pr-3 py-2 bg-brand-gray-50 border border-brand-gray-200 rounded-md font-sans text-sm focus:outline-none focus:ring-1 focus:ring-brand-black focus:bg-white transition-colors">
+                  <input type="number" name="minPrice" value="<%= minPrice || '' %>" min="0" placeholder="Min" class="w-full pl-7 pr-3 py-2 bg-brand-gray-50 border border-brand-gray-200 rounded-md font-sans text-sm focus:outline-none focus:ring-1 focus:ring-brand-black focus:bg-white transition-colors" onchange="applyShopFilter(1)">
                 </div>
                 <div class="relative">
                   <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-brand-gray-500 font-sans text-sm">₹</div>
-                  <input type="number" name="maxPrice" value="<%= maxPrice || '' %>" min="0" placeholder="Max" class="w-full pl-7 pr-3 py-2 bg-brand-gray-50 border border-brand-gray-200 rounded-md font-sans text-sm focus:outline-none focus:ring-1 focus:ring-brand-black focus:bg-white transition-colors">
+                  <input type="number" name="maxPrice" value="<%= maxPrice || '' %>" min="0" placeholder="Max" class="w-full pl-7 pr-3 py-2 bg-brand-gray-50 border border-brand-gray-200 rounded-md font-sans text-sm focus:outline-none focus:ring-1 focus:ring-brand-black focus:bg-white transition-colors" onchange="applyShopFilter(1)">
                 </div>
               </div>
             </div>
@@ -134,7 +134,7 @@
                 <% sizes.forEach(sz => { %>
                   <label class="flex items-center gap-3 cursor-pointer group">
                     <div class="relative flex items-center justify-center">
-                      <input type="checkbox" name="size" value="<%= sz %>" class="peer appearance-none w-5 h-5 border border-brand-gray-300 rounded cursor-pointer checked:bg-brand-black checked:border-brand-black focus:outline-none focus:ring-1 focus:ring-brand-black transition-colors" <%= currentSizes.includes(sz) ? 'checked' : '' %>>
+                      <input type="checkbox" name="size" value="<%= sz %>" class="peer appearance-none w-5 h-5 border border-brand-gray-300 rounded cursor-pointer checked:bg-brand-black checked:border-brand-black focus:outline-none focus:ring-1 focus:ring-brand-black transition-colors" <%= currentSizes.includes(sz) ? 'checked' : '' %> onchange="applyShopFilter(1)">
                       <svg class="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                       </svg>
@@ -147,21 +147,21 @@
 
             <!-- ACTIONS -->
             <div class="flex flex-col gap-3 pt-2">
-              <button type="submit" class="w-full py-2.5 bg-brand-black text-white rounded-md font-sans text-sm font-medium hover:bg-brand-gray-600 transition-colors shadow-sm">
+              <button type="button" onclick="applyShopFilter(1)" class="w-full py-2.5 bg-brand-black text-white rounded-md font-sans text-sm font-medium hover:bg-brand-gray-600 transition-colors shadow-sm">
                 Apply Filters
               </button>
-              <% if (searchQuery || categoryFilter !== 'All Categories' || subcategoryFilter || minPrice || maxPrice || sizeFilter || sortOption !== 'newest') { %>
-                <a href="/shop" class="w-full text-center py-2.5 bg-white border border-brand-gray-200 text-brand-black rounded-md font-sans text-sm font-medium hover:bg-brand-gray-50 transition-colors">
+              <div id="actions-clear-container" class="<%= (searchQuery || categoryFilter !== 'All Categories' || subcategoryFilter || minPrice || maxPrice || sizeFilter || sortOption !== 'newest') ? '' : 'hidden' %>">
+                <button type="button" onclick="resetAllFilters()" class="w-full text-center py-2.5 bg-white border border-brand-gray-200 text-brand-black rounded-md font-sans text-sm font-medium hover:bg-brand-gray-50 transition-colors">
                   Clear Filters
-                </a>
-              <% } %>
+                </button>
+              </div>
             </div>
 
           </div>
         </aside>
 
         <!-- RIGHT: PRODUCT GRID -->
-        <div class="w-full lg:w-3/4">
+        <div class="w-full lg:w-3/4" id="product-list-container">
           <!-- Product Grid -->
           <% if (products && products.length > 0) { %>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
@@ -241,19 +241,19 @@
             <% if (totalPages > 1) { %>
               <div class="mt-12 flex items-center justify-center gap-2">
                 <% if (currentPage > 1) { %>
-                  <a href="?page=<%= currentPage - 1 %>&<%= paginationQueryString %>" 
-                     class="px-4 py-2 border border-brand-gray-200 text-brand-gray-600 hover:bg-brand-gray-50 transition-colors font-sans text-sm">
+                  <button type="button" onclick="applyShopFilter(<%= currentPage - 1 %>)" 
+                          class="px-4 py-2 border border-brand-gray-200 text-brand-gray-600 hover:bg-brand-gray-50 transition-colors font-sans text-sm">
                     Prev
-                  </a>
+                  </button>
                 <% } %>
                 
                 <div class="flex items-center gap-1">
                   <% for(let i = 1; i <= totalPages; i++) { %>
                     <% if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) { %>
-                      <a href="?page=<%= i %>&<%= paginationQueryString %>"
+                      <button type="button" onclick="applyShopFilter(<%= i %>)"
                          class="w-10 h-10 flex items-center justify-center border <%= currentPage === i ? 'border-brand-black bg-brand-black text-white' : 'border-brand-gray-200 text-brand-gray-600 hover:bg-brand-gray-50' %> transition-colors font-sans text-sm">
                         <%= i %>
-                      </a>
+                      </button>
                     <% } else if (i === currentPage - 2 || i === currentPage + 2) { %>
                       <span class="w-10 h-10 flex items-center justify-center text-brand-gray-400">...</span>
                     <% } %>
@@ -261,10 +261,10 @@
                 </div>
 
                 <% if (currentPage < totalPages) { %>
-                  <a href="?page=<%= currentPage + 1 %>&<%= paginationQueryString %>" 
-                     class="px-4 py-2 border border-brand-gray-200 text-brand-gray-600 hover:bg-brand-gray-50 transition-colors font-sans text-sm">
+                  <button type="button" onclick="applyShopFilter(<%= currentPage + 1 %>)" 
+                          class="px-4 py-2 border border-brand-gray-200 text-brand-gray-600 hover:bg-brand-gray-50 transition-colors font-sans text-sm">
                     Next
-                  </a>
+                  </button>
                 <% } %>
               </div>
             <% } %>
@@ -279,9 +279,9 @@
               </div>
               <h3 class="font-serif text-xl font-bold text-brand-black mb-2">No products found</h3>
               <p class="font-sans text-brand-gray-500 mb-6 max-w-md mx-auto">We couldn't find any products matching your current filters. Try adjusting your search criteria.</p>
-              <a href="/shop" class="inline-flex px-6 py-3 bg-brand-black text-white font-sans text-sm font-medium hover:bg-brand-gray-600 transition-colors rounded-md shadow-sm">
+              <button type="button" onclick="resetAllFilters()" class="inline-flex px-6 py-3 bg-brand-black text-white font-sans text-sm font-medium hover:bg-brand-gray-600 transition-colors rounded-md shadow-sm">
                 Clear All Filters
-              </a>
+              </button>
             </div>
           <% } %>
         </div>
@@ -292,18 +292,251 @@
 </main>
 
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const clearSearchBtn = document.getElementById('clear-search-btn');
-    if (clearSearchBtn) {
-      clearSearchBtn.addEventListener('click', () => {
-        const searchInput = document.getElementById('search-input');
-        if (searchInput) {
-          searchInput.value = '';
-        }
-        document.getElementById('filter-form').submit();
-      });
+  let allSubcategories = <%- JSON.stringify(subcategories || []) %>;
+
+  function clearSearchInput() {
+    const input = document.getElementById('search-input');
+    if (input) input.value = '';
+    const btn = document.getElementById('clear-search-btn');
+    if (btn) btn.classList.add('hidden');
+    applyShopFilter(1);
+  }
+
+  function resetAllFilters() {
+    const form = document.getElementById('filter-form');
+    if (form) form.reset();
+    const catSelect = document.getElementById('category-select');
+    if (catSelect) catSelect.value = 'All Categories';
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) searchInput.value = '';
+    const clearBtn = document.getElementById('clear-search-btn');
+    if (clearBtn) clearBtn.classList.add('hidden');
+
+    applyShopFilter(1);
+  }
+
+  async function applyShopFilter(page = 1) {
+    const form = document.getElementById('filter-form');
+    if (!form) return;
+
+    const formData = new FormData(form);
+    const params = new URLSearchParams();
+
+    for (const [key, val] of formData.entries()) {
+      if (val && val.trim() !== '' && val !== 'All Categories') {
+        params.append(key, val);
+      }
     }
-  });
+
+    if (page && page > 1) {
+      params.set('page', page);
+    }
+    params.set('ajax', 'true');
+
+    // Update clear search button visibility
+    const searchVal = document.getElementById('search-input')?.value.trim();
+    const clearBtn = document.getElementById('clear-search-btn');
+    if (clearBtn) {
+      if (searchVal) clearBtn.classList.remove('hidden');
+      else clearBtn.classList.add('hidden');
+    }
+
+    try {
+      const res = await fetch('/shop?' + params.toString(), {
+        headers: { 'Accept': 'application/json' }
+      });
+
+      if (!res.ok) throw new Error('Failed to fetch filtered products');
+      const data = await res.json();
+
+      if (data.success) {
+        if (data.subcategories) allSubcategories = data.subcategories;
+
+        // 1. Update Subcategories in Sidebar
+        const selectedCat = data.categoryFilter;
+        const subcatContainer = document.getElementById('subcategories-container');
+        const subcatList = document.getElementById('subcategories-list');
+
+        if (selectedCat && selectedCat !== 'All Categories') {
+          const relevantSubcats = allSubcategories.filter(s => s.category && s.category.toString() === selectedCat.toString());
+          const currentSelectedSubcats = Array.isArray(data.subcategoryFilter) ? data.subcategoryFilter : (data.subcategoryFilter ? [data.subcategoryFilter] : []);
+
+          let subHtml = '';
+          if (relevantSubcats.length > 0) {
+            relevantSubcats.forEach(sub => {
+              const isChecked = currentSelectedSubcats.includes(sub._id.toString()) ? 'checked' : '';
+              subHtml += `
+                <label class="flex items-center gap-3 cursor-pointer group">
+                  <div class="relative flex items-center justify-center">
+                    <input type="checkbox" name="subcategory" value="${sub._id}" class="peer appearance-none w-5 h-5 border border-brand-gray-300 rounded cursor-pointer checked:bg-brand-black checked:border-brand-black focus:outline-none focus:ring-1 focus:ring-brand-black transition-colors" ${isChecked} onchange="applyShopFilter(1)">
+                    <svg class="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                    </svg>
+                  </div>
+                  <span class="font-sans text-sm text-brand-gray-600 group-hover:text-brand-black transition-colors">${sub.name}</span>
+                </label>
+              `;
+            });
+          } else {
+            subHtml = '<span class="text-sm text-brand-gray-400 font-sans italic">No subcategories found.</span>';
+          }
+          if (subcatList) subcatList.innerHTML = subHtml;
+          if (subcatContainer) subcatContainer.classList.remove('hidden');
+        } else {
+          if (subcatContainer) subcatContainer.classList.add('hidden');
+        }
+
+        // 2. Update Showing Results Text
+        const showingText = document.getElementById('showing-results-text');
+        if (showingText) {
+          const start = data.totalEntries > 0 ? ((data.currentPage - 1) * 12) + 1 : 0;
+          const end = Math.min(data.currentPage * 12, data.totalEntries);
+          showingText.textContent = `Showing ${start}–${end} of ${data.totalEntries} results`;
+        }
+
+        // 3. Update Clear Filters Button Visibility
+        const clearFiltersContainer = document.getElementById('actions-clear-container');
+        const isFiltered = data.searchQuery || data.categoryFilter !== 'All Categories' || (data.subcategoryFilter && data.subcategoryFilter.length > 0) || data.minPrice || data.maxPrice || (data.sizeFilter && data.sizeFilter.length > 0) || data.sortOption !== 'newest';
+        if (clearFiltersContainer) {
+          if (isFiltered) clearFiltersContainer.classList.remove('hidden');
+          else clearFiltersContainer.classList.add('hidden');
+        }
+
+        // 4. Render Product Grid & Pagination
+        renderProductGrid(data.products, data.userWishlistItems, data.totalPages, data.currentPage);
+
+        // 5. Update Browser URL
+        params.delete('ajax');
+        const newUrl = '/shop' + (params.toString() ? '?' + params.toString() : '');
+        window.history.pushState(null, '', newUrl);
+      }
+    } catch (err) {
+      console.error('Error applying shop filter:', err);
+      if (typeof showFlash === 'function') showFlash('error', 'Failed to filter products');
+    }
+  }
+
+  function renderProductGrid(products, userWishlistItems, totalPages, currentPage) {
+    const gridContainer = document.getElementById('product-list-container');
+    if (!gridContainer) return;
+
+    if (!products || products.length === 0) {
+      gridContainer.innerHTML = `
+        <div class="py-16 text-center bg-white border border-brand-gray-100 rounded-lg shadow-sm w-full">
+          <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-brand-gray-50 mb-4">
+            <svg class="w-8 h-8 text-brand-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <h3 class="font-serif text-xl font-bold text-brand-black mb-2">No products found</h3>
+          <p class="font-sans text-brand-gray-500 mb-6 max-w-md mx-auto">We couldn't find any products matching your current filters. Try adjusting your search criteria.</p>
+          <button type="button" onclick="resetAllFilters()" class="inline-flex px-6 py-3 bg-brand-black text-white font-sans text-sm font-medium hover:bg-brand-gray-600 transition-colors rounded-md shadow-sm">
+            Clear All Filters
+          </button>
+        </div>
+      `;
+      return;
+    }
+
+    const wishlistIds = (userWishlistItems || []).map(item => item.product ? item.product.toString() : item.toString());
+
+    let html = '<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">';
+    products.forEach(product => {
+      const defaultSize = (product.variants && product.variants[0]) ? product.variants[0].size : 'M';
+      const defaultColor = (product.variants && product.variants[0]) ? product.variants[0].color : 'Black';
+      const inWishlist = wishlistIds.includes(product._id.toString());
+
+      let minPriceVariant = Infinity;
+      let maxPriceVariant = 0;
+      if (product.variants && product.variants.length > 0) {
+        product.variants.forEach(v => {
+          if (v.price < minPriceVariant) minPriceVariant = v.price;
+          if (v.price > maxPriceVariant) maxPriceVariant = v.price;
+        });
+      }
+
+      let priceHtml = '';
+      if (product.hasOffer) {
+        priceHtml = `
+          <div class="flex items-baseline gap-2">
+            <span class="text-brand-black font-bold">₹${product.discountedPrice}</span>
+            <span class="text-xs text-brand-gray-400 line-through font-normal">₹${product.originalPrice}</span>
+            <span class="text-[10px] text-green-600 font-bold bg-green-50 px-1.5 py-0.5 rounded">${product.offerPercentage}% OFF</span>
+          </div>
+        `;
+      } else if (minPriceVariant === maxPriceVariant && minPriceVariant !== Infinity) {
+        priceHtml = `₹${minPriceVariant}`;
+      } else if (minPriceVariant !== Infinity) {
+        priceHtml = `₹${minPriceVariant} - ₹${maxPriceVariant}`;
+      } else {
+        priceHtml = 'Unavailable';
+      }
+
+      const imgHtml = (product.images && product.images.length > 0) ? `
+        <img src="${product.images[0]}" alt="${product.name}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+        ${product.images.length > 1 ? `<img src="${product.images[1]}" alt="${product.name}" class="w-full h-full object-cover absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100">` : ''}
+      ` : `
+        <div class="w-full h-full flex items-center justify-center text-brand-gray-400 font-serif text-2xl">
+          ${product.name.charAt(0).toUpperCase()}
+        </div>
+      `;
+
+      html += `
+        <div class="group relative flex flex-col bg-white border border-brand-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300">
+          <button type="button" onclick="toggleWishlist('${product._id}', '${defaultSize}', '${defaultColor}', this)" 
+                  class="absolute top-3 right-3 bg-white/95 backdrop-blur-sm p-2 rounded-full shadow-sm text-brand-gray-400 hover:text-red-500 transition-all z-10" 
+                  aria-label="Wishlist">
+            <svg class="w-4 h-4 ${inWishlist ? 'text-red-500 fill-current' : 'text-brand-gray-400'}" fill="${inWishlist ? 'currentColor' : 'none'}" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+          </button>
+          <a href="/shop/product/${product._id}" class="relative w-full aspect-[3/4] overflow-hidden bg-brand-gray-50 block">
+            ${imgHtml}
+          </a>
+          <div class="p-4 flex flex-col flex-1">
+            <div class="mb-1 text-xs text-brand-gray-500 font-sans uppercase tracking-wider">
+              ${product.category ? product.category.name : ''}
+            </div>
+            <a href="/shop/product/${product._id}" class="font-serif font-bold text-brand-black text-lg leading-tight mb-2 hover:text-brand-gray-600 transition-colors line-clamp-2">
+              ${product.name}
+            </a>
+            <div class="mt-auto pt-3 border-t border-brand-gray-50 flex items-center justify-between">
+              <span class="font-sans font-semibold text-brand-black">
+                ${priceHtml}
+              </span>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+    html += '</div>';
+
+    // Pagination HTML
+    if (totalPages > 1) {
+      html += '<div class="mt-12 flex items-center justify-center gap-2">';
+      if (currentPage > 1) {
+        html += `<button type="button" onclick="applyShopFilter(${currentPage - 1})" class="px-4 py-2 border border-brand-gray-200 text-brand-gray-600 hover:bg-brand-gray-50 transition-colors font-sans text-sm">Prev</button>`;
+      }
+
+      html += '<div class="flex items-center gap-1">';
+      for (let i = 1; i <= totalPages; i++) {
+        if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+          const activeClass = currentPage === i ? 'border-brand-black bg-brand-black text-white' : 'border-brand-gray-200 text-brand-gray-600 hover:bg-brand-gray-50';
+          html += `<button type="button" onclick="applyShopFilter(${i})" class="w-10 h-10 flex items-center justify-center border ${activeClass} transition-colors font-sans text-sm">${i}</button>`;
+        } else if (i === currentPage - 2 || i === currentPage + 2) {
+          html += '<span class="w-10 h-10 flex items-center justify-center text-brand-gray-400">...</span>';
+        }
+      }
+      html += '</div>';
+
+      if (currentPage < totalPages) {
+        html += `<button type="button" onclick="applyShopFilter(${currentPage + 1})" class="px-4 py-2 border border-brand-gray-200 text-brand-gray-600 hover:bg-brand-gray-50 transition-colors font-sans text-sm">Next</button>`;
+      }
+      html += '</div>';
+    }
+
+    gridContainer.innerHTML = html;
+  }
 
   async function toggleWishlist(productId, size, color, btnElement) {
     try {

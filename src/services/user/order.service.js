@@ -99,6 +99,21 @@ export const getUserOrders = async (userId, queryParams, page = 1, limit = 10) =
 
 
 /**
+ * Helper to check if 7-day return period is valid.
+ * Day 1 starts from the delivery date.
+ * Max return window is 7 days (7 * 24 hours).
+ */
+export const isReturnPeriodValid = (deliveredDate, fallbackDate) => {
+  const dateToUse = deliveredDate || fallbackDate;
+  if (!dateToUse) return false;
+  const deliveryTime = new Date(dateToUse).getTime();
+  if (isNaN(deliveryTime)) return false;
+  const now = Date.now();
+  const maxPeriodMs = 7 * 24 * 60 * 60 * 1000;
+  return (now - deliveryTime) <= maxPeriodMs;
+};
+
+/**
  * Retrieve a specific order by readable orderId or database ObjectId.
  */
 export const getUserOrderById = async (userId, orderIdOrDbId) => {
@@ -151,6 +166,17 @@ export const getUserOrderById = async (userId, orderIdOrDbId) => {
 
   if (order) {
     order = calculateOrderPricing(order);
+    const orderDeliveryDate = order.deliveredAt || order.updatedAt;
+    order.isReturnEligible = order.status === 'Delivered' && isReturnPeriodValid(orderDeliveryDate, order.updatedAt);
+
+    if (order.items) {
+      order.items.forEach(item => {
+        const itemDeliveryDate = item.deliveredAt || order.deliveredAt || order.updatedAt;
+        const isEligibleStatus = (order.status === 'Delivered' || item.status === 'Delivered') &&
+                                 !['Cancelled', 'Return Requested', 'Returned'].includes(item.status);
+        item.isReturnEligible = isEligibleStatus && isReturnPeriodValid(itemDeliveryDate, order.updatedAt);
+      });
+    }
   }
 
   return order;
@@ -291,6 +317,11 @@ export const returnUserOrder = async (userId, orderId, returnReason, customReaso
     throw new Error('Return requests are only allowed for delivered orders.');
   }
 
+  const deliveryDate = order.deliveredAt || order.updatedAt;
+  if (!isReturnPeriodValid(deliveryDate, order.updatedAt)) {
+    throw new Error('The 7-day return period for this order has expired.');
+  }
+
   order.status = 'Return Requested';
   order.returnReason = finalReason;
   order.returnStatus = 'Pending';
@@ -353,6 +384,11 @@ export const returnUserOrderItem = async (userId, orderId, itemId, returnReason,
 
   if (!isItemEligible) {
     throw new Error('Return is only allowed for delivered items that are not already cancelled or returned.');
+  }
+
+  const itemDeliveryDate = item.deliveredAt || order.deliveredAt || order.updatedAt;
+  if (!isReturnPeriodValid(itemDeliveryDate, order.updatedAt)) {
+    throw new Error('The 7-day return period for this item has expired.');
   }
 
   item.status = 'Return Requested';

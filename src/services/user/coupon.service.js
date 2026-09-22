@@ -1,23 +1,46 @@
 import Coupon from '../../models/couponModel.js';
+import Order from '../../models/orderModel.js';
 
-export const getAvailableCoupons = async () => {
+export const getAvailableCoupons = async (userId = null) => {
   try {
     const now = new Date();
     const dbCoupons = await Coupon.find({
       status: 'Active',
-      expiryDate: { $gt: now }
-    }).sort({ minPurchase: 1 });
+      expiryDate: { $gt: now },
+      $or: [{ startDate: { $exists: false } }, { startDate: { $lte: now } }]
+    }).sort({ minPurchase: 1 }).lean();
 
-    if (dbCoupons && dbCoupons.length > 0) {
-      return dbCoupons.map(c => ({
+    if (!dbCoupons || dbCoupons.length === 0) {
+      return [];
+    }
+
+    const availableCoupons = [];
+    for (const c of dbCoupons) {
+      const userLimit = c.userUsageLimit || 1;
+      if (userId) {
+        const usedCount = await Order.countDocuments({
+          user: userId,
+          couponCode: c.code,
+          paymentStatus: { $ne: 'Failed' },
+          status: { $nin: ['Payment Failed'] }
+        });
+        if (usedCount >= userLimit) {
+          continue; // User has reached maximum usage limit for this coupon
+        }
+      }
+
+      availableCoupons.push({
         code: c.code,
         type: c.type,
         discountValue: c.discountValue,
         minPurchase: c.minPurchase || 0,
         maxDiscount: c.maxDiscount,
+        userUsageLimit: userLimit,
         description: c.description || (c.type === 'PERCENTAGE' ? `${c.discountValue}% OFF` : `Flat ₹${c.discountValue} OFF`)
-      }));
+      });
     }
+
+    return availableCoupons;
   } catch (err) {
     console.warn('Coupon database query error:', err.message);
   }
@@ -25,7 +48,7 @@ export const getAvailableCoupons = async () => {
   return [];
 };
 
-export const calculateCouponDiscount = async (couponCode, subtotal) => {
+export const calculateCouponDiscount = async (couponCode, subtotal, userId = null) => {
   if (!couponCode || !couponCode.trim()) {
     return { discount: 0, coupon: null };
   }
@@ -48,12 +71,26 @@ export const calculateCouponDiscount = async (couponCode, subtotal) => {
     throw new Error(`Coupon code "${code}" has expired.`);
   }
 
+  if (userId) {
+    const userLimit = dbCoupon.userUsageLimit || 1;
+    const usedCount = await Order.countDocuments({
+      user: userId,
+      couponCode: dbCoupon.code,
+      paymentStatus: { $ne: 'Failed' },
+      status: { $nin: ['Payment Failed'] }
+    });
+    if (usedCount >= userLimit) {
+      throw new Error(`You have reached the maximum allowed usage limit for coupon "${dbCoupon.code}".`);
+    }
+  }
+
   const coupon = {
     code: dbCoupon.code,
     type: dbCoupon.type,
     discountValue: dbCoupon.discountValue,
     minPurchase: dbCoupon.minPurchase || 0,
-    maxDiscount: dbCoupon.maxDiscount
+    maxDiscount: dbCoupon.maxDiscount,
+    userUsageLimit: dbCoupon.userUsageLimit || 1
   };
 
   if (coupon.minPurchase && subtotal < coupon.minPurchase) {

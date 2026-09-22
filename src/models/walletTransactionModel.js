@@ -43,6 +43,11 @@ const walletTransactionSchema = new mongoose.Schema({
     type: String,
     trim: true,
   },
+  referenceId: {
+    type: String,
+    trim: true,
+    index: true,
+  },
 }, { timestamps: true });
 
 const WalletTransaction = mongoose.model('WalletTransaction', walletTransactionSchema);

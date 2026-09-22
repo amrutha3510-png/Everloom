@@ -57,6 +57,26 @@ export const getShopPage = async (req, res) => {
       }
     }
 
+    if (req.xhr || (req.headers.accept && req.headers.accept.includes('application/json')) || req.query.ajax === 'true') {
+      return res.json({
+        success: true,
+        products: result.products,
+        totalPages: result.totalPages,
+        currentPage: result.currentPage,
+        totalEntries: result.totalEntries,
+        searchQuery: query.search,
+        categoryFilter: query.category,
+        subcategoryFilter: query.subcategory,
+        minPrice: query.minPrice,
+        maxPrice: query.maxPrice,
+        sizeFilter: query.size,
+        sortOption: result.sortOption,
+        paginationQueryString,
+        userWishlistItems,
+        subcategories
+      });
+    }
+
     res.render('user/shop/index', {
       title: 'Shop',
       products: result.products,
@@ -124,11 +144,48 @@ export const getProductDetails = async (req, res) => {
       userReview = await reviewService.getUserReviewForProduct(userId, productId);
     }
 
-    const Coupon = (await import('../../models/couponModel.js')).default;
-    const activeCoupons = await Coupon.find({
+    const couponService = await import('../../services/user/coupon.service.js');
+    const activeCoupons = await couponService.getAvailableCoupons(userId);
+
+    const Offer = (await import('../../models/offerModel.js')).default;
+    const now = new Date();
+    const activeOffers = await Offer.find({
       status: 'Active',
-      expiryDate: { $gt: new Date() }
-    }).sort({ createdAt: -1 }).lean();
+      isDeleted: false,
+      startDate: { $lte: now },
+      endDate: { $gte: now },
+      $or: [
+        { targetType: 'Product', product: product._id },
+        { targetType: 'Category', category: product.category._id }
+      ]
+    }).lean();
+
+    const formattedOffers = (activeOffers || []).map(o => ({
+      id: o._id.toString(),
+      name: o.name,
+      code: o.name,
+      type: 'OFFER',
+      targetType: o.targetType,
+      discountType: o.discountType,
+      discountValue: o.discountValue,
+      discountLabel: o.discountType === 'PERCENTAGE' ? `${o.discountValue}% OFF` : `₹${o.discountValue} OFF`,
+      description: `${o.name} (${o.targetType} Offer)`
+    }));
+
+    const formattedCoupons = (activeCoupons || []).map(c => ({
+      id: c.code,
+      code: c.code,
+      name: c.code,
+      type: 'COUPON',
+      discountType: c.type,
+      discountValue: c.discountValue,
+      discountLabel: c.type === 'PERCENTAGE' ? `${c.discountValue}% OFF` : `₹${c.discountValue} OFF`,
+      minPurchase: c.minPurchase || 0,
+      maxDiscount: c.maxDiscount,
+      description: c.description || (c.type === 'PERCENTAGE' ? `${c.discountValue}% OFF` : `Flat ₹${c.discountValue} OFF`)
+    }));
+
+    const availableOffersAndCoupons = [...formattedOffers, ...formattedCoupons];
 
     res.render('user/shop/product-details', {
       title: product.name,
@@ -140,6 +197,7 @@ export const getProductDetails = async (req, res) => {
       canReview,
       userReview,
       activeCoupons,
+      availableOffersAndCoupons,
       layout: 'layouts/user-layout',
       user: req.session.user || req.user || null
     });

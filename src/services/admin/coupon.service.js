@@ -11,7 +11,7 @@ export const getAllCoupons = async () => {
  * Create a new coupon with strict backend validation.
  */
 export const createCoupon = async (couponData) => {
-  const { code, type, discountValue, minPurchase, maxDiscount, startDate, expiryDate, description } = couponData;
+  const { code, type, discountValue, minPurchase, maxDiscount, startDate, expiryDate, description, userUsageLimit } = couponData;
 
   if (!code || !code.trim()) {
     throw new Error('Coupon code is required.');
@@ -50,6 +50,11 @@ export const createCoupon = async (couponData) => {
     throw new Error('Maximum discount cap cannot be negative.');
   }
 
+  const limitPerUser = userUsageLimit ? Number(userUsageLimit) : 1;
+  if (isNaN(limitPerUser) || !Number.isInteger(limitPerUser) || limitPerUser < 1) {
+    throw new Error('Per-user usage limit must be a positive whole number (at least 1).');
+  }
+
   const start = startDate ? new Date(startDate) : new Date();
   const expiry = new Date(expiryDate);
 
@@ -77,6 +82,7 @@ export const createCoupon = async (couponData) => {
     startDate: start,
     expiryDate: expiry,
     description: description ? description.trim() : '',
+    userUsageLimit: limitPerUser,
     status: 'Active'
   });
 
@@ -88,7 +94,7 @@ export const createCoupon = async (couponData) => {
  * Update an existing coupon with strict backend validation.
  */
 export const updateCoupon = async (couponId, couponData) => {
-  const { code, type, discountValue, minPurchase, maxDiscount, startDate, expiryDate, description } = couponData;
+  const { code, type, discountValue, minPurchase, maxDiscount, startDate, expiryDate, description, userUsageLimit } = couponData;
 
   const coupon = await Coupon.findById(couponId);
   if (!coupon) {
@@ -132,6 +138,11 @@ export const updateCoupon = async (couponId, couponData) => {
     throw new Error('Maximum discount cap cannot be negative.');
   }
 
+  const limitPerUser = userUsageLimit ? Number(userUsageLimit) : 1;
+  if (isNaN(limitPerUser) || !Number.isInteger(limitPerUser) || limitPerUser < 1) {
+    throw new Error('Per-user usage limit must be a positive whole number (at least 1).');
+  }
+
   const start = startDate ? new Date(startDate) : (coupon.startDate || new Date());
   const expiry = new Date(expiryDate);
 
@@ -157,6 +168,7 @@ export const updateCoupon = async (couponId, couponData) => {
   coupon.startDate = start;
   coupon.expiryDate = expiry;
   coupon.description = description ? description.trim() : '';
+  coupon.userUsageLimit = limitPerUser;
 
   await coupon.save();
   return coupon;

@@ -151,28 +151,48 @@
                       <%= product.description %>
                     </div>
 
-                    <!-- Active Database Coupons & Offers -->
-                    <% if (typeof activeCoupons !== 'undefined' && activeCoupons && activeCoupons.length > 0) { %>
-                      <div class="mb-8 p-4 bg-brand-gray-50 border border-brand-gray-100 rounded-md">
-                        <h3 class="font-sans text-sm font-bold text-brand-black uppercase tracking-wider mb-3 flex items-center gap-2">
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                    <!-- Available Coupons & Offers Dropdown -->
+                    <% const allCouponsAndOffers = (typeof availableOffersAndCoupons !== 'undefined' && availableOffersAndCoupons && availableOffersAndCoupons.length > 0) ? availableOffersAndCoupons : ((typeof activeCoupons !== 'undefined' && activeCoupons) ? activeCoupons.map(c => ({ name: c.code, code: c.code, type: 'COUPON', discountLabel: c.type === 'PERCENTAGE' ? c.discountValue + '% OFF' : '₹' + c.discountValue + ' OFF', minPurchase: c.minPurchase || 0, description: c.description || '' })) : []); %>
+                    <% if (allCouponsAndOffers && allCouponsAndOffers.length > 0) { %>
+                      <div class="mb-8 p-4 bg-brand-gray-50 border border-brand-gray-200 rounded-md">
+                        <div class="flex items-center gap-2 mb-2">
+                          <svg class="w-4 h-4 text-brand-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M7 7h10M7 12h10m-5 5h5" />
                           </svg>
-                          Available Coupons &amp; Offers
-                        </h3>
-                        <ul class="space-y-2.5 font-sans text-sm">
-                          <% activeCoupons.forEach(coupon => { %>
-                            <li class="flex items-start gap-2">
-                              <span class="font-mono font-semibold text-brand-black bg-white border border-brand-gray-200 px-1.5 py-0.5 text-xs rounded uppercase"><%= coupon.code %></span>
-                              <span class="text-brand-gray-600 text-xs mt-0.5">
-                                <%= coupon.description || (coupon.type === 'PERCENTAGE' ? `${coupon.discountValue}% OFF` : `₹${coupon.discountValue} OFF`) %>
-                                <% if (coupon.minPurchase > 0) { %> (Min order ₹<%= coupon.minPurchase %>)<% } %>
-                              </span>
-                            </li>
-                          <% }); %>
-                        </ul>
+                          <label for="product-coupons-dropdown" class="font-sans text-xs font-bold uppercase tracking-wider text-brand-black">Available Coupons &amp; Offers</label>
+                        </div>
+                        <div class="relative w-full">
+                          <select id="product-coupons-dropdown" onchange="showProductCouponInfo(this)" class="w-full pl-3 pr-10 py-2.5 bg-white border border-brand-gray-200 rounded-md font-sans text-xs font-medium text-brand-black focus:outline-none focus:ring-1 focus:ring-brand-black appearance-none cursor-pointer transition-colors shadow-sm">
+                            <option value="">-- View Available Coupons &amp; Offers --</option>
+                            <% allCouponsAndOffers.forEach(item => { %>
+                              <option value="<%= item.code || item.name %>"
+                                data-type="<%= item.type || 'COUPON' %>"
+                                data-name="<%= item.name || item.code %>"
+                                data-discount="<%= item.discountLabel || (item.type === 'PERCENTAGE' ? item.discountValue + '% OFF' : '₹' + item.discountValue + ' OFF') %>"
+                                data-min="<%= item.minPurchase || 0 %>"
+                                data-desc="<%= item.description || '' %>">
+                                [<%= item.type || 'COUPON' %>] <%= item.name || item.code %> — <%= item.discountLabel || (item.type === 'PERCENTAGE' ? item.discountValue + '% OFF' : '₹' + item.discountValue + ' OFF') %>
+                              </option>
+                            <% }) %>
+                          </select>
+                          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-brand-gray-500">
+                            <svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                          </div>
+                        </div>
+                        <div id="product-coupon-details" class="mt-2.5 text-xs font-sans text-brand-gray-600 hidden bg-white p-3 border border-brand-gray-100 rounded">
+                          <div class="font-semibold text-brand-black flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-1.5">
+                              <span id="product-coupon-type-badge" class="px-1.5 py-0.5 text-[10px] font-bold rounded uppercase bg-brand-gray-100 text-brand-black"></span>
+                              <span id="product-coupon-code" class="font-mono font-bold text-brand-black"></span>
+                            </div>
+                            <span id="product-coupon-discount" class="text-green-600 font-bold"></span>
+                          </div>
+                          <p id="product-coupon-desc" class="text-brand-gray-500 mt-1"></p>
+                          <p id="product-coupon-min" class="text-[11px] text-brand-gray-400 mt-0.5"></p>
+                        </div>
                       </div>
                     <% } %>
+
 
                     <!-- Variants Selection -->
                     <div class="mb-8">
@@ -253,8 +273,9 @@
                           <path stroke-linecap="round" stroke-linejoin="round"
                             d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                         </svg>
-                      </button>
                     </div>
+
+
 
                     <div class="mt-8 border-t border-brand-gray-200">
                       <!-- Delivery & Returns -->
@@ -1026,8 +1047,53 @@
         if (submitBtn) {
           submitBtn.disabled = false;
           submitBtn.innerText = 'Submit Review';
+      }
+    }
+
+    function showProductCouponInfo(selectEl) {
+      if (!selectEl) return;
+      const val = selectEl.value;
+      const opt = selectEl.options[selectEl.selectedIndex];
+      const infoContainer = document.getElementById('product-coupon-details');
+
+      if (!val || !opt || !opt.value) {
+        if (infoContainer) infoContainer.classList.add('hidden');
+        return;
+      }
+
+      const type = opt.getAttribute('data-type') || 'COUPON';
+      const name = opt.getAttribute('data-name') || val;
+      const discount = opt.getAttribute('data-discount') || '';
+      const min = opt.getAttribute('data-min') || '0';
+      const desc = opt.getAttribute('data-desc') || '';
+
+      const badgeEl = document.getElementById('product-coupon-type-badge');
+      const codeEl = document.getElementById('product-coupon-code');
+      const discEl = document.getElementById('product-coupon-discount');
+      const descEl = document.getElementById('product-coupon-desc');
+      const minEl = document.getElementById('product-coupon-min');
+
+      if (badgeEl) {
+        badgeEl.textContent = type;
+        if (type === 'OFFER') {
+          badgeEl.className = 'px-1.5 py-0.5 text-[10px] font-bold rounded uppercase bg-green-100 text-green-800 border border-green-200';
+        } else {
+          badgeEl.className = 'px-1.5 py-0.5 text-[10px] font-bold rounded uppercase bg-blue-100 text-blue-800 border border-blue-200';
         }
       }
+
+      if (codeEl) codeEl.textContent = name;
+      if (discEl) discEl.textContent = discount;
+      if (descEl) descEl.textContent = desc || `${discount} discount applied.`;
+      if (minEl) {
+        if (type === 'COUPON') {
+          minEl.textContent = Number(min) > 0 ? `Minimum order amount: ₹${min}` : 'No minimum purchase required.';
+        } else {
+          minEl.textContent = 'Discount automatically applied on item price.';
+        }
+      }
+
+      if (infoContainer) infoContainer.classList.remove('hidden');
     }
   </script>
 

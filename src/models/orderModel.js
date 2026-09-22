@@ -44,6 +44,10 @@ const orderItemSchema = new mongoose.Schema({
     type: Number,
     default: 0,
     min: 0
+  },
+  deliveredAt: {
+    type: Date,
+    default: null
   }
 });
 
@@ -138,6 +142,10 @@ const orderSchema = new mongoose.Schema({
   isRefunded: {
     type: Boolean,
     default: false
+  },
+  deliveredAt: {
+    type: Date,
+    default: null
   }
 }, { timestamps: true });
 
