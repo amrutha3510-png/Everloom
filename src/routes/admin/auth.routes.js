@@ -4,8 +4,9 @@ import { isAdminGuest, isAdmin } from '../../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
-router.get('/login', isAdminGuest, getAdminLoginPage);
-router.post('/login', isAdminGuest, loginAdmin);
+router.route('/login')
+  .get(isAdminGuest, getAdminLoginPage)
+  .post(isAdminGuest, loginAdmin);
 router.post('/logout', isAdmin, logoutAdmin);
 
 export default router;

@@ -7,7 +7,7 @@ const router = express.Router();
 router.use(isAdmin);
 
 router.get('/', getCustomersPage);
-router.post('/toggle-status/:id', toggleCustomerStatus);
+router.patch('/toggle-status/:id', toggleCustomerStatus);
 
 export default router;
 

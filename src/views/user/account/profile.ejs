@@ -530,7 +530,7 @@
 
     try {
       // 1. Save name / phone / dob first
-      await axios.post('/account/profile/update', { fullName, phone, dob });
+      await axios.patch('/account/profile/update', { fullName, phone, dob });
 
       // Update original stored values
       originalFullName = fullName;
@@ -690,7 +690,7 @@
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await axios.post('/account/profile/remove-image');
+          await axios.delete('/account/profile/remove-image');
           const initial = document.getElementById('ep-fullName').value.trim().charAt(0).toUpperCase() || 'U';
           const fallback = '<span class="font-serif text-3xl text-brand-gray-400 select-none">' + initial + '</span>';
           document.querySelector('#edit-modal .rounded-full.overflow-hidden').innerHTML = fallback;

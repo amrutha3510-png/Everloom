@@ -333,7 +333,7 @@
 
       if (result.isConfirmed) {
         try {
-          const response = await axios.post(`/admin/customers/toggle-status/${userId}`);
+          const response = await axios.patch(`/admin/customers/toggle-status/${userId}`);
           if (response.data.success) {
             Swal.fire({
               title: 'Success!',

@@ -8,6 +8,6 @@ const router = express.Router();
 router.use(isAdmin);
 
 router.get('/', getInventoryPage);
-router.post('/update', updateStock);
+router.patch('/update', updateStock);
 
 export default router;

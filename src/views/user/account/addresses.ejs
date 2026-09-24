@@ -526,7 +526,7 @@
           try {
             if (editMode) {
               const id = document.getElementById('addr-id').value;
-              await axios.post('/account/addresses/edit/' + id, payload);
+              await axios.patch('/account/addresses/edit/' + id, payload);
             } else {
               await axios.post('/account/addresses/add', payload);
             }
@@ -592,7 +592,7 @@
         document.querySelectorAll('.set-default-btn').forEach(btn => {
           btn.addEventListener('click', async () => {
             try {
-              await axios.post('/account/addresses/set-default/' + btn.dataset.id);
+              await axios.patch('/account/addresses/set-default/' + btn.dataset.id);
               location.reload();
             } catch (err) {
               Swal.fire({

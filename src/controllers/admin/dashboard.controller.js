@@ -36,16 +36,15 @@ export const getAdminDashboard = async (req, res) => {
     // 2. Sales Line Chart Dataset (Daily/Weekly/Monthly/Yearly/Custom)
     const salesChart = await dashboardService.getSalesChartData(chartFilter, startDate, endDate);
 
-    // 3. Best Selling Products Bar Chart Dataset
-    const topProductsBar = await dashboardService.getTop10ProductsBarChart();
+    // 3. Best Selling Products Bar Chart Dataset (Top 5)
+    const topProductsBar = await dashboardService.getTop5ProductsBarChart();
 
     // 4. Payment Method Donut/Pie Chart Dataset (COD, Razorpay, Wallet)
     const paymentChart = await dashboardService.getPaymentMethodChartData();
 
-    // 5. Top Rankings & Ledger Book
-    const topProducts = await dashboardService.getTop10Products();
-    const topCategories = await dashboardService.getTop10Categories();
-    const topBrands = await dashboardService.getTop10Brands();
+    // 5. Top Rankings (Top 5 Leaderboards) & Ledger Book
+    const topProducts = await dashboardService.getTop5Products();
+    const topCategories = await dashboardService.getTop5Categories();
     const ledgerEntries = await dashboardService.getLedgerBookData(20);
 
     res.render('admin/dashboard/index', {
@@ -58,7 +57,6 @@ export const getAdminDashboard = async (req, res) => {
       paymentChart,
       topProducts,
       topCategories,
-      topBrands,
       ledgerEntries
     });
   } catch (error) {
@@ -73,7 +71,6 @@ export const getAdminDashboard = async (req, res) => {
       paymentChart: { labels: ['Cash on Delivery', 'Razorpay Online', 'EverLoom Wallet'], data: [0, 0, 0] },
       topProducts: [],
       topCategories: [],
-      topBrands: [],
       ledgerEntries: []
     });
   }

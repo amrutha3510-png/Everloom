@@ -291,7 +291,7 @@
 
     if (newStock !== undefined && newStock !== null && newStock !== '') {
       try {
-        const response = await axios.post('/admin/inventory/update', {
+        const response = await axios.patch('/admin/inventory/update', {
           productId,
           variantId,
           newStock: parseInt(newStock, 10)

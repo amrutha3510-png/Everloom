@@ -2,6 +2,7 @@ import * as orderService from '../../services/user/order.service.js';
 import Order from '../../models/orderModel.js';
 import PDFDocument from 'pdfkit';
 import Razorpay from 'razorpay';
+import { calculateOrderPricing } from '../../services/general/orderPricing.service.js';
 
 const getRazorpayInstance = () => {
   const key_id = (process.env.RAZORPAY_KEY_ID || '').trim();
@@ -257,18 +258,21 @@ export const downloadInvoice = async (req, res) => {
     }
 
     const { orderId } = req.params;
-    const order = await orderService.getUserOrderById(userId, orderId);
+    let order = await orderService.getUserOrderById(userId, orderId);
 
     if (!order) {
       req.session.toast = { type: 'error', message: 'Order not found.' };
       return res.redirect('/account/orders');
     }
 
-    const isInvoiceAllowed = ['Delivered', 'Return Requested', 'Returned'].includes(order.status) || 
-      (order.items && order.items.some(i => ['Delivered', 'Return Requested', 'Returned'].includes(i.status)));
+    // Process order pricing and synchronize item states accurately
+    order = calculateOrderPricing(order);
+
+    const isInvoiceAllowed = ['Delivered', 'Return Requested', 'Returned', 'Cancelled'].includes(order.status) || 
+      (order.items && order.items.some(i => ['Delivered', 'Return Requested', 'Returned', 'Cancelled'].includes(i.status)));
 
     if (!isInvoiceAllowed) {
-      req.session.toast = { type: 'error', message: 'Invoice download is only available for delivered or returned orders.' };
+      req.session.toast = { type: 'error', message: 'Invoice download is only available for delivered, cancelled, or returned orders.' };
       return res.redirect(`/account/orders/${order.orderId}`);
     }
 
@@ -311,22 +315,25 @@ export const downloadInvoice = async (req, res) => {
     const tableTop = 270;
     doc.font('Helvetica-Bold').fontSize(10);
     doc.text('Item Description', 50, tableTop);
-    doc.text('Size/Color', 250, tableTop);
-    doc.text('Qty', 350, tableTop, { width: 30, align: 'center' });
+    doc.text('Status', 220, tableTop);
+    doc.text('Size/Color', 290, tableTop);
+    doc.text('Qty', 360, tableTop, { width: 30, align: 'center' });
     doc.text('Price', 400, tableTop, { width: 60, align: 'right' });
-    doc.text('Total', 480, tableTop, { width: 60, align: 'right' });
+    doc.text('Total', 475, tableTop, { width: 65, align: 'right' });
 
     doc.moveTo(50, tableTop + 15).lineTo(540, tableTop + 15).stroke();
     
     // Draw Table Items
     let currentY = tableTop + 25;
     order.items.forEach(item => {
+      const itemStatus = item.status || order.status || 'Active';
       doc.font('Helvetica').fontSize(9);
-      doc.text(item.product ? item.product.name : 'Unknown Product', 50, currentY, { width: 190 });
-      doc.text(`${item.variant.size} / ${item.variant.color}`, 250, currentY);
-      doc.text(item.quantity.toString(), 350, currentY, { width: 30, align: 'center' });
+      doc.text(item.product ? item.product.name : 'Unknown Product', 50, currentY, { width: 165 });
+      doc.text(itemStatus, 220, currentY, { width: 65 });
+      doc.text(`${item.variant.size} / ${item.variant.color}`, 290, currentY, { width: 65 });
+      doc.text(item.quantity.toString(), 360, currentY, { width: 30, align: 'center' });
       doc.text(`INR ${item.price}`, 400, currentY, { width: 60, align: 'right' });
-      doc.text(`INR ${item.price * item.quantity}`, 480, currentY, { width: 60, align: 'right' });
+      doc.text(`INR ${item.price * item.quantity}`, 475, currentY, { width: 65, align: 'right' });
 
       currentY += 25;
     });
@@ -335,7 +342,7 @@ export const downloadInvoice = async (req, res) => {
     currentY += 15;
 
     // Calculation Totals
-    const subtotal = order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const subtotal = order.pricing?.initialSubtotal || order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     
     doc.font('Helvetica').fontSize(10);
     doc.text('Subtotal:', 380, currentY, { width: 80, align: 'right' });

@@ -1,6 +1,4 @@
 import Order from '../../models/orderModel.js';
-import Product from '../../models/productModel.js';
-import Category from '../../models/categoryModel.js';
 
 /**
  * Get Sales Chart dataset for specified filter (daily, weekly, monthly, yearly, custom).
@@ -173,10 +171,10 @@ export const getSalesChartData = async (filter = 'monthly', customStartDate = nu
 };
 
 /**
- * Top 10 Best Selling Products Bar Chart dataset.
+ * Top 5 Best Selling Products Bar Chart dataset.
  * Returns product names and actual quantity sold.
  */
-export const getTop10ProductsBarChart = async () => {
+export const getTop5ProductsBarChart = async () => {
   const result = await Order.aggregate([
     { $match: { status: { $nin: ['Cancelled', 'Returned'] } } },
     { $unwind: '$items' },
@@ -187,7 +185,7 @@ export const getTop10ProductsBarChart = async () => {
       }
     },
     { $sort: { totalQuantitySold: -1 } },
-    { $limit: 10 },
+    { $limit: 5 },
     {
       $lookup: {
         from: 'products',
@@ -204,6 +202,7 @@ export const getTop10ProductsBarChart = async () => {
 
   return { labels, data };
 };
+export const getTop10ProductsBarChart = getTop5ProductsBarChart;
 
 /**
  * Distribution of valid orders by Payment Method (COD, Razorpay, WALLET) for Pie/Donut Chart.
@@ -240,9 +239,9 @@ export const getPaymentMethodChartData = async () => {
 };
 
 /**
- * Top 10 Best Selling Products.
+ * Top 5 Best Selling Products.
  */
-export const getTop10Products = async () => {
+export const getTop5Products = async () => {
   const result = await Order.aggregate([
     { $match: { status: { $nin: ['Cancelled', 'Returned'] } } },
     { $unwind: '$items' },
@@ -254,7 +253,7 @@ export const getTop10Products = async () => {
       }
     },
     { $sort: { totalQuantitySold: -1 } },
-    { $limit: 10 },
+    { $limit: 5 },
     {
       $lookup: {
         from: 'products',
@@ -274,11 +273,12 @@ export const getTop10Products = async () => {
     totalRevenue: item.totalRevenue
   }));
 };
+export const getTop10Products = getTop5Products;
 
 /**
- * Top 10 Best Selling Categories.
+ * Top 5 Best Selling Categories.
  */
-export const getTop10Categories = async () => {
+export const getTop5Categories = async () => {
   const result = await Order.aggregate([
     { $match: { status: { $nin: ['Cancelled', 'Returned'] } } },
     { $unwind: '$items' },
@@ -299,7 +299,7 @@ export const getTop10Categories = async () => {
       }
     },
     { $sort: { totalQuantitySold: -1 } },
-    { $limit: 10 },
+    { $limit: 5 },
     {
       $lookup: {
         from: 'categories',
@@ -318,40 +318,7 @@ export const getTop10Categories = async () => {
     totalRevenue: item.totalRevenue
   }));
 };
-
-/**
- * Top 10 Best Selling Brands.
- */
-export const getTop10Brands = async () => {
-  const result = await Order.aggregate([
-    { $match: { status: { $nin: ['Cancelled', 'Returned'] } } },
-    { $unwind: '$items' },
-    {
-      $lookup: {
-        from: 'products',
-        localField: 'items.product',
-        foreignField: '_id',
-        as: 'productDoc'
-      }
-    },
-    { $unwind: '$productDoc' },
-    {
-      $group: {
-        _id: '$productDoc.brand',
-        totalQuantitySold: { $sum: '$items.quantity' },
-        totalRevenue: { $sum: { $multiply: ['$items.price', '$items.quantity'] } }
-      }
-    },
-    { $sort: { totalQuantitySold: -1 } },
-    { $limit: 10 }
-  ]);
-
-  return result.map(item => ({
-    name: item._id && item._id.trim() ? item._id : 'EverLoom Classic',
-    totalQuantitySold: item.totalQuantitySold,
-    totalRevenue: item.totalRevenue
-  }));
-};
+export const getTop10Categories = getTop5Categories;
 
 /**
  * Generate Ledger Book entries from actual order data.

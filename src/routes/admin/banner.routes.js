@@ -12,11 +12,13 @@ import { handleHomeBannerUpload } from '../../middlewares/upload.middleware.js';
 
 const router = express.Router();
 
-router.get('/', isAdmin, getBannerPage);
-router.post('/create', isAdmin, handleHomeBannerUpload, createBanner);
-router.post('/:id/edit', isAdmin, handleHomeBannerUpload, updateBanner);
-router.post('/:id/select', isAdmin, selectBanner);
-router.post('/:id/toggle-status', isAdmin, toggleBannerStatus);
-router.post('/:id/delete', isAdmin, deleteBanner);
+router.use(isAdmin);
+
+router.get('/', getBannerPage);
+router.post('/create', handleHomeBannerUpload, createBanner);
+router.patch('/:id/edit', handleHomeBannerUpload, updateBanner);
+router.patch('/:id/select', selectBanner);
+router.patch('/:id/toggle-status', toggleBannerStatus);
+router.delete('/:id/delete', deleteBanner);
 
 export default router;

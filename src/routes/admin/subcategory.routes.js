@@ -18,10 +18,12 @@ router.use(isAdmin);
 
 router.get('/', getSubcategoriesPage);
 router.get('/deleted', getDeletedSubcategoriesPage);
-router.get('/add', getAddSubcategoryPage);
-router.post('/add', handleSubcategoryImageUpload, createSubcategoryHandler);
-router.get('/edit/:id', getEditSubcategoryPage);
-router.post('/edit/:id', handleSubcategoryImageUpload, updateSubcategoryHandler);
+router.route('/add')
+  .get(getAddSubcategoryPage)
+  .post(handleSubcategoryImageUpload, createSubcategoryHandler);
+router.route('/edit/:id')
+  .get(getEditSubcategoryPage)
+  .post(handleSubcategoryImageUpload, updateSubcategoryHandler);
 router.post('/soft-delete/:id', softDeleteSubcategoryHandler);
 router.post('/restore/:id', restoreSubcategoryHandler);
 

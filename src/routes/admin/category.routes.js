@@ -19,10 +19,12 @@ router.use(isAdmin);
 
 router.get('/', getCategoriesPage);
 router.get('/deleted', getDeletedCategoriesPage);
-router.get('/add', getAddCategoryPage);
-router.post('/add', handleBannerUpload, createCategoryHandler);
-router.get('/edit/:id', getEditCategoryPage);
-router.post('/edit/:id', handleBannerUpload, updateCategoryHandler);
+router.route('/add')
+  .get(getAddCategoryPage)
+  .post(handleBannerUpload, createCategoryHandler);
+router.route('/edit/:id')
+  .get(getEditCategoryPage)
+  .post(handleBannerUpload, updateCategoryHandler);
 router.post('/toggle-status/:id', toggleCategoryStatusHandler);
 router.post('/soft-delete/:id', softDeleteCategoryHandler);
 router.post('/restore/:id', restoreCategoryHandler);

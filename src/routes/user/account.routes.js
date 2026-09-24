@@ -57,17 +57,17 @@ router.get('/referrals', isUserPage, getReferralsPage);
 router.get('/refer',     isUserPage, getReferralsPage);
 
 // ── Profile API (JSON responses) ──
-router.post('/profile/update',               isUser, updateProfileHandler);
+router.patch('/profile/update',              isUser, updateProfileHandler);
 router.post('/profile/update-image',         isUser, handleUpload, updateProfileImageHandler);
-router.post('/profile/remove-image',         isUser, deleteProfileImageHandler);
+router.delete('/profile/remove-image',       isUser, deleteProfileImageHandler);
 router.post('/profile/request-email-change', isUser, requestEmailChangeHandler);
 router.post('/profile/verify-email-change',  isUser, verifyEmailChangeHandler);
 router.post('/profile/resend-email-change-otp', isUser, resendEmailChangeOtpHandler);
 
 // ── Address API ──
 router.post('/addresses/add',            isUser, createAddressHandler);
-router.post('/addresses/edit/:id',       isUser, updateAddressHandler);
-router.post('/addresses/set-default/:id',isUser, setDefaultAddressHandler);
+router.patch('/addresses/edit/:id',      isUser, updateAddressHandler);
+router.patch('/addresses/set-default/:id',isUser, setDefaultAddressHandler);
 router.delete('/addresses/delete/:id',   isUser, deleteAddressHandler);
 
 // ── Security API ──

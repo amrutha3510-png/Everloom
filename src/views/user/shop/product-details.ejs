@@ -612,7 +612,7 @@
 
       if (variant) {
         priceDisplay.innerHTML = `₹${variant.price}`;
-        maxStock = variant.stock;
+        maxStock = Number(variant.stock) || 0;
 
         if (maxStock > 0) {
           if (maxStock < 5) {
@@ -624,30 +624,39 @@
           }
 
           addBtn.disabled = false;
-          qtyMinus.disabled = false;
-          qtyPlus.disabled = false;
           qtyInput.disabled = false;
-          if (parseInt(qtyInput.value) > maxStock) qtyInput.value = maxStock;
+          let currentVal = parseInt(qtyInput.value) || 1;
+          if (currentVal > maxStock) currentVal = maxStock;
+          if (currentVal < 1) currentVal = 1;
+          qtyInput.value = currentVal;
+          updateQtyButtons();
         } else {
           stockStatus.innerHTML = `<span class="text-red-500 font-bold">Out of Stock</span>${deliveryHTML}`;
           addBtn.disabled = true;
-          qtyMinus.disabled = true;
-          qtyPlus.disabled = true;
           qtyInput.disabled = true;
+          updateQtyButtons();
         }
       } else {
         stockStatus.innerHTML = `<span class="text-red-500 font-bold">Unavailable</span>${deliveryHTML}`;
         addBtn.disabled = true;
-        qtyMinus.disabled = true;
-        qtyPlus.disabled = true;
         qtyInput.disabled = true;
         maxStock = 0;
+        updateQtyButtons();
       }
+    }
+
+    function updateQtyButtons() {
+      const input = document.getElementById('qty-input');
+      const qtyMinus = document.getElementById('qty-minus');
+      const qtyPlus = document.getElementById('qty-plus');
+      const val = parseInt(input.value) || 1;
+      if (qtyMinus) qtyMinus.disabled = (val <= 1 || maxStock <= 0);
+      if (qtyPlus) qtyPlus.disabled = (val >= maxStock || val >= 5 || maxStock <= 0);
     }
 
     function incrementQty() {
       const input = document.getElementById('qty-input');
-      let val = parseInt(input.value);
+      let val = parseInt(input.value) || 1;
 
       if (!selectedColor || !selectedSize) {
         if (typeof showFlash === 'function') showFlash('warning', 'Please select color and size first');
@@ -661,14 +670,16 @@
       } else {
         if (typeof showFlash === 'function') showFlash('warning', 'Maximum 5 quantity allowed');
       }
+      updateQtyButtons();
     }
 
     function decrementQty() {
       const input = document.getElementById('qty-input');
-      let val = parseInt(input.value);
+      let val = parseInt(input.value) || 1;
       if (val > 1) {
         input.value = val - 1;
       }
+      updateQtyButtons();
     }
 
     async function addToCart() {
@@ -677,7 +688,16 @@
         return;
       }
 
-      const qty = parseInt(document.getElementById('qty-input').value);
+      if (maxStock <= 0) {
+        if (typeof showFlash === 'function') showFlash('error', 'This item is out of stock');
+        return;
+      }
+
+      const qty = parseInt(document.getElementById('qty-input').value) || 1;
+      if (qty > maxStock) {
+        if (typeof showFlash === 'function') showFlash('warning', `Only ${maxStock} available in stock`);
+        return;
+      }
 
       try {
         const addBtn = document.getElementById('add-to-cart-btn');

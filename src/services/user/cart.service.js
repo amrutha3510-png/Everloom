@@ -89,7 +89,8 @@ export const getCart = async (userId) => {
 };
 
 export const addToCart = async (userId, productId, variantSize, variantColor, quantity) => {
-  if (quantity < 1 || quantity > MAX_QTY) {
+  const parsedQty = parseInt(quantity, 10);
+  if (isNaN(parsedQty) || parsedQty < 1 || parsedQty > MAX_QTY) {
     throw new Error(`Quantity must be between 1 and ${MAX_QTY}`);
   }
 
@@ -103,8 +104,9 @@ export const addToCart = async (userId, productId, variantSize, variantColor, qu
     throw new Error('Variant not found');
   }
 
-  if (variant.stock < quantity) {
-    throw new Error('Not enough stock available');
+  const variantStock = Number(variant.stock) || 0;
+  if (variantStock <= 0) {
+    throw new Error('This item is out of stock');
   }
 
   let cart = await Cart.findOne({ user: userId });
@@ -122,19 +124,18 @@ export const addToCart = async (userId, productId, variantSize, variantColor, qu
 
   const existingQuantity = existingItemIndex > -1 ? cart.items[existingItemIndex].quantity : 0;
   
-  let newQuantity;
-  if (quantity === 1) {
-    newQuantity = existingQuantity + 1;
-  } else {
-    newQuantity = quantity;
+  const newQuantity = existingQuantity + parsedQty;
+
+  if (existingQuantity >= variantStock) {
+    throw new Error(`Item is already in your cart with the maximum available stock (${variantStock})`);
   }
 
   if (newQuantity > MAX_QTY) {
     throw new Error(`Maximum ${MAX_QTY} quantity allowed per item`);
   }
 
-  if (newQuantity > variant.stock) {
-    throw new Error('Not enough stock available');
+  if (newQuantity > variantStock) {
+    throw new Error(`Only ${variantStock} available in stock. You already have ${existingQuantity} in your cart.`);
   }
 
   if (existingItemIndex > -1) {

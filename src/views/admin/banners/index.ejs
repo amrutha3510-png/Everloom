@@ -330,7 +330,7 @@
 
       try {
         const res = await fetch(url, {
-          method: 'POST',
+          method: editingId ? 'PATCH' : 'POST',
           body: formData
         });
 
@@ -385,7 +385,7 @@
   async function selectHomeBanner(bannerId) {
     try {
       const res = await fetch(`/admin/banners/${bannerId}/select`, {
-        method: 'POST',
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' }
       });
       const data = await res.json();
@@ -435,7 +435,7 @@
     if (result.isConfirmed) {
       try {
         const res = await fetch(`/admin/banners/${bannerId}/delete`, {
-          method: 'POST',
+          method: 'DELETE',
           headers: { 'Content-Type': 'application/json' }
         });
         const data = await res.json();

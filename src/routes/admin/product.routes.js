@@ -18,10 +18,12 @@ router.use(isAdmin);
 
 router.get('/', getProductsPage);
 router.get('/deleted', getDeletedProductsPage);
-router.get('/add', getAddProductPage);
-router.post('/add', handleProductImagesUpload, createProductHandler);
-router.get('/edit/:id', getEditProductPage);
-router.post('/edit/:id', handleProductImagesUpload, updateProductHandler);
+router.route('/add')
+  .get(getAddProductPage)
+  .post(handleProductImagesUpload, createProductHandler);
+router.route('/edit/:id')
+  .get(getEditProductPage)
+  .post(handleProductImagesUpload, updateProductHandler);
 router.post('/soft-delete/:id', softDeleteProductHandler);
 router.post('/restore/:id', restoreProductHandler);
 

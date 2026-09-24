@@ -70,6 +70,17 @@ app.set("layout", "layouts/user-layout");
 app.use("/admin", adminRoutes);
 app.use("/", userRoutes);
 
+// 404 Not Found Middleware
+app.use((req, res) => {
+    if (req.xhr || req.headers.accept?.includes("application/json")) {
+        return res.status(404).json({ success: false, message: "Resource not found." });
+    }
+    res.status(404).render("404", {
+        title: "Page Not Found",
+        layout: "layouts/user-layout"
+    });
+});
+
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {

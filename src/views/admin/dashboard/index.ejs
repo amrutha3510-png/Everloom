@@ -87,7 +87,7 @@
   <!-- Best Selling Products Bar Graph -->
   <div class="bg-white border border-brand-gray-100 rounded-xl shadow-sm p-6 flex flex-col">
     <div class="mb-4">
-      <h2 class="font-serif text-xl font-bold text-brand-black">2. Top 10 Best Selling Items (Bar Chart)</h2>
+      <h2 class="font-serif text-xl font-bold text-brand-black">2. <%= (topProductsBar && topProductsBar.labels && topProductsBar.labels.length > 0) ? ('Top ' + topProductsBar.labels.length) : 'Top' %> Best Selling Items (Bar Chart)</h2>
       <p class="font-sans text-xs text-brand-gray-500 mt-0.5">Quantity of successfully sold products from order data.</p>
     </div>
 
@@ -116,18 +116,48 @@
 
 </div>
 
-<!-- 4. BOTTOM: Top 10 Categories, Top 10 Brands & Ledger Book -->
+<!-- 4. BOTTOM: Top Products & Top Categories Leaderboards -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8 font-sans">
   
-  <!-- Top 10 Best Selling Categories -->
+  <!-- Top 5 Best Selling Products -->
   <div class="bg-white border border-brand-gray-100 rounded-xl shadow-sm overflow-hidden flex flex-col">
     <div class="p-5 border-b border-brand-gray-100 bg-brand-gray-50/50">
-      <h3 class="font-serif text-lg font-bold text-brand-black">Top 10 Best Selling Categories</h3>
+      <h3 class="font-serif text-lg font-bold text-brand-black"><%= (topProducts && topProducts.length > 0) ? ('Top ' + Math.min(topProducts.length, 5)) : 'Top 5' %> Best Selling Products</h3>
+      <p class="text-[11px] text-brand-gray-500 mt-0.5">Ranked by actual product sales volume</p>
+    </div>
+    <div class="divide-y divide-brand-gray-100 overflow-y-auto max-h-80 flex-1">
+      <% if (topProducts && topProducts.length > 0) { %>
+        <% topProducts.slice(0, 5).forEach((prod, index) => { %>
+          <div class="p-4 flex items-center justify-between gap-3 hover:bg-brand-gray-50/50 transition-colors">
+            <div class="flex items-center gap-3 min-w-0">
+              <span class="w-6 h-6 rounded-full bg-brand-gray-100 font-mono font-bold text-xs flex items-center justify-center text-brand-black flex-shrink-0">
+                <%= index + 1 %>
+              </span>
+              <div class="min-w-0">
+                <h4 class="font-bold text-xs text-brand-black truncate"><%= prod.name %></h4>
+                <span class="text-[10px] text-brand-gray-500 font-medium">₹<%= prod.totalRevenue.toLocaleString('en-IN') %> revenue</span>
+              </div>
+            </div>
+            <span class="px-2.5 py-1 bg-brand-gray-100 text-brand-black font-bold text-xs rounded-full flex-shrink-0">
+              <%= prod.totalQuantitySold %> sold
+            </span>
+          </div>
+        <% }) %>
+      <% } else { %>
+        <div class="p-8 text-center text-brand-gray-400 text-xs">No product sales recorded yet.</div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Top 5 Best Selling Categories -->
+  <div class="bg-white border border-brand-gray-100 rounded-xl shadow-sm overflow-hidden flex flex-col">
+    <div class="p-5 border-b border-brand-gray-100 bg-brand-gray-50/50">
+      <h3 class="font-serif text-lg font-bold text-brand-black"><%= (topCategories && topCategories.length > 0) ? ('Top ' + Math.min(topCategories.length, 5)) : 'Top 5' %> Best Selling Categories</h3>
       <p class="text-[11px] text-brand-gray-500 mt-0.5">Ranked by actual product sales volume</p>
     </div>
     <div class="divide-y divide-brand-gray-100 overflow-y-auto max-h-80 flex-1">
       <% if (topCategories && topCategories.length > 0) { %>
-        <% topCategories.forEach((cat, index) => { %>
+        <% topCategories.slice(0, 5).forEach((cat, index) => { %>
           <div class="p-4 flex items-center justify-between gap-3 hover:bg-brand-gray-50/50 transition-colors">
             <div class="flex items-center gap-3 min-w-0">
               <span class="w-6 h-6 rounded-full bg-brand-gray-100 font-mono font-bold text-xs flex items-center justify-center text-brand-black flex-shrink-0">
@@ -145,36 +175,6 @@
         <% }) %>
       <% } else { %>
         <div class="p-8 text-center text-brand-gray-400 text-xs">No category sales recorded yet.</div>
-      <% } %>
-    </div>
-  </div>
-
-  <!-- Top 10 Best Selling Brands -->
-  <div class="bg-white border border-brand-gray-100 rounded-xl shadow-sm overflow-hidden flex flex-col">
-    <div class="p-5 border-b border-brand-gray-100 bg-brand-gray-50/50">
-      <h3 class="font-serif text-lg font-bold text-brand-black">Top 10 Best Selling Brands</h3>
-      <p class="text-[11px] text-brand-gray-500 mt-0.5">Ranked by brand product volume</p>
-    </div>
-    <div class="divide-y divide-brand-gray-100 overflow-y-auto max-h-80 flex-1">
-      <% if (topBrands && topBrands.length > 0) { %>
-        <% topBrands.forEach((brand, index) => { %>
-          <div class="p-4 flex items-center justify-between gap-3 hover:bg-brand-gray-50/50 transition-colors">
-            <div class="flex items-center gap-3 min-w-0">
-              <span class="w-6 h-6 rounded-full bg-brand-gray-100 font-mono font-bold text-xs flex items-center justify-center text-brand-black flex-shrink-0">
-                <%= index + 1 %>
-              </span>
-              <div class="min-w-0">
-                <h4 class="font-bold text-xs text-brand-black truncate"><%= brand.name %></h4>
-                <span class="text-[10px] text-brand-gray-500 font-medium">₹<%= brand.totalRevenue.toLocaleString('en-IN') %> revenue</span>
-              </div>
-            </div>
-            <span class="px-2.5 py-1 bg-brand-gray-100 text-brand-black font-bold text-xs rounded-full flex-shrink-0">
-              <%= brand.totalQuantitySold %> sold
-            </span>
-          </div>
-        <% }) %>
-      <% } else { %>
-        <div class="p-8 text-center text-brand-gray-400 text-xs">No brand sales recorded yet.</div>
       <% } %>
     </div>
   </div>

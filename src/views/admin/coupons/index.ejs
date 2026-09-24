@@ -355,7 +355,7 @@
 
     try {
       const res = await fetch(url, {
-        method: 'POST',
+        method: editingId ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           code,
@@ -392,7 +392,7 @@
   async function toggleCouponStatus(couponId) {
     try {
       const res = await fetch(`/admin/coupons/${couponId}/toggle-status`, {
-        method: 'POST',
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' }
       });
       const data = await res.json();
@@ -412,7 +412,7 @@
 
     try {
       const res = await fetch(`/admin/coupons/${couponId}/delete`, {
-        method: 'POST',
+        method: 'DELETE',
         headers: { 'Content-Type': 'application/json' }
       });
       const data = await res.json();
