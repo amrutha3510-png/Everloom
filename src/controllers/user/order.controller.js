@@ -341,27 +341,52 @@ export const downloadInvoice = async (req, res) => {
     doc.moveTo(50, currentY).lineTo(540, currentY).stroke();
     currentY += 15;
 
-    // Calculation Totals
-    const subtotal = order.pricing?.initialSubtotal || order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    // Calculation Totals (Using Single Source of Truth orderPricing.service)
+    const p = order.pricing || {};
+    const initialSubtotal = (typeof p.initialSubtotal !== 'undefined') ? p.initialSubtotal : order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const totalCouponDiscount = (typeof p.totalCouponDiscount !== 'undefined') ? p.totalCouponDiscount : (order.discountAmount || 0);
+    const shippingCharge = (typeof p.shippingCharge !== 'undefined') ? p.shippingCharge : (order.shippingCharge || 0);
+    const originalTotal = (typeof p.originalTotal !== 'undefined') ? p.originalTotal : (order.totalAmount || 0);
+    const cancelledItemsDeduction = p.cancelledItemsDeduction || 0;
+    const currentTotal = (typeof p.currentTotal !== 'undefined') ? p.currentTotal : originalTotal;
     
     doc.font('Helvetica').fontSize(10);
-    doc.text('Subtotal:', 380, currentY, { width: 80, align: 'right' });
-    doc.font('Helvetica-Bold').text(`INR ${subtotal}`, 480, currentY, { width: 60, align: 'right' });
+    doc.text('Subtotal:', 350, currentY, { width: 110, align: 'right' });
+    doc.font('Helvetica-Bold').text(`INR ${initialSubtotal}`, 480, currentY, { width: 60, align: 'right' });
     
-    if (order.discountAmount > 0) {
+    if (totalCouponDiscount > 0) {
       currentY += 15;
       doc.font('Helvetica').text(`Discount (${order.couponCode || 'Promo'}):`, 300, currentY, { width: 160, align: 'right' });
-      doc.font('Helvetica-Bold').text(`-INR ${order.discountAmount}`, 480, currentY, { width: 60, align: 'right' });
+      doc.font('Helvetica-Bold').text(`-INR ${totalCouponDiscount}`, 480, currentY, { width: 60, align: 'right' });
     }
 
     currentY += 15;
-    doc.font('Helvetica').text('Shipping:', 380, currentY, { width: 80, align: 'right' });
-    doc.font('Helvetica-Bold').text(`INR ${order.shippingCharge}`, 480, currentY, { width: 60, align: 'right' });
+    doc.font('Helvetica').text('Shipping:', 350, currentY, { width: 110, align: 'right' });
+    doc.font('Helvetica-Bold').text(`INR ${shippingCharge}`, 480, currentY, { width: 60, align: 'right' });
 
-    currentY += 20;
-    doc.font('Helvetica-Bold').fontSize(12);
-    doc.text('Total Amount:', 350, currentY, { width: 110, align: 'right' });
-    doc.text(`INR ${order.totalAmount}`, 480, currentY, { width: 60, align: 'right' });
+    currentY += 18;
+    doc.font('Helvetica-Bold').fontSize(11);
+    doc.text('Original Total Price:', 310, currentY, { width: 150, align: 'right' });
+    doc.text(`INR ${originalTotal}`, 480, currentY, { width: 60, align: 'right' });
+
+    if (cancelledItemsDeduction > 0) {
+      currentY += 18;
+      doc.font('Helvetica-Bold').fontSize(11);
+      doc.fillColor('red');
+      doc.text('Refund / Cancellation:', 310, currentY, { width: 150, align: 'right' });
+      doc.text(`-INR ${cancelledItemsDeduction}`, 480, currentY, { width: 60, align: 'right' });
+      doc.fillColor('black');
+
+      currentY += 20;
+      doc.font('Helvetica-Bold').fontSize(12);
+      doc.text('Current Total Price:', 310, currentY, { width: 150, align: 'right' });
+      doc.text(`INR ${currentTotal}`, 480, currentY, { width: 60, align: 'right' });
+    } else {
+      currentY += 20;
+      doc.font('Helvetica-Bold').fontSize(12);
+      doc.text('Current Total Price:', 310, currentY, { width: 150, align: 'right' });
+      doc.text(`INR ${originalTotal}`, 480, currentY, { width: 60, align: 'right' });
+    }
 
     doc.moveDown(4);
     doc.font('Helvetica-Oblique').fontSize(10).text('Thank you for shopping with Everloom!', { align: 'center' });

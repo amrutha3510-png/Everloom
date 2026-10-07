@@ -71,7 +71,7 @@ export const getCheckoutPage = async (req, res) => {
 
     const addresses = await getAddresses(userId);
     const defaultAddress = addresses.find(addr => addr.isDefault) || addresses[0] || null;
-    const availableCoupons = await getAvailableCoupons(userId);
+    const availableCoupons = await getAvailableCoupons(userId, cart.cartTotal);
     const walletData = await walletService.getWalletData(userId);
     const userWalletBalance = walletData ? walletData.walletBalance : 0;
 
@@ -122,13 +122,7 @@ export const applyCoupon = async (req, res) => {
       return res.status(401).json({ success: false, message: 'Please login to checkout' });
     }
 
-    // Prevent multiple coupon application rule
-    if (req.session.appliedCoupon) {
-      return res.status(400).json({
-        success: false,
-        message: 'A coupon is already applied. Please remove the existing coupon first.'
-      });
-    }
+    // If a coupon is already applied, selecting/applying a new coupon will replace it
 
     const { couponCode } = req.body;
     if (!couponCode || !couponCode.trim()) {

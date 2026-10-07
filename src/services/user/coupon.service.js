@@ -1,11 +1,12 @@
 import Coupon from '../../models/couponModel.js';
 import Order from '../../models/orderModel.js';
 
-export const getAvailableCoupons = async (userId = null) => {
+export const getAvailableCoupons = async (userId = null, cartSubtotal = null) => {
   try {
     const now = new Date();
     const dbCoupons = await Coupon.find({
       status: 'Active',
+      isDeleted: { $ne: true },
       expiryDate: { $gt: now },
       $or: [{ startDate: { $exists: false } }, { startDate: { $lte: now } }]
     }).sort({ minPurchase: 1 }).lean();
@@ -17,6 +18,9 @@ export const getAvailableCoupons = async (userId = null) => {
     const availableCoupons = [];
     for (const c of dbCoupons) {
       const userLimit = c.userUsageLimit || 1;
+      let isEligible = true;
+      let ineligibilityReason = '';
+
       if (userId) {
         const usedCount = await Order.countDocuments({
           user: userId,
@@ -25,7 +29,15 @@ export const getAvailableCoupons = async (userId = null) => {
           status: { $nin: ['Payment Failed'] }
         });
         if (usedCount >= userLimit) {
-          continue; // User has reached maximum usage limit for this coupon
+          isEligible = false;
+          ineligibilityReason = 'Usage limit reached';
+        }
+      }
+
+      if (cartSubtotal !== null && cartSubtotal !== undefined) {
+        if (c.minPurchase && cartSubtotal < c.minPurchase) {
+          isEligible = false;
+          ineligibilityReason = `Min purchase ₹${c.minPurchase} required`;
         }
       }
 
@@ -36,6 +48,8 @@ export const getAvailableCoupons = async (userId = null) => {
         minPurchase: c.minPurchase || 0,
         maxDiscount: c.maxDiscount,
         userUsageLimit: userLimit,
+        isEligible,
+        ineligibilityReason,
         description: c.description || (c.type === 'PERCENTAGE' ? `${c.discountValue}% OFF` : `Flat ₹${c.discountValue} OFF`)
       });
     }

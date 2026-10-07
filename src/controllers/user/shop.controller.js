@@ -145,7 +145,7 @@ export const getProductDetails = async (req, res) => {
     }
 
     const couponService = await import('../../services/user/coupon.service.js');
-    const activeCoupons = await couponService.getAvailableCoupons(userId);
+    const activeCoupons = await couponService.getAvailableCoupons(null);
 
     const Offer = (await import('../../models/offerModel.js')).default;
     const now = new Date();
