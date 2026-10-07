@@ -45,7 +45,7 @@ export const getAdminDashboard = async (req, res) => {
     // 5. Top Rankings (Top 5 Leaderboards) & Ledger Book
     const topProducts = await dashboardService.getTop5Products();
     const topCategories = await dashboardService.getTop5Categories();
-    const ledgerEntries = await dashboardService.getLedgerBookData(20);
+    const ledgerEntries = await dashboardService.getLedgerBookData(5);
 
     res.render('admin/dashboard/index', {
       title: 'Admin Dashboard',

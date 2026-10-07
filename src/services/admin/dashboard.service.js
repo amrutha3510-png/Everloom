@@ -323,7 +323,7 @@ export const getTop10Categories = getTop5Categories;
 /**
  * Generate Ledger Book entries from actual order data.
  */
-export const getLedgerBookData = async (limit = 20) => {
+export const getLedgerBookData = async (limit = 5) => {
   const orders = await Order.find()
     .populate('user', 'fullName email')
     .sort({ createdAt: -1 })
