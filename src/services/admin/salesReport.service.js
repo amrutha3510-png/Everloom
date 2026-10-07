@@ -237,29 +237,29 @@ export const generateSalesReportPDF = async (reportData) => {
 
     // Row 1
     doc.text('Gross Amount:', 45, boxTop + 24);
-    doc.font('Helvetica-Bold').text(`₹${summary.totalGrossAmount.toLocaleString('en-IN')}`, 130, boxTop + 24, { align: 'right', width: 70 });
+    doc.font('Helvetica-Bold').text(`Rs. ${summary.totalGrossAmount.toLocaleString('en-IN')}`, 130, boxTop + 24, { align: 'right', width: 70 });
 
     doc.font('Helvetica').text('- Coupon Discount:', 220, boxTop + 24);
-    doc.font('Helvetica-Bold').fillColor('#DC2626').text(`-₹${summary.totalCouponDiscount.toLocaleString('en-IN')}`, 320, boxTop + 24, { align: 'right', width: 70 });
+    doc.font('Helvetica-Bold').fillColor('#DC2626').text(`-Rs. ${summary.totalCouponDiscount.toLocaleString('en-IN')}`, 320, boxTop + 24, { align: 'right', width: 70 });
 
     doc.font('Helvetica').fillColor('#333333').text('- Return Deduction:', 410, boxTop + 24);
-    doc.font('Helvetica-Bold').fillColor('#DC2626').text(`-₹${summary.totalReturnDeduction.toLocaleString('en-IN')}`, 490, boxTop + 24, { align: 'right', width: 65 });
+    doc.font('Helvetica-Bold').fillColor('#DC2626').text(`-Rs. ${summary.totalReturnDeduction.toLocaleString('en-IN')}`, 490, boxTop + 24, { align: 'right', width: 65 });
 
     // Row 2
     doc.font('Helvetica').fillColor('#333333').text('+ Shipping Charge:', 45, boxTop + 40);
-    doc.font('Helvetica-Bold').fillColor('#16A34A').text(`+₹${summary.totalShippingCharge.toLocaleString('en-IN')}`, 130, boxTop + 40, { align: 'right', width: 70 });
+    doc.font('Helvetica-Bold').fillColor('#16A34A').text(`+Rs. ${summary.totalShippingCharge.toLocaleString('en-IN')}`, 130, boxTop + 40, { align: 'right', width: 70 });
 
     doc.font('Helvetica').fillColor('#333333').text('- Offer Discount:', 220, boxTop + 40);
-    doc.font('Helvetica-Bold').fillColor('#DC2626').text(`-₹${summary.totalOfferDiscount.toLocaleString('en-IN')}`, 320, boxTop + 40, { align: 'right', width: 70 });
+    doc.font('Helvetica-Bold').fillColor('#DC2626').text(`-Rs. ${summary.totalOfferDiscount.toLocaleString('en-IN')}`, 320, boxTop + 40, { align: 'right', width: 70 });
 
     doc.font('Helvetica').fillColor('#333333').text('- Cancel Deduction:', 410, boxTop + 40);
-    doc.font('Helvetica-Bold').fillColor('#DC2626').text(`-₹${summary.totalCancellationDeduction.toLocaleString('en-IN')}`, 490, boxTop + 40, { align: 'right', width: 65 });
+    doc.font('Helvetica-Bold').fillColor('#DC2626').text(`-Rs. ${summary.totalCancellationDeduction.toLocaleString('en-IN')}`, 490, boxTop + 40, { align: 'right', width: 65 });
 
     // Summary Box Footer Line
     doc.moveTo(45, boxTop + 58).lineTo(555, boxTop + 58).stroke('#D1D5DB');
 
     doc.font('Helvetica-Bold').fontSize(10).fillColor('#111111').text('NET SALES TOTAL:', 45, boxTop + 66);
-    doc.fontSize(11).fillColor('#111111').text(`₹${summary.finalSalesAmount.toLocaleString('en-IN')}`, 200, boxTop + 65);
+    doc.fontSize(11).fillColor('#111111').text(`Rs. ${summary.finalSalesAmount.toLocaleString('en-IN')}`, 200, boxTop + 65);
 
     doc.fontSize(8).font('Helvetica').fillColor('#666666')
       .text(`Total Orders: ${summary.totalSalesCount}  |  Products Sold: ${summary.totalProductsSold || 0}`, 350, boxTop + 68, { align: 'right', width: 205 });
@@ -292,11 +292,11 @@ export const generateSalesReportPDF = async (reportData) => {
       doc.rect(30, currentY, 535, 22).fillAndStroke('#E5E7EB', '#D1D5DB');
 
       doc.fontSize(8.5).font('Helvetica-Bold').fillColor('#111111');
-      doc.text(`ORDER ID: ${orderIdStr}`, 35, currentY + 6);
-      doc.font('Helvetica').text(`Customer: ${customerStr}`, 155, currentY + 6, { width: 130, ellipsis: true });
-      doc.text(`Date: ${dateStr}`, 290, currentY + 6);
-      doc.text(`Payment: ${paymentStatus}`, 380, currentY + 6);
-      doc.font('Helvetica-Bold').text(`Status: ${orderStatus}`, 470, currentY + 6);
+      doc.text(`ORDER ID: ${orderIdStr}`, 35, currentY + 6, { width: 120, ellipsis: true });
+      doc.font('Helvetica').text(`Customer: ${customerStr}`, 160, currentY + 6, { width: 125, ellipsis: true });
+      doc.text(`Date: ${dateStr}`, 290, currentY + 6, { width: 80, ellipsis: true });
+      doc.text(`Payment: ${paymentStatus}`, 375, currentY + 6, { width: 85, ellipsis: true });
+      doc.font('Helvetica-Bold').text(`Status: ${orderStatus}`, 465, currentY + 6, { width: 95, ellipsis: true });
 
       currentY += 26;
 
@@ -307,8 +307,8 @@ export const generateSalesReportPDF = async (reportData) => {
       doc.text('Size', 215, currentY + 4, { width: 40 });
       doc.text('Color', 260, currentY + 4, { width: 50 });
       doc.text('Qty', 315, currentY + 4, { width: 30, align: 'center' });
-      doc.text('Price (₹)', 350, currentY + 4, { width: 60, align: 'right' });
-      doc.text('Item Total (₹)', 415, currentY + 4, { width: 70, align: 'right' });
+      doc.text('Price (Rs.)', 350, currentY + 4, { width: 60, align: 'right' });
+      doc.text('Item Total (Rs.)', 415, currentY + 4, { width: 70, align: 'right' });
       doc.text('Status', 495, currentY + 4, { width: 65, align: 'center' });
 
       currentY += 16;
@@ -332,8 +332,8 @@ export const generateSalesReportPDF = async (reportData) => {
         doc.text(sizeStr, 215, currentY + 3, { width: 40 });
         doc.text(colorStr, 260, currentY + 3, { width: 50 });
         doc.text(String(qty), 315, currentY + 3, { width: 30, align: 'center' });
-        doc.text(`₹${price.toLocaleString('en-IN')}`, 350, currentY + 3, { width: 60, align: 'right' });
-        doc.font('Helvetica-Bold').text(`₹${itemTotal.toLocaleString('en-IN')}`, 415, currentY + 3, { width: 70, align: 'right' });
+        doc.text(`Rs. ${price.toLocaleString('en-IN')}`, 350, currentY + 3, { width: 60, align: 'right' });
+        doc.font('Helvetica-Bold').text(`Rs. ${itemTotal.toLocaleString('en-IN')}`, 415, currentY + 3, { width: 70, align: 'right' });
 
         doc.font('Helvetica');
         if (itemStatus === 'Returned') {
@@ -362,31 +362,31 @@ export const generateSalesReportPDF = async (reportData) => {
 
       if (offerVal > 0) {
         doc.text('Offer Discount:', 330, currentY, { width: 110, align: 'right' });
-        doc.font('Helvetica-Bold').fillColor('#DC2626').text(`-₹${offerVal.toLocaleString('en-IN')}`, 445, currentY, { width: 115, align: 'right' });
+        doc.font('Helvetica-Bold').fillColor('#DC2626').text(`-Rs. ${offerVal.toLocaleString('en-IN')}`, 445, currentY, { width: 115, align: 'right' });
         currentY += 12;
       }
 
       if (couponVal > 0) {
         doc.font('Helvetica').fillColor('#4B5563').text('Coupon Discount:', 330, currentY, { width: 110, align: 'right' });
-        doc.font('Helvetica-Bold').fillColor('#DC2626').text(`-₹${couponVal.toLocaleString('en-IN')}`, 445, currentY, { width: 115, align: 'right' });
+        doc.font('Helvetica-Bold').fillColor('#DC2626').text(`-Rs. ${couponVal.toLocaleString('en-IN')}`, 445, currentY, { width: 115, align: 'right' });
         currentY += 12;
       }
 
       if (returnVal > 0) {
         doc.font('Helvetica').fillColor('#4B5563').text('Refund (Returned Items):', 300, currentY, { width: 140, align: 'right' });
-        doc.font('Helvetica-Bold').fillColor('#DC2626').text(`-₹${returnVal.toLocaleString('en-IN')}`, 445, currentY, { width: 115, align: 'right' });
+        doc.font('Helvetica-Bold').fillColor('#DC2626').text(`-Rs. ${returnVal.toLocaleString('en-IN')}`, 445, currentY, { width: 115, align: 'right' });
         currentY += 12;
       }
 
       if (cancelVal > 0) {
         doc.font('Helvetica').fillColor('#4B5563').text('Cancelled Amount:', 330, currentY, { width: 110, align: 'right' });
-        doc.font('Helvetica-Bold').fillColor('#DC2626').text(`-₹${cancelVal.toLocaleString('en-IN')}`, 445, currentY, { width: 115, align: 'right' });
+        doc.font('Helvetica-Bold').fillColor('#DC2626').text(`-Rs. ${cancelVal.toLocaleString('en-IN')}`, 445, currentY, { width: 115, align: 'right' });
         currentY += 12;
       }
 
       if (shippingVal > 0) {
         doc.font('Helvetica').fillColor('#4B5563').text('Shipping Charge:', 330, currentY, { width: 110, align: 'right' });
-        doc.font('Helvetica-Bold').fillColor('#16A34A').text(`+₹${shippingVal.toLocaleString('en-IN')}`, 445, currentY, { width: 115, align: 'right' });
+        doc.font('Helvetica-Bold').fillColor('#16A34A').text(`+Rs. ${shippingVal.toLocaleString('en-IN')}`, 445, currentY, { width: 115, align: 'right' });
         currentY += 12;
       }
 
@@ -394,7 +394,7 @@ export const generateSalesReportPDF = async (reportData) => {
       doc.rect(300, currentY, 265, 18).fill('#111111');
       doc.fontSize(8.5).font('Helvetica-Bold').fillColor('#FFFFFF');
       doc.text('Order Total / Net Total:', 310, currentY + 4);
-      doc.text(`₹${netVal.toLocaleString('en-IN')}`, 445, currentY + 4, { width: 115, align: 'right' });
+      doc.text(`Rs. ${netVal.toLocaleString('en-IN')}`, 445, currentY + 4, { width: 115, align: 'right' });
 
       currentY += 26;
 

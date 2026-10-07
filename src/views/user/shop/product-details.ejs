@@ -112,9 +112,8 @@
                     <div class="flex items-baseline gap-3">
                       <% let minPrice=Infinity; let minOrigPrice=Infinity; product.variants.forEach(v=> {
                         if(v.price < minPrice) { minPrice=v.price; minOrigPrice=v.originalPrice || v.price; } }); %>
-                          <span class="text-3xl font-bold text-brand-black">₹<%= minPrice %></span>
-                          <span class="text-base text-brand-gray-400 line-through font-normal">₹<%= minOrigPrice %>
-                              </span>
+                          <span class="text-3xl font-bold text-brand-black">₹<%= (minPrice !== Infinity) ? minPrice.toLocaleString('en-IN') : 0 %></span>
+                          <span class="text-base text-brand-gray-400 line-through font-normal">₹<%= (minOrigPrice !== Infinity) ? minOrigPrice.toLocaleString('en-IN') : 0 %></span>
                           <span
                             class="text-xs text-green-700 font-bold bg-green-50 border border-green-200 px-2 py-0.5 rounded">
                             <%= product.bestOffer.offerPercentage %>% OFF
@@ -125,9 +124,9 @@
                         if(v.price < minPrice) minPrice=v.price; if(v.price> maxPrice) maxPrice = v.price;
                           }); %>
                           <% if (minPrice===maxPrice) { %>
-                            ₹<%= minPrice %>
+                            ₹<%= (minPrice !== Infinity) ? minPrice.toLocaleString('en-IN') : 0 %>
                               <% } else { %>
-                                ₹<%= minPrice %> - ₹<%= maxPrice %>
+                                ₹<%= (minPrice !== Infinity) ? minPrice.toLocaleString('en-IN') : 0 %> - ₹<%= maxPrice.toLocaleString('en-IN') %>
                                     <% } %>
                                       <% } %>
                 </div>
@@ -644,7 +643,7 @@
       const variant = variants.find(v => v.color === selectedColor && v.size === selectedSize);
 
       if (variant) {
-        priceDisplay.innerHTML = `₹${variant.price}`;
+        priceDisplay.innerHTML = `₹${variant.price.toLocaleString('en-IN')}`;
         maxStock = Number(variant.stock) || 0;
 
         if (maxStock > 0) {
