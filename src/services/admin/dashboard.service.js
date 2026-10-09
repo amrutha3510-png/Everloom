@@ -1,23 +1,54 @@
 import Order from '../../models/orderModel.js';
+import * as salesReportService from './salesReport.service.js';
+
+/**
+ * Helper to get exact start and end Date objects for dashboard filters.
+ */
+export const getDashboardDateRange = (filter = 'monthly', customStartDate = null, customEndDate = null) => {
+  const now = new Date();
+  let start, end;
+
+  if (filter === 'daily') {
+    start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+    end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+  } else if (filter === 'weekly') {
+    const dayOfWeek = now.getDay();
+    const diffToMon = now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1);
+    start = new Date(now.getFullYear(), now.getMonth(), diffToMon, 0, 0, 0, 0);
+    end = new Date(now.getFullYear(), now.getMonth(), diffToMon + 6, 23, 59, 59, 999);
+  } else if (filter === 'yearly') {
+    const currentYear = now.getFullYear();
+    start = new Date(currentYear - 4, 0, 1, 0, 0, 0, 0);
+    end = new Date(currentYear, 11, 31, 23, 59, 59, 999);
+  } else if (filter === 'custom' && customStartDate && customEndDate) {
+    const [sY, sM, sD] = customStartDate.split('-').map(Number);
+    start = new Date(sY, sM - 1, sD, 0, 0, 0, 0);
+
+    const [eY, eM, eD] = customEndDate.split('-').map(Number);
+    end = new Date(eY, eM - 1, eD, 23, 59, 59, 999);
+  } else {
+    // Default 'monthly' (Monthly - This Year): Jan 1 to Dec 31 of current year
+    const currentYear = now.getFullYear();
+    start = new Date(currentYear, 0, 1, 0, 0, 0, 0);
+    end = new Date(currentYear, 11, 31, 23, 59, 59, 999);
+  }
+
+  return { start, end };
+};
 
 /**
  * Get Sales Chart dataset for specified filter (daily, weekly, monthly, yearly, custom).
- * STRICT BUSINESS RULE: Excludes Cancelled & Returned orders.
+ * STRICT BUSINESS RULE: Excludes Cancelled & Returned orders and Failed payments.
  */
 export const getSalesChartData = async (filter = 'monthly', customStartDate = null, customEndDate = null) => {
-  const matchQuery = { status: { $nin: ['Cancelled', 'Returned'] } };
-  const now = new Date();
+  const matchQuery = { status: { $nin: ['Cancelled', 'Returned', 'Payment Failed'] }, paymentStatus: { $ne: 'Failed' } };
+  const { start, end } = getDashboardDateRange(filter, customStartDate, customEndDate);
+  matchQuery.createdAt = { $gte: start, $lte: end };
 
   let labels = [];
   let data = [];
 
   if (filter === 'daily') {
-    // 24-hour slots of current day
-    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
-    const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
-
-    matchQuery.createdAt = { $gte: startOfDay, $lte: endOfDay };
-
     const hourlyData = await Order.aggregate([
       { $match: matchQuery },
       {
@@ -34,7 +65,6 @@ export const getSalesChartData = async (filter = 'monthly', customStartDate = nu
       salesMap[item._id] = item.totalSales;
     });
 
-    // 12 2-hour intervals or 24 1-hour slots (00:00 to 23:00)
     for (let hr = 0; hr < 24; hr += 2) {
       const label = `${hr.toString().padStart(2, '0')}:00`;
       labels.push(label);
@@ -43,19 +73,6 @@ export const getSalesChartData = async (filter = 'monthly', customStartDate = nu
     }
 
   } else if (filter === 'weekly') {
-    // Days of current week (Mon - Sun)
-    const dayOfWeek = now.getDay();
-    const diffToMon = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
-    const mon = new Date(now);
-    mon.setDate(diffToMon);
-    mon.setHours(0, 0, 0, 0);
-
-    const sun = new Date(mon);
-    sun.setDate(mon.getDate() + 6);
-    sun.setHours(23, 59, 59, 999);
-
-    matchQuery.createdAt = { $gte: mon, $lte: sun };
-
     const weeklyData = await Order.aggregate([
       { $match: matchQuery },
       {
@@ -79,14 +96,6 @@ export const getSalesChartData = async (filter = 'monthly', customStartDate = nu
     data = salesArr;
 
   } else if (filter === 'yearly') {
-    // Past 5 years
-    const currentYear = now.getFullYear();
-    const startYear = currentYear - 4;
-    matchQuery.createdAt = {
-      $gte: new Date(startYear, 0, 1),
-      $lte: new Date(currentYear, 11, 31, 23, 59, 59)
-    };
-
     const yearlyData = await Order.aggregate([
       { $match: matchQuery },
       {
@@ -103,20 +112,15 @@ export const getSalesChartData = async (filter = 'monthly', customStartDate = nu
       salesMap[item._id] = item.totalSales;
     });
 
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const startYear = currentYear - 4;
     for (let yr = startYear; yr <= currentYear; yr++) {
       labels.push(yr.toString());
       data.push(salesMap[yr] || 0);
     }
 
   } else if (filter === 'custom' && customStartDate && customEndDate) {
-    const start = new Date(customStartDate);
-    start.setHours(0, 0, 0, 0);
-
-    const end = new Date(customEndDate);
-    end.setHours(23, 59, 59, 999);
-
-    matchQuery.createdAt = { $gte: start, $lte: end };
-
     const customData = await Order.aggregate([
       { $match: matchQuery },
       {
@@ -139,13 +143,7 @@ export const getSalesChartData = async (filter = 'monthly', customStartDate = nu
     }
 
   } else {
-    // Default Monthly: 12 months of current year
-    const currentYear = now.getFullYear();
-    matchQuery.createdAt = {
-      $gte: new Date(currentYear, 0, 1),
-      $lte: new Date(currentYear, 11, 31, 23, 59, 59)
-    };
-
+    // Default Monthly
     const monthlyData = await Order.aggregate([
       { $match: matchQuery },
       {
@@ -168,6 +166,24 @@ export const getSalesChartData = async (filter = 'monthly', customStartDate = nu
   }
 
   return { labels, data, filter };
+};
+
+/**
+ * Get Sales Summary Metrics for specified filter (daily, weekly, monthly, yearly, custom).
+ * Uses the exact same date range as getSalesChartData.
+ */
+export const getSalesSummaryData = async (filter = 'monthly', customStartDate = null, customEndDate = null) => {
+  const { start, end } = getDashboardDateRange(filter, customStartDate, customEndDate);
+
+  const formatDateStr = (dateObj) => {
+    const y = dateObj.getFullYear();
+    const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const d = String(dateObj.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+
+  const reportData = await salesReportService.getSalesReportData('custom', formatDateStr(start), formatDateStr(end));
+  return reportData.summary;
 };
 
 /**

@@ -2,27 +2,32 @@ import * as dashboardService from '../../services/admin/dashboard.service.js';
 import * as salesReportService from '../../services/admin/salesReport.service.js';
 
 /**
- * Render Admin Dashboard Page with real visual chart datasets.
+ * Validate Custom Date Range inputs.
  */
 const validateDateInputs = (startDate, endDate) => {
-  const todayStr = new Date().toISOString().split('T')[0];
-  if (startDate && startDate > todayStr) {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  const todayStr = `${y}-${m}-${d}`;
+
+  if (!startDate || !endDate) {
+    throw new Error('Please select both start and end dates.');
+  }
+  if (startDate > todayStr || endDate > todayStr) {
     throw new Error('Future dates are not allowed.');
   }
-  if (endDate && endDate > todayStr) {
-    throw new Error('Future dates are not allowed.');
-  }
-  if (startDate && endDate && startDate > endDate) {
+  if (startDate > endDate) {
     throw new Error('Start Date must be before or equal to End Date.');
   }
 };
 
 /**
- * Render Admin Dashboard Page with real visual chart datasets.
+ * Render Admin Dashboard Page with real visual chart datasets and matching summary cards.
  */
 export const getAdminDashboard = async (req, res) => {
   try {
-    const chartFilter = req.query.chartFilter || 'monthly';
+    const chartFilter = req.query.chartFilter || req.query.filter || 'monthly';
     const startDate = req.query.startDate || null;
     const endDate = req.query.endDate || null;
 
@@ -30,11 +35,11 @@ export const getAdminDashboard = async (req, res) => {
       validateDateInputs(startDate, endDate);
     }
 
-    // 1. Overall Monthly Summary Metrics
-    const monthlyReport = await salesReportService.getSalesReportData('monthly');
-
-    // 2. Sales Line Chart Dataset (Daily/Weekly/Monthly/Yearly/Custom)
+    // 1. Sales Line Chart Dataset (Daily/Weekly/Monthly/Yearly/Custom)
     const salesChart = await dashboardService.getSalesChartData(chartFilter, startDate, endDate);
+
+    // 2. Filtered Summary Metrics for the exact same dataset
+    const summary = await dashboardService.getSalesSummaryData(chartFilter, startDate, endDate);
 
     // 3. Best Selling Products Bar Chart Dataset (Top 5)
     const topProductsBar = await dashboardService.getTop5ProductsBarChart();
@@ -51,7 +56,7 @@ export const getAdminDashboard = async (req, res) => {
       title: 'Admin Dashboard',
       layout: 'layouts/admin-layout',
       path: '/admin/dashboard',
-      summary: monthlyReport.summary,
+      summary,
       salesChart,
       topProductsBar,
       paymentChart,
@@ -77,7 +82,7 @@ export const getAdminDashboard = async (req, res) => {
 };
 
 /**
- * REST API for Live Sales Chart Filter AJAX Updates.
+ * REST API for Live Sales Chart & Summary Card Filter AJAX Updates.
  */
 export const getDashboardChartApi = async (req, res) => {
   try {
@@ -90,9 +95,12 @@ export const getDashboardChartApi = async (req, res) => {
     }
 
     const salesChart = await dashboardService.getSalesChartData(filter, startDate, endDate);
-    return res.status(200).json({ success: true, salesChart });
+    const summary = await dashboardService.getSalesSummaryData(filter, startDate, endDate);
+
+    return res.status(200).json({ success: true, salesChart, summary });
   } catch (error) {
     console.error('Error fetching sales chart API:', error);
     return res.status(400).json({ success: false, message: error.message || 'Failed to fetch sales chart data' });
   }
 };
+

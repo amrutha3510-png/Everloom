@@ -21,23 +21,27 @@
 <!-- 1. TOP: Existing Summary Cards -->
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 font-sans">
   <div class="bg-white p-6 border border-brand-gray-100 rounded-xl shadow-sm">
-    <span class="text-[10px] font-bold text-brand-gray-400 uppercase tracking-widest2 block mb-1">Monthly Net Revenue</span>
-    <h3 class="font-serif text-3xl font-bold text-brand-black">₹<%= summary.finalSalesAmount.toLocaleString('en-IN') %></h3>
+    <span id="cardLabelNetRevenue" class="text-[10px] font-bold text-brand-gray-400 uppercase tracking-widest2 block mb-1">
+      <%= salesChart.filter === 'daily' ? 'Daily Net Revenue' : (salesChart.filter === 'weekly' ? 'Weekly Net Revenue' : (salesChart.filter === 'yearly' ? 'Yearly Net Revenue' : (salesChart.filter === 'custom' ? 'Net Revenue' : 'Monthly Net Revenue'))) %>
+    </span>
+    <h3 id="summaryNetRevenue" class="font-serif text-3xl font-bold text-brand-black">₹<%= summary.finalSalesAmount.toLocaleString('en-IN') %></h3>
   </div>
 
   <div class="bg-white p-6 border border-brand-gray-100 rounded-xl shadow-sm">
-    <span class="text-[10px] font-bold text-brand-gray-400 uppercase tracking-widest2 block mb-1">Monthly Sales Count</span>
-    <h3 class="font-serif text-3xl font-bold text-brand-black"><%= summary.totalSalesCount %></h3>
+    <span id="cardLabelSalesCount" class="text-[10px] font-bold text-brand-gray-400 uppercase tracking-widest2 block mb-1">
+      <%= salesChart.filter === 'daily' ? 'Daily Sales Count' : (salesChart.filter === 'weekly' ? 'Weekly Sales Count' : (salesChart.filter === 'yearly' ? 'Yearly Sales Count' : (salesChart.filter === 'custom' ? 'Sales Count' : 'Monthly Sales Count'))) %>
+    </span>
+    <h3 id="summarySalesCount" class="font-serif text-3xl font-bold text-brand-black"><%= summary.totalSalesCount %></h3>
   </div>
 
   <div class="bg-white p-6 border border-brand-gray-100 rounded-xl shadow-sm">
-    <span class="text-[10px] font-bold text-brand-gray-400 uppercase tracking-widest2 block mb-1">Coupon Deductions</span>
-    <h3 class="font-serif text-3xl font-bold text-green-600">₹<%= summary.couponDeductions.toLocaleString('en-IN') %></h3>
+    <span id="cardLabelCouponDeductions" class="text-[10px] font-bold text-brand-gray-400 uppercase tracking-widest2 block mb-1">Coupon Deductions</span>
+    <h3 id="summaryCouponDeductions" class="font-serif text-3xl font-bold text-green-600">₹<%= summary.couponDeductions.toLocaleString('en-IN') %></h3>
   </div>
 
   <div class="bg-white p-6 border border-brand-gray-100 rounded-xl shadow-sm">
-    <span class="text-[10px] font-bold text-brand-gray-400 uppercase tracking-widest2 block mb-1">Gross Order Amount</span>
-    <h3 class="font-serif text-3xl font-bold text-brand-black">₹<%= summary.totalOrderAmount.toLocaleString('en-IN') %></h3>
+    <span id="cardLabelGrossAmount" class="text-[10px] font-bold text-brand-gray-400 uppercase tracking-widest2 block mb-1">Gross Order Amount</span>
+    <h3 id="summaryGrossAmount" class="font-serif text-3xl font-bold text-brand-black">₹<%= summary.totalOrderAmount.toLocaleString('en-IN') %></h3>
   </div>
 </div>
 
@@ -334,7 +338,12 @@
       alert('Please select both start and end dates.');
       return;
     }
-    const todayStr = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    const todayStr = `${y}-${m}-${d}`;
+
     if (start > todayStr || end > todayStr) {
       alert('Future dates are not allowed.');
       return;
@@ -356,11 +365,35 @@
       const res = await fetch(url);
       const data = await res.json();
 
-      if (res.ok && data.success && salesLineChartInstance) {
-        salesLineChartInstance.data.labels = data.salesChart.labels;
-        salesLineChartInstance.data.datasets[0].data = data.salesChart.data;
-        salesLineChartInstance.update();
-        checkSalesNoData(data.salesChart.data);
+      if (res.ok && data.success) {
+        // 1. Update Chart
+        if (salesLineChartInstance && data.salesChart) {
+          salesLineChartInstance.data.labels = data.salesChart.labels;
+          salesLineChartInstance.data.datasets[0].data = data.salesChart.data;
+          salesLineChartInstance.update();
+          checkSalesNoData(data.salesChart.data);
+        }
+
+        // 2. Update Summary Cards
+        if (data.summary) {
+          const netEl = document.getElementById('summaryNetRevenue');
+          const countEl = document.getElementById('summarySalesCount');
+          const couponEl = document.getElementById('summaryCouponDeductions');
+          const grossEl = document.getElementById('summaryGrossAmount');
+
+          if (netEl) netEl.textContent = '₹' + Number(data.summary.finalSalesAmount || 0).toLocaleString('en-IN');
+          if (countEl) countEl.textContent = Number(data.summary.totalSalesCount || 0).toLocaleString('en-IN');
+          if (couponEl) couponEl.textContent = '₹' + Number(data.summary.couponDeductions || 0).toLocaleString('en-IN');
+          if (grossEl) grossEl.textContent = '₹' + Number(data.summary.totalOrderAmount || 0).toLocaleString('en-IN');
+
+          const labelNetEl = document.getElementById('cardLabelNetRevenue');
+          const labelCountEl = document.getElementById('cardLabelSalesCount');
+          const prefix = filter === 'daily' ? 'Daily' : filter === 'weekly' ? 'Weekly' : filter === 'monthly' ? 'Monthly' : filter === 'yearly' ? 'Yearly' : '';
+          if (labelNetEl) labelNetEl.textContent = prefix ? `${prefix} Net Revenue` : 'Net Revenue';
+          if (labelCountEl) labelCountEl.textContent = prefix ? `${prefix} Sales Count` : 'Sales Count';
+        }
+      } else if (data && data.message) {
+        alert(data.message);
       }
     } catch (err) {
       console.error('AJAX chart update error:', err);
