@@ -462,7 +462,8 @@ export const createRazorpayOrder = async (req, res) => {
     const razorpayOrder = await razorpayInstance.orders.create(options);
 
     // Calculate backend stock reservation expiry timestamp (5 minutes from now)
-    const stockReservationExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
+    const serverNow = Date.now();
+    const stockReservationExpiresAt = new Date(serverNow + 5 * 60 * 1000);
 
     const order = new Order({
       user: userId,
@@ -516,6 +517,7 @@ export const createRazorpayOrder = async (req, res) => {
     delete req.session.appliedCoupon;
 
     const keyId = (process.env.RAZORPAY_KEY_ID || '').trim();
+    const remainingSeconds = Math.max(0, Math.floor((order.stockReservationExpiresAt.getTime() - serverNow) / 1000));
 
     return res.status(200).json({
       success: true,
@@ -525,7 +527,9 @@ export const createRazorpayOrder = async (req, res) => {
       currency: razorpayOrder.currency,
       addressId,
       orderId: order.orderId,
-      stockReservationExpiresAt: order.stockReservationExpiresAt
+      stockReservationExpiresAt: order.stockReservationExpiresAt,
+      serverTime: serverNow,
+      remainingSeconds
     });
   } catch (error) {
     console.error('Create Razorpay order error:', error);

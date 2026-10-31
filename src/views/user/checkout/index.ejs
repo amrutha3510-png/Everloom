@@ -440,9 +440,7 @@
       }
     }
 
-    function startPaymentFailedTimer(expiresAtIsoOrMs, orderId = null) {
-      if (!expiresAtIsoOrMs) return;
-      const expiresAtMs = new Date(expiresAtIsoOrMs).getTime();
+    function startPaymentFailedTimer(expiresAtIsoOrMs, orderId = null, initialRemaining = null, createdPerf = null) {
       const timerEl = document.getElementById('modal-reservation-timer');
       const textEl = document.getElementById('modal-reservation-remaining-text');
 
@@ -450,11 +448,23 @@
         clearInterval(activePaymentFailedTimerInterval);
       }
 
-      function updateModalTimer() {
-        const now = Date.now();
-        const diffMs = expiresAtMs - now;
+      // Calculate baseline remaining seconds immune to client-server clock drift
+      let baselineSeconds = 300;
+      if (typeof initialRemaining === 'number' && initialRemaining > 0) {
+        const elapsedSinceCreated = (typeof createdPerf === 'number') ? Math.floor((performance.now() - createdPerf) / 1000) : 0;
+        baselineSeconds = Math.max(0, initialRemaining - elapsedSinceCreated);
+      } else if (expiresAtIsoOrMs) {
+        const expiresAtMs = new Date(expiresAtIsoOrMs).getTime();
+        baselineSeconds = Math.max(0, Math.floor((expiresAtMs - Date.now()) / 1000));
+      }
 
-        if (diffMs <= 0) {
+      const timerStartPerf = performance.now();
+
+      function updateModalTimer() {
+        const elapsed = Math.floor((performance.now() - timerStartPerf) / 1000);
+        const remaining = Math.max(0, baselineSeconds - elapsed);
+
+        if (remaining <= 0) {
           if (timerEl) timerEl.textContent = '00:00';
           if (textEl) textEl.textContent = '00:00 remaining';
           clearInterval(activePaymentFailedTimerInterval);
@@ -468,9 +478,8 @@
           return;
         }
 
-        const totalSeconds = Math.floor(diffMs / 1000);
-        const minutes = Math.floor(totalSeconds / 60);
-        const seconds = totalSeconds % 60;
+        const minutes = Math.floor(remaining / 60);
+        const seconds = remaining % 60;
         const timeString = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
         if (timerEl) timerEl.textContent = timeString;
@@ -481,14 +490,12 @@
       activePaymentFailedTimerInterval = setInterval(updateModalTimer, 1000);
     }
 
-    function handlePaymentFailureOnCheckout(orderId, expiresAt) {
+    function handlePaymentFailureOnCheckout(orderId, expiresAt, remainingSeconds = null, createdPerf = null) {
       if (paymentFailureHandled) return;
       paymentFailureHandled = true;
 
       currentFailedOrderId = orderId;
-      if (expiresAt) {
-        startPaymentFailedTimer(expiresAt, orderId);
-      }
+      startPaymentFailedTimer(expiresAt, orderId, remainingSeconds, createdPerf);
       openPaymentFailedModal();
     }
 
@@ -1006,6 +1013,12 @@
         }
 
         let rzpInstance = null;
+        const orderCreatedPerf = performance.now();
+        const orderRemainingSeconds = (typeof data.remainingSeconds === 'number')
+          ? data.remainingSeconds
+          : (data.stockReservationExpiresAt && data.serverTime
+              ? Math.max(0, Math.floor((new Date(data.stockReservationExpiresAt).getTime() - Number(data.serverTime)) / 1000))
+              : 300);
 
         const options = {
           key: data.keyId,
@@ -1038,11 +1051,11 @@
                 }
                 window.location.href = `/checkout/success?orderId=${verifyData.orderId}`;
               } else {
-                handlePaymentFailureOnCheckout(data.orderId, data.stockReservationExpiresAt);
+                handlePaymentFailureOnCheckout(data.orderId, data.stockReservationExpiresAt, orderRemainingSeconds, orderCreatedPerf);
               }
             } catch (err) {
               console.error(err);
-              handlePaymentFailureOnCheckout(data.orderId, data.stockReservationExpiresAt);
+              handlePaymentFailureOnCheckout(data.orderId, data.stockReservationExpiresAt, orderRemainingSeconds, orderCreatedPerf);
             } finally {
               btn.disabled = false;
               btn.textContent = 'Proceed to Pay (Razorpay)';
@@ -1052,7 +1065,7 @@
             ondismiss: function () {
               // Only handle as failure if payment was not successfully handled and failure not yet triggered
               if (!paymentSuccessHandled && !paymentFailureHandled) {
-                handlePaymentFailureOnCheckout(data.orderId, data.stockReservationExpiresAt);
+                handlePaymentFailureOnCheckout(data.orderId, data.stockReservationExpiresAt, orderRemainingSeconds, orderCreatedPerf);
               }
               btn.disabled = false;
               btn.textContent = 'Proceed to Pay (Razorpay)';
@@ -1066,7 +1079,7 @@
           // Automatically close Razorpay UI immediately on failure and show failure modal
           forceCloseRazorpay(rzpInstance);
           if (!paymentSuccessHandled && !paymentFailureHandled) {
-            handlePaymentFailureOnCheckout(data.orderId, data.stockReservationExpiresAt);
+            handlePaymentFailureOnCheckout(data.orderId, data.stockReservationExpiresAt, orderRemainingSeconds, orderCreatedPerf);
           }
           btn.disabled = false;
           btn.textContent = 'Proceed to Pay (Razorpay)';

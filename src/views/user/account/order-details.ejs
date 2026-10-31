@@ -99,12 +99,16 @@
 
           <!-- Payment Failure & Stock Reservation Alert Card -->
           <% if (order.paymentStatus === 'Failed' || order.status === 'Payment Failed' || order.stockReservationStatus === 'ACTIVE' || order.stockReservationStatus === 'EXPIRED') { %>
-            <% if (order.stockReservationStatus === 'ACTIVE' && order.stockReservationExpiresAt && new Date(order.stockReservationExpiresAt) > new Date()) { 
-                 const initialDiff = Math.max(0, Math.floor((new Date(order.stockReservationExpiresAt).getTime() - Date.now()) / 1000));
-                 const initMin = String(Math.floor(initialDiff / 60)).padStart(2, '0');
-                 const initSec = String(initialDiff % 60).padStart(2, '0');
+            <% 
+                 const serverNow = Date.now();
+                 const expiresAtMs = (order && order.stockReservationExpiresAt) ? new Date(order.stockReservationExpiresAt).getTime() : 0;
+                 const serverDiff = Math.max(0, Math.floor((expiresAtMs - serverNow) / 1000));
+                 const isReservationActive = (order.stockReservationStatus === 'ACTIVE' && expiresAtMs > serverNow);
+                 const initMin = String(Math.floor(serverDiff / 60)).padStart(2, '0');
+                 const initSec = String(serverDiff % 60).padStart(2, '0');
                  const initialTimerStr = `${initMin}:${initSec}`;
             %>
+            <% if (isReservationActive) { %>
               <div class="bg-red-50 border border-red-200 p-6 rounded-md shadow-sm">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div class="flex items-start gap-3">
@@ -136,7 +140,7 @@
                   </div>
                 </div>
               </div>
-            <% } else if (order.stockReservationStatus === 'EXPIRED' || (order.stockReservationExpiresAt && new Date(order.stockReservationExpiresAt) <= new Date())) { %>
+            <% } else if (order.stockReservationStatus === 'EXPIRED' || (order.stockReservationExpiresAt && expiresAtMs <= serverNow)) { %>
               <div class="bg-amber-50 border border-amber-200 p-6 rounded-md shadow-sm">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div class="flex items-start gap-3">
@@ -1128,19 +1132,26 @@
   });
 
   // Stock Reservation Live Countdown Timer (Updates Order Details & Modal timers in real-time)
-  <% if (order.stockReservationExpiresAt && new Date(order.stockReservationExpiresAt) > new Date()) { %>
+  <% 
+    const scriptServerNow = Date.now();
+    const scriptExpiresMs = (order && order.stockReservationExpiresAt) ? new Date(order.stockReservationExpiresAt).getTime() : 0;
+    const initialRemainingSec = Math.max(0, Math.floor((scriptExpiresMs - scriptServerNow) / 1000));
+    const shouldRunTimer = (order.stockReservationStatus === 'ACTIVE' && scriptExpiresMs > scriptServerNow);
+  %>
+  <% if (shouldRunTimer) { %>
     (function initStockReservationTimer() {
-      const expiresAtMs = Number('<%= new Date(order.stockReservationExpiresAt).getTime() %>');
+      const initialRemaining = <%= initialRemainingSec %>;
+      const startPerf = performance.now();
       const pageTimerEl = document.getElementById('reservation-timer');
       const modalTimerEl = document.getElementById('modal-reservation-timer');
       const modalTextEl = document.getElementById('modal-reservation-remaining-text');
       let expiryRequestSent = false;
 
       function updateTimer() {
-        const now = Date.now();
-        const diffMs = expiresAtMs - now;
+        const elapsed = Math.floor((performance.now() - startPerf) / 1000);
+        const remaining = Math.max(0, initialRemaining - elapsed);
 
-        if (diffMs <= 0) {
+        if (remaining <= 0) {
           if (pageTimerEl) pageTimerEl.textContent = '00:00';
           if (modalTimerEl) modalTimerEl.textContent = '00:00';
           if (modalTextEl) modalTextEl.textContent = '00:00 remaining';
@@ -1166,9 +1177,8 @@
           return;
         }
 
-        const totalSeconds = Math.floor(diffMs / 1000);
-        const minutes = Math.floor(totalSeconds / 60);
-        const seconds = totalSeconds % 60;
+        const minutes = Math.floor(remaining / 60);
+        const seconds = remaining % 60;
         const formattedMinutes = String(minutes).padStart(2, '0');
         const formattedSeconds = String(seconds).padStart(2, '0');
         const timeString = `${formattedMinutes}:${formattedSeconds}`;

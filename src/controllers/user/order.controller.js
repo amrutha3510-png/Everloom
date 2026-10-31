@@ -494,6 +494,8 @@ export const retryPaymentHandler = async (req, res) => {
     }
 
     const keyId = (process.env.RAZORPAY_KEY_ID || '').trim();
+    const serverNow = Date.now();
+    const remainingSeconds = Math.max(0, Math.floor((new Date(order.stockReservationExpiresAt).getTime() - serverNow) / 1000));
 
     return res.status(200).json({
       success: true,
@@ -502,7 +504,9 @@ export const retryPaymentHandler = async (req, res) => {
       amount: amountInPaise,
       currency: 'INR',
       orderId: order.orderId,
-      stockReservationExpiresAt: order.stockReservationExpiresAt
+      stockReservationExpiresAt: order.stockReservationExpiresAt,
+      serverTime: serverNow,
+      remainingSeconds
     });
   } catch (error) {
     console.error('Retry payment controller error:', error);
