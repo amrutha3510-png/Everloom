@@ -8,7 +8,7 @@ const getTransporter = () => {
     service: process.env.EMAIL_SERVICE || 'gmail',
     auth: {
       user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS, // App Password
+      pass: process.env.EMAIL_PASS ? process.env.EMAIL_PASS.replace(/\s+/g, '') : '', // App Password
     },
   });
 };
@@ -57,14 +57,32 @@ export const sendOtp = async ({ email, purpose, isResend = false }) => {
   try {
     const transporter = getTransporter();
 
+    let subject = 'Your OTP for Everloom';
+    let title = 'Verify Your Email';
+    let message = 'Use the following One-Time Password (OTP) to proceed. This code is valid for 120 seconds (2 minutes).';
+
+    if (purpose === 'register') {
+      subject = 'Your OTP for Everloom Registration';
+      title = 'Verify Your Email';
+      message = 'Thank you for registering at Everloom. Use the following One-Time Password (OTP) to complete your registration. This code is valid for 120 seconds (2 minutes).';
+    } else if (purpose === 'email-change') {
+      subject = 'Your OTP to Change Email - Everloom';
+      title = 'Verify Email Change';
+      message = 'You have requested to change your email address on Everloom. Use the following One-Time Password (OTP) to verify this new email. This code is valid for 120 seconds (2 minutes).';
+    } else if (purpose === 'reset-password') {
+      subject = 'Password Reset OTP - Everloom';
+      title = 'Reset Your Password';
+      message = 'You have requested to reset your password on Everloom. Use the following One-Time Password (OTP) to reset your password. This code is valid for 120 seconds (2 minutes).';
+    }
+
     const mailOptions = {
       from: `"Everloom Support" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: `Your OTP for Everloom Registration`,
+      subject,
       html: `
         <div style="font-family: sans-serif; padding: 20px; max-width: 500px; margin: auto; border: 1px solid #eee; border-radius: 5px;">
-          <h2 style="color: #111; text-align: center;">Verify Your Email</h2>
-          <p>Thank you for registering at Everloom. Use the following One-Time Password (OTP) to complete your registration. This code is valid for 120 seconds (2 minutes).</p>
+          <h2 style="color: #111; text-align: center;">${title}</h2>
+          <p>${message}</p>
           <div style="font-size: 28px; font-weight: bold; background: #f9f9f9; padding: 15px; text-align: center; letter-spacing: 4px; color: #111; border: 1px dashed #ccc; margin: 20px 0;">
             ${otpCode}
           </div>

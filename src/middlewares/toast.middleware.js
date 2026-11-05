@@ -28,12 +28,14 @@ export const toastFlash = (req, res, next) => {
 
     // Expose user session to all views (used by navbar and other partials)
     res.locals.currentUser = req.session.user || null;
+    res.locals.user = req.session.user || null;
   } else {
     res.locals.toastMessage = null;
     res.locals.toastType = null;
     res.locals.oldData = {};
     res.locals.formErrors = {};
     res.locals.currentUser = null;
+    res.locals.user = null;
   }
   next();
 };
