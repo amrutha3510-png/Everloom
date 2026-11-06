@@ -72,13 +72,13 @@
                   <div class="sm:col-span-2 flex items-center justify-between sm:justify-center w-full sm:w-auto mt-2 sm:mt-0">
                     <span class="sm:hidden font-sans text-sm text-brand-gray-500">Qty:</span>
                     
-                    <% if (item.isUnavailable || item.isOutOfStock) { %>
+                    <% if (item.isUnavailable) { %>
                       <span class="text-brand-gray-400 font-sans text-sm font-medium">N/A</span>
                     <% } else { %>
                       <div class="flex items-center border border-brand-gray-200 h-10 w-28 bg-white">
                         <button type="button" id="btn-dec-<%= item._id %>" onclick="updateQty('<%= item._id %>', 'decrement')" class="flex-1 h-full flex items-center justify-center text-brand-gray-600 hover:bg-brand-gray-50 transition-colors <%= item.quantity <= 1 ? 'opacity-50 cursor-not-allowed' : '' %>" <%= item.quantity <= 1 ? 'disabled' : '' %>>-</button>
                         <input type="text" id="qty-input-<%= item._id %>" value="<%= item.quantity %>" class="w-10 h-full text-center font-sans text-brand-black focus:outline-none appearance-none border-x border-brand-gray-200 bg-transparent text-sm pointer-events-none" readonly>
-                        <button type="button" id="btn-inc-<%= item._id %>" onclick="updateQty('<%= item._id %>', 'increment')" class="flex-1 h-full flex items-center justify-center text-brand-gray-600 hover:bg-brand-gray-50 transition-colors <%= item.quantity >= 5 || item.quantity >= item.stock ? 'opacity-50 cursor-not-allowed' : '' %>" <%= item.quantity >= 5 || item.quantity >= item.stock ? 'disabled' : '' %>>+</button>
+                        <button type="button" id="btn-inc-<%= item._id %>" onclick="updateQty('<%= item._id %>', 'increment')" class="flex-1 h-full flex items-center justify-center text-brand-gray-600 hover:bg-brand-gray-50 transition-colors">+</button>
                       </div>
                     <% } %>
                   </div>
@@ -171,7 +171,12 @@
 </main>
 
 <script>
+  const updatingItems = {};
+
   async function updateQty(itemId, action) {
+    if (updatingItems[itemId]) return;
+    updatingItems[itemId] = true;
+
     try {
       const res = await fetch(`/cart/update/${itemId}`, {
         method: 'PATCH',
@@ -191,7 +196,6 @@
           const qtyInput = document.getElementById(`qty-input-${itemId}`);
           const itemTotalSpan = document.getElementById(`item-total-${itemId}`);
           const btnDec = document.getElementById(`btn-dec-${itemId}`);
-          const btnInc = document.getElementById(`btn-inc-${itemId}`);
 
           if (qtyInput) qtyInput.value = data.item.quantity;
           if (itemTotalSpan && typeof data.item.itemTotal !== 'undefined') {
@@ -207,16 +211,6 @@
               btnDec.classList.remove('opacity-50', 'cursor-not-allowed');
             }
           }
-
-          if (btnInc) {
-            if (data.item.quantity >= 5 || (data.item.stock && data.item.quantity >= data.item.stock)) {
-              btnInc.disabled = true;
-              btnInc.classList.add('opacity-50', 'cursor-not-allowed');
-            } else {
-              btnInc.disabled = false;
-              btnInc.classList.remove('opacity-50', 'cursor-not-allowed');
-            }
-          }
         }
 
         // Update Order Summary subtotal & total
@@ -227,11 +221,15 @@
           if (totalEl) totalEl.textContent = `₹${data.cartTotal}`;
         }
       } else {
-        if (typeof showFlash === 'function') showFlash('error', data.message || 'Failed to update quantity');
+        if (typeof showFlash === 'function') {
+          showFlash('error', data.message || 'Failed to update quantity');
+        }
       }
     } catch (error) {
       console.error(error);
       if (typeof showFlash === 'function') showFlash('error', 'Network error occurred');
+    } finally {
+      updatingItems[itemId] = false;
     }
   }
 

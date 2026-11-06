@@ -106,7 +106,11 @@ export const addToCart = async (userId, productId, variantSize, variantColor, qu
 
   const variantStock = Number(variant.stock) || 0;
   if (variantStock <= 0) {
-    throw new Error('This item is out of stock');
+    throw new Error('This product is currently out of stock.');
+  }
+
+  if (parsedQty > variantStock) {
+    throw new Error(`Only ${variantStock} items are available in stock.`);
   }
 
   let cart = await Cart.findOne({ user: userId });
@@ -123,19 +127,15 @@ export const addToCart = async (userId, productId, variantSize, variantColor, qu
   });
 
   const existingQuantity = existingItemIndex > -1 ? cart.items[existingItemIndex].quantity : 0;
-  
-  const newQuantity = existingQuantity + parsedQty;
 
-  if (existingQuantity >= variantStock) {
-    throw new Error(`Item is already in your cart with the maximum available stock (${variantStock})`);
+  if (existingQuantity + parsedQty > variantStock) {
+    throw new Error(`Only ${variantStock} items are available in stock.`);
   }
+
+  const newQuantity = existingQuantity + parsedQty;
 
   if (newQuantity > MAX_QTY) {
     throw new Error(`Maximum ${MAX_QTY} quantity allowed per item`);
-  }
-
-  if (newQuantity > variantStock) {
-    throw new Error(`Only ${variantStock} available in stock. You already have ${existingQuantity} in your cart.`);
   }
 
   if (existingItemIndex > -1) {
@@ -174,13 +174,31 @@ export const updateQuantity = async (userId, itemId, action) => {
   const variant = product.variants.find(v => v.size === item.variant.size && v.color === item.variant.color);
   if (!variant) throw new Error('Variant not found');
 
+  const variantStock = Number(variant.stock) || 0;
+
   if (action === 'increment') {
+    if (variantStock <= 0) {
+      throw new Error('This product is currently out of stock.');
+    }
+
+    if (item.quantity >= variantStock) {
+      throw new Error(`Stock is not available. Only ${variantStock} items are available for this product.`);
+    }
+
     const newQty = item.quantity + 1;
-    if (newQty > MAX_QTY) throw new Error(`Maximum ${MAX_QTY} allowed`);
-    if (newQty > variant.stock) throw new Error('Not enough stock available');
+    if (newQty > MAX_QTY) {
+      throw new Error(`Maximum ${MAX_QTY} allowed`);
+    }
+
+    if (newQty > variantStock) {
+      throw new Error(`Stock is not available. Only ${variantStock} items are available for this product.`);
+    }
+
     item.quantity = newQty;
   } else if (action === 'decrement') {
-    if (item.quantity > 1) {
+    if (item.quantity > variantStock && variantStock > 0) {
+      item.quantity = Math.max(1, variantStock - 1);
+    } else if (item.quantity > 1) {
       item.quantity -= 1;
     } else {
       throw new Error('Minimum quantity is 1');
